@@ -1,0 +1,27 @@
+environment:
+  debug: True
+  root_path: "~/Git/drought-ews/backend"
+
+database:
+  url: "http://127.0.0.1:9000/?ns=drought-ews"
+  token_file_path: ""
+
+storage:
+  url: "drought-ews.appspot.com"
+  token_file_path: ""
+
+logger:
+  log_file_location: "backend.log"
+  log_format: "[%(asctime)s] | %(levelname)s - %(module)s.%(funcName)s[%(lineno)d]: %(message)s"
+  log_date_format: "%Y-%m-%d %H:%M:%S"
+  log_level: "DEBUG"
+
+file:
+  extracted:
+    save_location: "~/Git/drought-ews/backend/tmp/files/extracted"
+  zip:
+    save_location: "~/Git/drought-ews/backend/tmp/files/zip"
+  images:
+    save_location: "~/Git/drought-ews/backend/tmp/files/images"
+  other:
+    save_location: "~/Git/drought-ews/backend/tmp/files/other"
