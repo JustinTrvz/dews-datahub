@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "150129697560",
+    "firebase_url": "https://harvest-vision-monitor-default-rtdb.europe-west1.firebasedatabase.app",
+    "project_id": "harvest-vision-monitor",
+    "storage_bucket": "harvest-vision-monitor.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:150129697560:android:e1e9e47a21b3343e71746d",
+        "android_client_info": {
+          "package_name": "com.example.gui"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA0E8DCHBMEyc5YRwAz-cszlm8Ec0TXoQA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

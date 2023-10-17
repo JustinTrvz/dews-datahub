@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>API_KEY</key>
+	<string>AIzaSyCDb0pN08ecyu6Rqwk-GEZgajlKEWIvutY</string>
+	<key>GCM_SENDER_ID</key>
+	<string>150129697560</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.example.gui.RunnerTests</string>
+	<key>PROJECT_ID</key>
+	<string>harvest-vision-monitor</string>
+	<key>STORAGE_BUCKET</key>
+	<string>harvest-vision-monitor.appspot.com</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:150129697560:ios:a20bcf21a2b5e1d171746d</string>
+	<key>DATABASE_URL</key>
+	<string>https://harvest-vision-monitor-default-rtdb.europe-west1.firebasedatabase.app</string>
+</dict>
+</plist>
