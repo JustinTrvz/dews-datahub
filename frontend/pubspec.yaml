@@ -42,7 +42,7 @@ dependencies:
   chunked_uploader: ^1.1.0
   dio: ^5.3.2
   firebase_storage: ^11.2.7
-  firebase_core: ^2.16.0
+  firebase_core: ^2.19.0
 
 dev_dependencies:
   flutter_test:

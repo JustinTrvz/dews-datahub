@@ -1,33 +1,17 @@
-# Flutter Makefile
-
+# - - - Frontend - - -
 # Set the location of your Flutter SDK.
 FLUTTER_SDK_PATH := ~/snap/flutter/common/flutter
 # Define Flutter commands.
 FLUTTER := $(FLUTTER_SDK_PATH)/bin/flutter
-# Define default target.
-.DEFAULT_GOAL := help
 
-help:
-	@echo "Available targets:"
-	@echo "  init        : Initialize the Flutter project."
-	@echo "  build       : Build the Flutter project."
-	@echo "  run         : Run the Flutter project."
-	@echo "  clean       : Clean build artifacts."
-
-init:
-	@echo "Initializing Flutter project..."
-	$(FLUTTER) create .
-
-build:
+build-linux:
 	@echo "Building Flutter project..."
-	$(FLUTTER) build
+	cd frontend && $(FLUTTER) build linux
+
+build-web:
+	@echo "Building Flutter project..."
+	cd frontend && $(FLUTTER) build web
 
 run:
 	@echo "Running Flutter project..."
-	$(FLUTTER) run
-
-clean:
-	@echo "Cleaning Flutter project..."
-	$(FLUTTER) clean
-
-.PHONY: help init build run clean
+	cd frontend && $(FLUTTER) run
