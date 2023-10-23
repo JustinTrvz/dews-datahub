@@ -4,34 +4,43 @@ import logging
 
 import xmltodict
 import uuid
+from backend.data.database.firebase import FirebaseDatabase, FirebaseStorage
+from backend.data.models.satellite_data.satellite_types import SatelliteTypes
 
-from backend.statistics.utils.file_utils import FileUtils
-from backend.statistics.metrics_calculator import MetricsCalculator
-from backend.config import *
+from statistics.utils.file_utils import FileUtils
+from statistics.metrics_calculator import MetricsCalculator
+from config import *
 
 """
 Satellite image data object specialized for S2B MSIL2A (Sentinel-2B) satellite image data.
 """
+class ImageTypes:
+    '''Image types for every index (e.g. NDVI) used and additionally the RGB image.'''
+    RGB = "rgb"
+    NDVI = "ndvi"
+    WATER = "water"
+    NDWI = "ndwi"
 
 class Sentinel2BData:
     # Basic capture information
     ID = ""
-    OWNER_ID = ""
+    USER_ID = ""
     AREA_NAME = ""
     CITY = ""
     COUNTRY = ""
     POSTAL_CODE = 0
-    IMG_URL = ""
+    RGB_IMG_PATH_LOCAL = ""
+    RGB_IMG_PATH_STORAGE = ""
 
     # Basic file information
-    METADATA_FILE_NAME = "MTD_MSIL2A.xml"
-    INSPIRE_FILE_NAME = "INSPIRE.xml"
-    IMAGE_FILE_EXTENSION = ".jp2"
+    METADATA_FILE_NAME = ""
+    INSPIRE_FILE_NAME = ""
     ROOT_PATH = ""
-    ZIP_PATH = ""
+    DIRECTORY_PATH_LOCAL = ""
+    DIRECTORY_PATH_STORAGE = ""
     GRANULE_PATH = ""
-    DIRECTORY_NAME = ""
-    IDX_IMG_SAVE_LOCATION = ""
+    IMG_SAVE_PATH_LOCAL = ""
+    IMG_SAVE_PATH_STORAGE = ""
     FILE_SAVE_LOCATION = ""
 
     # Information about captured satellite image
@@ -46,11 +55,13 @@ class Sentinel2BData:
     # Calculated indexes
     # NDVI
     NDVI = -1.0
-    NDVI_IMG_PATH = ""
+    NDVI_IMG_PATH_LOCAL = ""
+    NDVI_IMG_PATH_STORAGE = ""
     NDVI_CALC_TIME = None
     # WATER INDEX
     WATER = -1.0
-    WATER_IMG_PATH = ""
+    WATER_IMG_PATH_LOCAL = ""
+    WATER_IMG_PATH_STORAGE = ""
     WATER_CALC_TIME = None
 
     # Geographic bounding box
@@ -114,14 +125,14 @@ class Sentinel2BData:
         "R60m_WVP": None,
     }
 
-    def __init__(self, zip_file_path: str, owner_id: str = "Unknown", img_save_location: str = "",
+    def __init__(self, directory_path_local: str, user_id: str = "Unknown", img_save_location: str = "",
                  file_save_location: str = "", area_name: str = "Unknown", country: str = "Unknown",
                  city: str = "Unknown", postal_code: int = 0, calculate: bool = True):
         """
         A satellite image data object contains information about the capturing, indexes, image files and many more.
 
-        :param zip_file_path: File path to the zip file.
-        :param owner_id: ID of the owner of the area of the satellite image.
+        :param directory_path: File path to the directory (e.g. extracted files from zip).
+        :param user_id: ID of the owner of the area of the satellite image.
         :param img_save_location: Location where the index images should be stored.
         :param area_name: Name of the area.
         :param country: Country name of the area.
@@ -130,35 +141,40 @@ class Sentinel2BData:
         """
         # Basic information
         self.ID = str(uuid.uuid4())  # Creates and sets ID
-        self.OWNER_ID = owner_id  # set owner ID
+        self.USER_ID = user_id  # set user/owner ID
         # Location information
         self.AREA_NAME = area_name
         self.COUNTRY = country
         self.CITY = city
         self.POSTAL_CODE = postal_code
-        # Zip file
-        self.ZIP_PATH = zip_file_path  # Set ZIP_PATH
-        self.__set_directory_name(zip_file_path)  # Set directory name by extraction from zip path
+        # Directory path
+        self.DIRECTORY_PATH_LOCAL = directory_path_local
+        # Other information
+        self.METADATA_FILE_NAME = FileUtils.generate_path(self.DIRECTORY_PATH_LOCAL, S2B_METADATA_FILE_NAME)
+        self.INSPIRE_FILE_NAME = FileUtils.generate_path(self.DIRECTORY_PATH_LOCAL, S2B_INSPIRE_FILE_NAME)
+        # Set directory name by extraction from zip path
+        self.__set_directory_name(directory_path_local)
 
         # Check if naming convention is met
-        if self.DIRECTORY_NAME.count("_") != 6:
+        if self.DIRECTORY_PATH_LOCAL.count("_") != 6:
             logging.error(
-                f"Directory name contains character '/' only {self.DIRECTORY_NAME.count('_')} times, but needs to have ")
+                f"Directory name contains character '/' only {self.DIRECTORY_PATH_LOCAL.count('_')} times, but needs to have ")
             logging.error(
-                f"Directory name does not meet naming convention requirements. DIRECTORY_NAME='{self.DIRECTORY_NAME}'"
+                f"Directory name does not meet naming convention requirements. DIRECTORY_NAME='{self.DIRECTORY_PATH_LOCAL}'"
                 "See https://sentinels.copernicus.eu/web/sentinel/user-guides/sentinel-2-msi/naming"
                 "-convention for more information.")
             return  # exit program
 
         # Set basic information
-        self.__set_root_path(zip_file_path)  # Parses and sets root path
-        self.__set_satellite_img_information()  # Gets information about captured satellite image
+        self.__set_root_path(directory_path_local)  # Parses and sets root path
+        # Gets information about captured satellite image
+        self.__set_satellite_img_information()
 
         # Set save locations
         if len(img_save_location) > 0:
-            self.IDX_IMG_SAVE_LOCATION = img_save_location
+            self.IMG_SAVE_PATH_LOCAL = img_save_location
         else:
-            self.IDX_IMG_SAVE_LOCATION = IMAGES_FILES_PATH
+            self.IMG_SAVE_PATH_LOCAL = IMAGES_FILES_PATH
 
         if len(file_save_location) > 0:
             self.FILE_SAVE_LOCATION = file_save_location
@@ -168,23 +184,70 @@ class Sentinel2BData:
         # Object can be created without calculation. Be aware: no images can be shown!
         if calculate:
             # Create RGB-image
-            self.create_rgb_img()
+            self.RGB_IMG_PATH_LOCAL = self.create_rgb_img()
             # Calculate indexes
-            self.calculate_ndvi()
-            self.calculate_water_content()
+            self.NDVI_IMG_PATH_LOCAL = self.calculate_ndvi()
+            self.WATER_IMG_PATH_LOCAL = self.calculate_water_content()
 
         # Set coordinates
         self.set_coordinates()
 
         # Check if everything is set correctly
-        self.is_valid()
+        valid = self.is_valid()
+        if valid >= 1:
+            ok = self.upload()
+            if ok <= 0:
+                logging.error(f"Failed to upload data and files of satellite image data object. error='{ok}', id='{self.ID}'")
+        else:
+            logging.error(f"Satellite image data object is not valid! error='{valid}', id='{self.ID}'")
+            
+    def upload(self) -> int:
+        # Upload files
+        self.RGB_IMG_PATH_STORAGE = self.upload_image(ImageTypes.RGB) # RGB
+        self.NDVI_IMG_PATH_STORAGE = self.upload_image(ImageTypes.NDVI) # NDVI
+        self.WATER_IMG_PATH_STORAGE = self.upload_image(ImageTypes.WATER) # Water content
+        logging.debug(f"Upload to storage complete. id='{self.ID}'")
+
+        # Write to database
+        db_ref = os.path.join("sid", SatelliteTypes.SENTINEL_2B.lower(), self.ID)
+        self.DIRECTORY_PATH_STORAGE = db_ref
+        self.IMG_SAVE_PATH_STORAGE = os.path.join(db_ref, "images")
+
+        data_dict = self.to_dict()
+        ok = FirebaseDatabase.set_entry(db_ref, data_dict)
+        if ok <= 0:
+            logging.error(f"Failed to set entry for satellte image data object in database. error='{ok}', id='{self.ID}', db_ref='{db_ref}'")
+            return -1
+
+        logging.debug(f"Write to database complete. id='{self.ID}', db_ref='{db_ref}'")
+        return 1
+
+    def upload_image(self, img_type: str):
+        '''
+        Uploads generated (index) image to storage.
+
+        Use ImageTypes' constants as input for `img_type`. For example `upload_image(ImageTypes.NDVI, "test/image.png")`.
+        '''
+        if img_type == ImageTypes.RGB:
+            local_path = self.RGB_IMG_PATH_LOCAL
+        elif img_type == ImageTypes.NDVI:
+            local_path = self.NDVI_IMG_PATH_LOCAL
+        elif img_type == ImageTypes.WATER:
+            local_path = self.WATER_IMG_PATH_LOCAL
+
+        directory_path = os.path.join("sid",  SatelliteTypes.SENTINEL_2B.lower(), self.ID, "images", img_type)
+        storage_path = FirebaseStorage.upload_file(directory_path, local_path)
+        logging.debug(f"Uploaded {img_type} image to storage. id='{self.ID}', directory_path='{directory_path}', {img_type}_img_path_local='{local_path}'")
+        
+        return storage_path
 
     def __set_directory_name(self, zip_path: str):
         """
         Extracts directory name from zip path.
         """
-        self.DIRECTORY_NAME = zip_path[zip_path.rfind("/"):]
-        logging.debug(f"Directory name has been set. DIRECTORY_NAME='{self.DIRECTORY_NAME}'.")
+        self.DIRECTORY_PATH_LOCAL = zip_path[zip_path.rfind("/"):]
+        logging.debug(
+            f"Directory name has been set. DIRECTORY_NAME='{self.DIRECTORY_PATH_LOCAL}'.")
 
     def __set_root_path(self, zip_path: str):
         """
@@ -194,43 +257,53 @@ class Sentinel2BData:
         self.ROOT_PATH = FileUtils.unzip(zip_path, EXTRACTED_FILES_PATH)
         if self.ROOT_PATH == "":
             logging.error(
-                f"Zip file has not been unzipped due to an error. ZIP_PATH='{self.ZIP_PATH}', ROOT_PATH='{self.ROOT_PATH}'")
+                f"Zip file has not been unzipped due to an error. ZIP_PATH='{self.DIRECTORY_PATH_LOCAL}', ROOT_PATH='{self.ROOT_PATH}'")
             return
-        logging.debug(f"Zip has been unzipped. ZIP_PATH='{self.ZIP_PATH}'.")
+        logging.debug(
+            f"Zip has been unzipped. ZIP_PATH='{self.DIRECTORY_PATH_LOCAL}'.")
         sub_dir = self.ROOT_PATH[self.ROOT_PATH.rfind("/") + 1:] + ".SAFE"
         # 'sub_dir' contains subdirectory with ".SAFE" extension
         self.ROOT_PATH = self.ROOT_PATH + "/" + sub_dir
         logging.debug(f"Root path has been set. ROOT_PATH='{self.ROOT_PATH}'.")
 
-    def read_metadata_xml(self, filename="MTD_MSIL2A.xml"):
+    def read_metadata_xml(self, metadata_path: str):
         """
         Reads XML file which contains metadata about satellite images and returns a dictionary with all parsed information.
         """
-
-        metadata_path = self.ROOT_PATH + "/" + filename
         metadata_file = open(metadata_path, "r")
         metadata_dict = xmltodict.parse(metadata_file.read())
         metadata_file.close()
 
         if metadata_dict is False:
-            logging.error(f"Could not read metadata file. filename='{filename}', metadata_path='{metadata_path}'!")
+            logging.error(
+                f"Could not read metadata file. metadata_path='{metadata_path}'")
         else:
             logging.debug(
-                f"Reading metadata file has been read successfully. filename='{filename}', metadata_path='{metadata_path}'")
+                f"Reading metadata file has been read successfully. metadata_path='{metadata_path}'")
 
         return metadata_dict
 
     def set_basic_granule_path(self, img_data_path: str):
         split_img_data_path = img_data_path.split("/")
-        subdir = split_img_data_path[
-            -4]  # e.g. [... , 'L2A_T32UNE_A033353_20230726T103642', 'IMG_DATA', 'R20m', 'T32UNE_20230726T103629_AOT_20m.jp2']]
-        self.GRANULE_PATH = self.ROOT_PATH + "/" + "GRANULE" + "/" + subdir
-        logging.debug(f"Set granule path. id='{self.ID}', GRANULE_PATH='{self.GRANULE_PATH}'.")
+        subdir = split_img_data_path[-4]
+        # e.g. [... , 'L2A_T32UNE_A033353_20230726T103642', 'IMG_DATA', 'R20m', 'T32UNE_20230726T103629_AOT_20m.jp2']]
+        # self.GRANULE_PATH = self.ROOT_PATH + "/" + "GRANULE" + "/" + subdir
+        self.GRANULE_PATH = os.path.join(
+            self.DIRECTORY_PATH_LOCAL, "GRANULE", subdir)
+        logging.debug(
+            f"Set granule path. id='{self.ID}', GRANULE_PATH='{self.GRANULE_PATH}'.")
 
     def set_granule_img_data_paths(self, granule_img_data_paths):
         """
         Sets all path to the granule image data directories for the range 10m, 20m and 60m.
         """
+
+        variable_mapping = {
+            "10m": self.r10m_vars,
+            "20m": self.r20m_vars,
+            "60m": self.r60m_vars,
+        }
+
         for img_data_path in granule_img_data_paths:
             range_meters = img_data_path[-3:]  # "...B02_10m" -> "10m"
             frequency_band = img_data_path[-7:-4]  # "...B02_10m" -> "B02"
@@ -238,21 +311,15 @@ class Sentinel2BData:
             if self.GRANULE_PATH == "":
                 self.set_basic_granule_path(img_data_path)
 
-            if range_meters == "10m":
-                self.r10m_vars[
-                    f"R{range_meters}_{frequency_band}"] = self.ROOT_PATH + "/" + img_data_path + self.IMAGE_FILE_EXTENSION
-            elif range_meters == "20m":
-                self.r20m_vars[
-                    f"R{range_meters}_{frequency_band}"] = self.ROOT_PATH + "/" + img_data_path + self.IMAGE_FILE_EXTENSION
-            elif range_meters == "60m":
-                self.r60m_vars[
-                    f"R{range_meters}_{frequency_band}"] = self.ROOT_PATH + "/" + img_data_path + self.IMAGE_FILE_EXTENSION
+            path = FileUtils.generate_path(EXTRACTED_FILES_PATH, SatelliteTypes.SENTINEL_2B.lower(), self.DIRECTORY_PATH_LOCAL, img_data_path + S2B_IMG_FILE_EXTENSION)
+            if range_meters in variable_mapping:
+                variable_mapping[range_meters][f"R{range_meters}_{frequency_band}"] = path
 
     def __set_satellite_img_information(self):
         """
         Gets and sets information read from a metadata XML file.
         """
-        metadata_dict = self.read_metadata_xml()  # reading metadata XML file "MTD_MSIL2A.xml"
+        metadata_dict = self.read_metadata_xml(self.METADATA_FILE_NAME)  # reading metadata XML file "MTD_MSIL2A.xml"
 
         # get and set paths to satellite image data
         granule_img_data_paths = \
@@ -283,15 +350,19 @@ class Sentinel2BData:
         """
         Parses coordinates from metadata file and set coordinates variables of this class.
         """
-        inspire_dict = self.read_metadata_xml(filename="INSPIRE.xml")
+        inspire_dict = self.read_metadata_xml(self.INSPIRE_FILE_NAME)
         geograpic_bounding_box = \
             inspire_dict["gmd:MD_Metadata"]["gmd:identificationInfo"]["gmd:MD_DataIdentification"]["gmd:extent"][
                 "gmd:EX_Extent"]["gmd:geographicElement"]["gmd:EX_GeographicBoundingBox"]
 
-        self.NORTH_BOUND_LATITUDE = float(geograpic_bounding_box["gmd:northBoundLatitude"]["gco:Decimal"])
-        self.EAST_BOUND_LONGITUDE = float(geograpic_bounding_box["gmd:eastBoundLongitude"]["gco:Decimal"])
-        self.SOUTH_BOUND_LATITUDE = float(geograpic_bounding_box["gmd:southBoundLatitude"]["gco:Decimal"])
-        self.WEST_BOUND_LONGITUDE = float(geograpic_bounding_box["gmd:westBoundLongitude"]["gco:Decimal"])
+        self.NORTH_BOUND_LATITUDE = float(
+            geograpic_bounding_box["gmd:northBoundLatitude"]["gco:Decimal"])
+        self.EAST_BOUND_LONGITUDE = float(
+            geograpic_bounding_box["gmd:eastBoundLongitude"]["gco:Decimal"])
+        self.SOUTH_BOUND_LATITUDE = float(
+            geograpic_bounding_box["gmd:southBoundLatitude"]["gco:Decimal"])
+        self.WEST_BOUND_LONGITUDE = float(
+            geograpic_bounding_box["gmd:westBoundLongitude"]["gco:Decimal"])
 
         self.geographic_bounding_box["north"] = self.NORTH_BOUND_LATITUDE
         self.geographic_bounding_box["east"] = self.EAST_BOUND_LONGITUDE
@@ -307,13 +378,15 @@ class Sentinel2BData:
         ok_coordinates = self.__check_coordinates()
 
         if ok_coordinates != 1:
-            logging.error(f"Error occured while checking coordinates! error={ok_coordinates}, id='{self.ID}'")
+            logging.error(
+                f"Error occured while checking coordinates! error={ok_coordinates}, id='{self.ID}'")
         else:
             logging.debug(f"Coordinates are complete. id='{self.ID}'")
 
         ok_paths = self.__check_for_empty_paths()
         if ok_paths != 1:
-            logging.error(f"Error occured while checking paths! error={ok_paths}, id='{self.ID}'")
+            logging.error(
+                f"Error occured while checking paths! error={ok_paths}, id='{self.ID}'")
             if ok_coordinates != 1:
                 return -1  # TODO: error code
             else:
@@ -325,7 +398,8 @@ class Sentinel2BData:
     def __check_coordinates(self) -> int:
         if (self.NORTH_BOUND_LATITUDE == -1.0) and (self.EAST_BOUND_LONGITUDE == -1.0) and (
                 self.SOUTH_BOUND_LATITUDE == -1.0) and (self.WEST_BOUND_LONGITUDE == -1.0):
-            logging.error(f"Coordinates have not been set correctly! id='{self.ID}'")
+            logging.error(
+                f"Coordinates have not been set correctly! id='{self.ID}'")
             return -1  # TODO: error code
 
         if self.NORTH_BOUND_LATITUDE == -1.0:
@@ -351,109 +425,101 @@ class Sentinel2BData:
          Checks if any needed path to a satellite image file is missing.
          """
 
-        all_variables = self.r10m_vars | self.r20m_vars | self.r60m_vars  # merge all dictionaries
+        # merge all dictionaries
+        all_variables = self.r10m_vars | self.r20m_vars | self.r60m_vars
 
         missing_value = False
         for key in all_variables:
             if (all_variables[key] is None) or (all_variables[key] == ""):
                 missing_value = True
-                logging.warning(f"Attribute has no value. id='{self.ID}', key='{key}'")
+                logging.warning(
+                    f"Attribute has no value. id='{self.ID}', key='{key}'")
 
         if missing_value is False:
-            logging.debug(f"All attributes for range 10m, 20m and 60m are complete. id='{self.ID}'")
+            logging.debug(
+                f"All attributes for range 10m, 20m and 60m are complete. id='{self.ID}'")
             return 1
         else:
             return -1  # TODO: error code
 
-    def create_rgb_img(self):
-        if len(self.IDX_IMG_SAVE_LOCATION) == 0:
-            self.IDX_IMG_SAVE_LOCATION = IMAGES_FILES_PATH
-
-        self.IMG_URL = MetricsCalculator.create_rgb_img(
+    def create_rgb_img(self) -> str:
+        rgb_img_path = MetricsCalculator.create_rgb_img(
             sid_id=self.ID,
             red_band_04=self.r20m_vars["R20m_B04"],
             green_band_03=self.r20m_vars["R20m_B03"],
             blue_band_02=self.r20m_vars["R20m_B02"],
-            save_location=self.IDX_IMG_SAVE_LOCATION,
+            save_location=IMAGES_FILES_PATH,
         )
-        logging.debug(f"Merged red, green and blue bands and created image. IMG_PATH='{self.IMG_URL}'")
+        logging.debug(
+            f"Merged red, green and blue bands and created image. rgb_img_path='{rgb_img_path}'")
+        
+        return rgb_img_path
 
     def calculate_ndvi(self):
-        if len(self.IDX_IMG_SAVE_LOCATION) == 0:
-            self.IDX_IMG_SAVE_LOCATION = IMAGES_FILES_PATH
-
-        self.NDVI_IMG_PATH = MetricsCalculator.calculate_ndvi(
+        ndvi_img_path = MetricsCalculator.calculate_ndvi(
             sid_id=self.ID,
             image_path_04=self.r20m_vars["R20m_B04"],
             image_path_8a=self.r20m_vars["R20m_B8A"],
-            save_location=self.IDX_IMG_SAVE_LOCATION,
+            save_location=self.IMG_SAVE_PATH_LOCAL,
         )
-        current_datetime = datetime.datetime.utcnow()
-        self.NDVI_CALC_TIME = current_datetime.strftime('%Y-%m-%dT%H:%M:%S.%fZ')
-        logging.debug(f"Set NDVI image path. NDVI_IMG_PATH='{self.NDVI_IMG_PATH}'")
-
-        logging.debug(f"Calculated NDVI for SatelliteImageData. id='{self.ID}'.")
+        logging.debug(
+            f"Set NDVI image path. ndvi_img_path='{ndvi_img_path}'")
+        current_datetime = datetime.datetime.now()
+        self.NDVI_CALC_TIME = current_datetime
+        logging.debug(
+            f"Calculated NDVI for SatelliteImageData. id='{self.ID}'.")
+        
+        return ndvi_img_path
+        
 
     def calculate_water_content(self):
-        if len(self.IDX_IMG_SAVE_LOCATION) == 0:
-            self.IDX_IMG_SAVE_LOCATION = IMAGES_FILES_PATH
-
-        self.WATER_IMG_PATH = MetricsCalculator.calculate_water_content(
+        local_path = MetricsCalculator.calculate_water_content(
             sid_id=self.ID,
             image_path_8a=self.r20m_vars["R20m_B8A"],
             image_path_12=self.r20m_vars["R20m_B12"],
-            save_location=self.IDX_IMG_SAVE_LOCATION,
+            save_location=self.IMG_SAVE_PATH_LOCAL,
         )
-        current_datetime = datetime.datetime.utcnow()
-        self.WATER_CALC_TIME = current_datetime.strftime('%Y-%m-%dT%H:%M:%S.%fZ')
+        current_datetime = datetime.datetime.now()
+        self.WATER_CALC_TIME = current_datetime
 
-        logging.debug(f"Set water index image path. WATER_INDEX_IMG_PATH='{self.WATER_IMG_PATH}'")
+        logging.debug(
+            f"Calculated water content for SatelliteImageData. id='{self.ID}', local_path='{local_path}'")
 
-        logging.debug(f"Calculated water content for SatelliteImageData. id='{self.ID}'.")
-
+        return local_path
+    
     def to_dict(self):
-        img = ""
-        if self.IMG_URL != "":
-            with open(self.IMG_URL, "rb") as img_file:
-                img_binary = img_file.read()
-            img = base64.b64encode(img_binary).decode("utf-8")
-
-        ndvi_img = ""
-        if self.NDVI_IMG_PATH != "":
-            with open(self.NDVI_IMG_PATH, "rb") as ndvi_img_file:
-                ndvi_img_binary = ndvi_img_file.read()
-            ndvi_img = base64.b64encode(ndvi_img_binary).decode("utf-8")
-
-        water_img = ""
-        if self.WATER_IMG_PATH != "":
-            with open(self.WATER_IMG_PATH, "rb") as water_img_file:
-                water_img_binary = water_img_file.read()
-            water_img = base64.b64encode(water_img_binary).decode("utf-8")
-
         return {
             "basic": {
                 "id": self.ID,
-                "owner_id": self.OWNER_ID,
+                "user_id": self.USER_ID,
                 "area_name": self.AREA_NAME,
                 "country": self.COUNTRY,
                 "city": self.CITY,
                 "postal_code": self.POSTAL_CODE,
-                "img": img
             },
 
-            "indexes": {
-                "ndvi": {
-                    "value": self.NDVI,
-                    "img_path": self.NDVI_IMG_PATH,
-                    "img": ndvi_img,
-                    "calc_time": self.NDVI_CALC_TIME,
+            "images": {
+                "rgb": {
+                    "img_path_storage": self.RGB_IMG_PATH_STORAGE,
+                    "img_path_local": self.RGB_IMG_PATH_LOCAL,
+                    "archived_img_paths": [],
                 },
-                "water": {
-                    "value": self.WATER,
-                    "img_path": self.WATER_IMG_PATH,
-                    "img": water_img,
-                    "calc_time": self.WATER_CALC_TIME,
-                }
+                "indexes": {
+                    "ndvi": {
+                        "value": self.NDVI,
+                        "img_path_storage": self.NDVI_IMG_PATH_STORAGE,
+                        "img_path_local": self.NDVI_IMG_PATH_LOCAL,
+                        "calc_time": self.NDVI_CALC_TIME.strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
+                        "archived_img_paths": [],
+                    },
+                    "water": {
+                        "value": self.WATER,
+                        "img_path_storage": self.WATER_IMG_PATH_STORAGE,
+                        "img_path_local": self.WATER_IMG_PATH_LOCAL,
+                        "calc_time": self.WATER_CALC_TIME.strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
+                        "archived_img_paths": [],
+                    }
+                },
             },
 
             "bound_latitudes": {
@@ -463,15 +529,13 @@ class Sentinel2BData:
                 "west": self.WEST_BOUND_LONGITUDE,
             },
 
-            "files": {
-                "metadate_file_name": self.METADATA_FILE_NAME,
-                "inspire_file_name": self.INSPIRE_FILE_NAME,
-                "image_file_extension": self.IMAGE_FILE_EXTENSION,
-                "root_path": self.ROOT_PATH,
-                "zip_file_path": self.ZIP_PATH,
+            "file_paths": {
                 "granule_path": self.GRANULE_PATH,
-                "directory_name": self.DIRECTORY_NAME,
-                "img_save_location": self.IDX_IMG_SAVE_LOCATION,
+                "directory_path_local": self.DIRECTORY_PATH_LOCAL,
+                "directory_path_storage": self.DIRECTORY_PATH_STORAGE,
+                "img_save_path_local": self.IMG_SAVE_PATH_LOCAL,
+                "img_save_path_storage": self.IMG_SAVE_PATH_STORAGE,
+
             },
 
             "capture_information": {

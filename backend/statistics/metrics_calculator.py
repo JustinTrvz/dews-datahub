@@ -1,12 +1,12 @@
 import datetime
 import logging
-
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 import rasterio
 from PIL import Image
 
-from backend.statistics.utils.dataset_utils import DatasetUtils
+from statistics.utils.dataset_utils import DatasetUtils
 
 
 class MetricsCalculator:
@@ -19,6 +19,7 @@ class MetricsCalculator:
         """
         Creates an image with MatPlotLib and saves it to desired save location.
         """
+        mpl.use("agg")
         if cmap != "" and interpolation != "":
             plt.imshow(nested_array, cmap=cmap, interpolation=interpolation)
         elif cmap != "" and interpolation == "":
@@ -30,7 +31,8 @@ class MetricsCalculator:
 
         # plt.colorbar()
         plt.axis('off')
-        plt.savefig(save_location, dpi=200, bbox_inches='tight', pad_inches=0.0)
+        plt.savefig(save_location, dpi=200,
+                    bbox_inches='tight', pad_inches=0.0)
         plt.close('all')
 
     @staticmethod
@@ -40,7 +42,7 @@ class MetricsCalculator:
         Calculates the EVI (Enhanced Vegetation Index) which is similar to the NDVI but more sensitive in high biomass regions.
 
         For the Sentinel-2 image data we are using G=1, C1=2.5, C2=2.5 and L=1.
-        
+
         :param sid_id:
         :param image_path_02:
         :param image_path_04:
@@ -59,14 +61,19 @@ class MetricsCalculator:
         red_band_04 = dataset_04.read(1).astype(float)
         blue_band_02 = dataset_02.read(1).astype(float)
 
-        logging.debug(f"Read near-infrared (NIR) from dataset: {str(nir_band_8a)}. sid_id='{sid_id}'")
-        logging.debug(f"Read red (RED) from dataset: {str(red_band_04)}. sid_id='{sid_id}'")
-        logging.debug(f"Read blue (BLUE) from dataset: {str(blue_band_02)}. sid_id='{sid_id}'")
-        logging.debug(f"Using this variables: G='{g}', C1='{c1}', C2='{c2}', L='{l}'. sid_id='{sid_id}'")
+        logging.debug(
+            f"Read near-infrared (NIR) from dataset. sid_id='{sid_id}'")
+        logging.debug(
+            f"Read red (RED) from dataset. sid_id='{sid_id}'")
+        logging.debug(
+            f"Read blue (BLUE) from dataset. sid_id='{sid_id}'")
+        logging.debug(
+            f"Using this variables: G='{g}', C1='{c1}', C2='{c2}', L='{l}'. sid_id='{sid_id}'")
 
         evi = [0]
         try:
-            evi = g * ((nir_band_8a - red_band_04) / (nir_band_8a + c1 * red_band_04 - c2 * blue_band_02 + l))
+            evi = g * ((nir_band_8a - red_band_04) / (nir_band_8a +
+                       c1 * red_band_04 - c2 * blue_band_02 + l))
         except RuntimeWarning:
             logging.warning(
                 f"Invalid value found during division of the enhanced vegetation index (EVI). sid_id='{sid_id}'")
@@ -74,7 +81,8 @@ class MetricsCalculator:
         logging.debug(f"Calculated EVI. sid_id='{sid_id}'")
 
         cmap = "RdYlGn"
-        datetime_formatted = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")  # "20231231_235959"
+        datetime_formatted = datetime.datetime.now().strftime(
+            "%Y%m%d_%H%M%S")  # "20231231_235959"
         save_location = f"{save_location}/{sid_id}_evi_{datetime_formatted}.png"
 
         MetricsCalculator.create_plot_img(
@@ -91,7 +99,7 @@ class MetricsCalculator:
         """
         Calculates the NDWI (Normalized Difference Water Index) which is used to highlight open water features in a satellite image,
         allowing a water body to “stand out” against the soil and vegetation.
-        
+
         :param sid_id:
         :param image_path_03:
         :param image_path_8a:
@@ -107,12 +115,15 @@ class MetricsCalculator:
         vnir_band_08 = dataset_08.read(1).astype(float)
         green_band_03 = dataset_03.read(1).astype(float)
 
-        logging.debug(f"Read near-infrared (VNIR) from dataset: {str(vnir_band_08)}. sid_id='{sid_id}'")
-        logging.debug(f"Read green (GREEN) from dataset: {str(green_band_03)}. sid_id='{sid_id}'")
+        logging.debug(
+            f"Read near-infrared (VNIR) from dataset. sid_id='{sid_id}'")
+        logging.debug(
+            f"Read green (GREEN) from dataset. sid_id='{sid_id}'")
 
         ndwi = [0]
         try:
-            ndwi = (green_band_03 - vnir_band_08) / (green_band_03 - vnir_band_08)
+            ndwi = (green_band_03 - vnir_band_08) / \
+                (green_band_03 - vnir_band_08)
         except RuntimeWarning:
             logging.warning(
                 f"Invalid value found during division of the enhanced vegetation index (EVI). sid_id='{sid_id}'")
@@ -120,7 +131,8 @@ class MetricsCalculator:
         logging.debug(f"Calculated NDWI. sid_id='{sid_id}'")
 
         cmap = "Spectral"
-        datetime_formatted = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")  # "20231231_235959"
+        datetime_formatted = datetime.datetime.now().strftime(
+            "%Y%m%d_%H%M%S")  # "20231231_235959"
         save_location = f"{save_location}/{sid_id}_ndwi_{datetime_formatted}.png"
 
         MetricsCalculator.create_plot_img(
@@ -152,9 +164,7 @@ class MetricsCalculator:
         # Calculate NIR and RED bands
         nir_band_8a = dataset_8a.read(1).astype(float)
         red_band_04 = dataset_04.read(1).astype(float)
-
-        logging.debug("Read near-infrared (NIR) from dataset: " + str(nir_band_8a))
-        logging.debug("Read red (RED) from dataset: " + str(red_band_04))
+        logging.debug(f"Read near-infrared (NIR) and red (RED) from dataset. sid_id='{sid_id}'")
 
         # Calculate NDVI
         ndvi = [0]
@@ -164,12 +174,13 @@ class MetricsCalculator:
             logging.warning(
                 f"Invalid value found during division of the normalized difference vegetation index (NDVI). sid_id='{sid_id}'")
 
-        logging.debug(f"Calculated NDVI for '{sid_id}'.")
+        logging.debug(f"Calculated NDVI. sid_id='{sid_id}'")
 
         # Saving/displaying NDVI map
         cmap = "RdYlGn"
-        datetime_formatted = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")  # "20231231_235959"
-        save_location = f"{save_location}/{sid_id}_ndvi_{datetime_formatted}.png"
+        datetime_formatted = datetime.datetime.now().strftime(
+            "%Y%m%d_%H%M%S")  # "20231231_235959"
+        save_location = f"{save_location}/{sid_id}_ndvi_{datetime_formatted}.tiff"
         MetricsCalculator.create_plot_img(
             nested_array=ndvi,
             cmap=cmap,
@@ -206,15 +217,18 @@ class MetricsCalculator:
         # Calculate water index
         water_index = [0]
         try:
-            water_index = (swir_band_12 - nir_band_8a) / (swir_band_12 + nir_band_8a)
+            water_index = (swir_band_12 - nir_band_8a) / \
+                (swir_band_12 + nir_band_8a)
         except RuntimeWarning:
-            logging.warning(f"Invalid value found during division of the water index. sid_id='{sid_id}'")
+            logging.warning(
+                f"Invalid value found during division of the water index. sid_id='{sid_id}'")
 
         logging.debug(f"Calculated water index. sid_id='{sid_id}'")
 
         # Saving/displaying water index map
         cmap = "Blues"
-        datetime_formatted = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")  # "20231231_235959"
+        datetime_formatted = datetime.datetime.now().strftime(
+            "%Y%m%d_%H%M%S")  # "20231231_235959"
         save_location = f"{save_location}/{sid_id}_water_index_{datetime_formatted}.png"
         MetricsCalculator.create_plot_img(
             nested_array=water_index,
@@ -265,7 +279,8 @@ class MetricsCalculator:
         rgb_composite = np.dstack((red_bn, green_bn, blue_bn))
 
         # Save location path
-        datetime_formatted = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")  # "20231231_235959"
+        datetime_formatted = datetime.datetime.now().strftime(
+            "%Y%m%d_%H%M%S")  # "20231231_235959"
         save_location = f"{save_location}/{sid_id}_rgb_{datetime_formatted}.png"
 
         # Save as .png
@@ -279,32 +294,6 @@ class MetricsCalculator:
         # plt.close('all')
 
         return save_location
-
-    @staticmethod
-    def calculate_true_color(sid_id, image_path_02, image_path_03, image_path_04, save_location=""):
-        band_02 = DatasetUtils.get_dataset(image_path_02)
-        band_03 = DatasetUtils.get_dataset(image_path_03)
-        band_04 = DatasetUtils.get_dataset(image_path_04)
-
-        datetime_formatted = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")  # "20231231_235959"
-        save_location_tiff = f"{save_location}/{sid_id}_true_color_{datetime_formatted}.tiff"
-        true_color = rasterio.open(f"{save_location_tiff}", "w", driver="Gtiff",
-                                   width=band_02.width, height=band_02.height,
-                                   count=3, crs=band_02.crs,
-                                   transform=band_02.transform,
-                                   dtype=band_02.dtypes[0],
-                                   )
-        true_color.write(band_02.read(1), 3)  # blue
-        true_color.write(band_03.read(1), 2)  # green
-        true_color.write(band_04.read(1), 1)  # red
-        true_color.close()
-
-        save_location_png = save_location_tiff[:-4] + "png"
-        img_tiff = Image.open(save_location_tiff)
-        img_tiff.save(save_location_png, "PNG")
-        img_tiff.close()
-
-        return save_location_tiff
 
     @staticmethod
     def __normalize(band):

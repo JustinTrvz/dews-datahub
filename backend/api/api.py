@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify
-from backend.data.models.satellite_image_data.sentinel2b_data import Sentinel2BData
-from backend.data.database.firebase import FirebaseDB
+from flask_cors import CORS
+from backend.data.models.satellite_data.sentinel2b_data import Sentinel2BData
+from backend.data.database.firebase import FirebaseApp
 from backend.statistics.utils.file_utils import FileUtils
 from backend.config import *
 
@@ -10,13 +11,12 @@ import os
 
 # Init Flask server
 app = Flask(__name__)
-app.config['MAX_CONTENT_LENGTH'] = 2000 * 1024 * 1024  # 2GB, 2000 MB
+CORS(app, resources={r"/sid*": {"origins": "http://127.0.0.1"}})
+app.config['MAX_CONTENT_LENGTH'] = MAX_CONTENT_LENGTH
 
 # Init Firebase app
-database = FirebaseDB()
+database = FirebaseApp()
 
-zip_file_dir = "/files/zip"
-zip_file_dir = ZIP_FILES_PATH
 
 class DbErrorCodes:
     # Basic error codes
@@ -72,9 +72,9 @@ def create_sid_entry():
     print(request.get_json())
 
     sid = Sentinel2BData(
-        zip_file_path=os.path.join(
-            zip_file_dir, request.form.get("zip_file_name")),
-        owner_id=request.form.get("owner_id"),
+        directory_path_local=os.path.join(
+            ZIP_FILES_PATH, request.form.get("zip_file_name")),
+        user_id=request.form.get("owner_id"),
         area_name=request.form.get("area_name"),
         country=request.form.get("country"),
         city=request.form.get("city"),
@@ -82,7 +82,7 @@ def create_sid_entry():
     )
 
     # add SatelliteImageData to database and check if successful
-    ok = database.create_sid_entry(sid_obj=sid)
+    ok = database.create_sid(sid_obj=sid)
     if ok <= 0:
         return jsonify(create_err_msg(
             DbErrorCodes.SID_CREATION_ERR,
@@ -90,19 +90,6 @@ def create_sid_entry():
 
     # in case everything went well, the ID will be returned
     return jsonify({"sid_id": sid.ID}), 201
-
-
-@app.route("/sid/upload/zip", methods=["POST"])
-def upload_zip():
-    # Check if 'zip_file' exists
-    if 'file' not in request.files:
-        return jsonify(
-            create_err_msg(DbErrorCodes.NO_FILE_RECEIVED,
-                           "No file received. Request has no attribute 'file'.")), 400
-    file = request.files["file"]
-    zip_url = database.upload_zip_from_api(file)
-
-    return jsonify(create_success_msg(f"Zip uploaded to '{zip_url}'.")), 201
 
 
 @app.route("/sid/upload/zip2", methods=["POST"])
@@ -141,7 +128,7 @@ def upload_zip2():
             print(f"Start: {start}, End: {end}, Total: {total}")
 
             # Check if the start byte is 0, indicating the first chunk
-            zip_file_path = os.path.join(zip_file_dir, zip_file.name)
+            zip_file_path = os.path.join(ZIP_FILES_PATH, zip_file.name)
             if start == 0:
                 print("Create or open the file for writing")
                 # Create or open the file for writing
@@ -192,7 +179,7 @@ def upload_zip1():
         print("It is a file...")
         if ".zip" in zip_file.filename:
             print("It is a ZIP file!")
-            zip_file_path = os.path.join(zip_file_dir, zip_file.name)
+            zip_file_path = os.path.join(ZIP_FILES_PATH, zip_file.name)
             with open(zip_file_path, "ab") as destination:
                 destination.seek(0, os.SEEK_END)
                 destination.write(zip_file.stream.read())
@@ -206,20 +193,37 @@ def upload_zip1():
         "Upload failed. Please try again!")), 400
 
 
+@app.route('/sid/entries', methods=['GET'])
+def get_entries():
+    print(request.data)
+
+    page = int(request.args.get('page', 1))  # Default to page 1
+    page_size = int(request.args.get('page_size', 10))  # Default page size
+    start = (page - 1) * page_size
+
+    # Fetch entries from Firebase Realtime Database
+    entries = database.SID_REF.order_by_key().limit_to_first(page_size).start_at(str(start)).get()
+
+    return jsonify(entries)
+
+
 def parse_headers(headers):
     headers_dict = {}
 
 
 @app.route("/sid/edit/<sid_id>")
 def edit_sid(sid_id):
-    sid = database.get_sid_entry(sid_id)
+    # TODO: complete method
+    sid = database.get_sid(sid_id)
     return jsonify(
         {create_err_msg(DbErrorCodes.NOT_IMPLEMENTED, "Not implemented yet.")}), 403  # TODO: change error code
 
 
+"""
 @app.route("/sid/batch/")
 def get_first_sid_batch():
     return get_sid_batch(0)
+
 
 
 @app.route("/sid/batch/<page>")
@@ -252,11 +256,12 @@ def get_sid_batch(page=0):
         response.append(sid.to_dict())
 
     return jsonify(response)
+"""
 
 
 @app.route("/sid/get/<sid_id>")
 def get_sid(sid_id):
-    sid = database.get_sid_entry(sid_id)
+    sid = database.get_sid(sid_id)
 
     if sid is None:
         return jsonify(
@@ -311,7 +316,7 @@ def create_user():
     user_nickname = data["user_nickname"]
 
     # Data base request: create user
-    user_id = database.create_user_entry(data)
+    user_id = database.create_user(data)
 
     # Check if return value is numeric (error code)
     if isinstance(user_id, (int, float, complex)):
@@ -331,8 +336,5 @@ def create_user():
 
 
 if __name__ == "__main__":
-    # Load config yml file
-    configs = FileUtils.load_config_yml()
-
     # Run flask server
-    app.run(debug=configs["environment"]["debug"])
+    app.run(debug=DEBUG_STATUS)

@@ -2,15 +2,19 @@ import base64
 import logging
 import os.path
 from zipfile import ZipFile
+import zipfile
 
-import yaml
-from backend.config import *
+from config import *
 
 
 class FileUtils:
     """
     Helps unzipping files, loads config yml file, decodes string, creates directories and many more.
     """
+
+    @staticmethod
+    def extract_file_name(path: str):
+        return os.path.basename(path)
 
     @staticmethod
     def unzip(zip_path, output_path):
@@ -52,18 +56,6 @@ class FileUtils:
         return f"{output_path}/{directory_name}"
 
     @staticmethod
-    def load_config_yml(config_yml_path: str = ""):
-        # Set default config yml path if not provided
-        if config_yml_path == "":
-            config_yml_path = ROOT_PATH + "/config.yml"
-
-        # Open config yml file
-        with open(config_yml_path, 'r') as yml_file:
-            logging.debug(
-                f"Loaded config yml file. config_yml_path='{CONFIG_YML_PATH}'")
-            return yaml.safe_load(yml_file)
-
-    @staticmethod
     def get_debug_status() -> bool:
         return DEBUG_STATUS
 
@@ -71,17 +63,33 @@ class FileUtils:
     def get_root_path() -> str:
         return ROOT_PATH
 
-    # Encoding + Decoding
-    @staticmethod
-    def decode_b64_string(b64_str: str):
-        return base64.b64decode(b64_str).decode("utf-8")
-
     # Directories
     @staticmethod
     def create_file_directories():
         for path in FILES_PATH_LIST:
-            if not os.exists(path):
+            if not os.path.exists(path):
                 os.mkdir(path)
                 logging.debug(f"Created directory '{path}'.")
             else:
                 logging.debug(f"Directory '{path}' already exists.")
+
+    @staticmethod
+    def generate_path(*args):
+        path = "/".join(args)
+        return path.replace("//", "/")
+    
+    @staticmethod
+    def extract_zip(zip_path: str):
+        # Get the directory containing the zip file
+        zip_dir = os.path.dirname(zip_path)
+
+        # Open the zip file
+        with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+            # Determine the extraction path (use the zip file's name without extension)
+            zip_base_name = os.path.splitext(os.path.basename(zip_path))[0]
+            extraction_path = os.path.join(zip_dir, zip_base_name)
+
+            # Extract the contents of the zip file to the extraction path
+            zip_ref.extractall(extraction_path)
+
+        return extraction_path
