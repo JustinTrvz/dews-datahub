@@ -1,11 +1,10 @@
-# Drought Early Warning System's Datahub (DE-DH)
+# Satellite image datahub
 
 # Firebase
 ## Firebase Emulator Suite (Local Development/Testing)
 For further information or in case of issues look at [this official documentation](https://firebase.google.com/docs/emulator-suite/connect_and_prototype).
 1. Install Firebase CLI or update to its latest version
    - `curl -sL firebase.tools | bash`
-   - `curl -sL firebase.tools | upgrade=true bash`
 2. Initialize your Firebase project.
    - `firebase init`
    - Choose an existing project or create a new one.
@@ -38,7 +37,7 @@ For further information or in case of issues look at [this official documentatio
        ```
 
 ## Satellite Images
-- **Source:** [Copernicus Open Access Hub](https://scihub.copernicus.eu/dhus/#/home)
+- **Source:** [Copernicus Scihub/Open Access Hub](https://scihub.copernicus.eu/dhus/#/home)
 - **Mission:** `Sentinel-2`
 - **Satellite Platform:** `S2B_*`
 
