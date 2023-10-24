@@ -1,14 +1,14 @@
 {
   "project_info": {
-    "project_number": "150129697560",
-    "firebase_url": "https://harvest-vision-monitor-default-rtdb.europe-west1.firebasedatabase.app",
-    "project_id": "harvest-vision-monitor",
-    "storage_bucket": "harvest-vision-monitor.appspot.com"
+    "project_number": "787983320297",
+    "firebase_url": "https://drought-ews-dev-default-rtdb.europe-west1.firebasedatabase.app",
+    "project_id": "drought-ews-dev",
+    "storage_bucket": "drought-ews-dev.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:150129697560:android:e1e9e47a21b3343e71746d",
+        "mobilesdk_app_id": "1:787983320297:android:d4af40f534dfcf0de79c78",
         "android_client_info": {
           "package_name": "com.example.gui"
         }
@@ -16,7 +16,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyA0E8DCHBMEyc5YRwAz-cszlm8Ec0TXoQA"
+          "current_key": "AIzaSyBduQHoWK_oV2ACpPQRCu9j4b8Eq7IXdCQ"
         }
       ],
       "services": {
