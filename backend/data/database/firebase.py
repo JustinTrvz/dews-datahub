@@ -354,9 +354,17 @@ class FirebaseStorage:
         '''
         Returns local directory's root path on success and an empty string on failure.
         '''
+        # Check if local directory exists
+        splitted_storage_path = storage_path.split('/')
+        satellite_type = splitted_storage_path[-2]
+        directory_name = splitted_storage_path[-1]
+        full_local_path = f"{local_path}/{satellite_type}/{directory_name}"
+        if os.path.exists(full_local_path):
+            logging.debug(f"Local directory already exists. Will not download directory. full_local_path='{full_local_path}'")
+            return full_local_path
+
+        logging.debug(f"Local directory does not exist. About to download the remote directory. full_local_path='{full_local_path}', storage_path='{storage_path}'")
         blobs = FirebaseApp.get_bucket().list_blobs(prefix=storage_path)
-        print(f"storage_path='{storage_path}'")
-        print(f"local_path='{local_path}'")
 
         for blob in blobs:
             # Extract blob name

@@ -1,6 +1,7 @@
 import base64
 import datetime
 import logging
+import time
 
 import xmltodict
 import uuid
@@ -14,12 +15,15 @@ from config import *
 """
 Satellite image data object specialized for S2B MSIL2A (Sentinel-2B) satellite image data.
 """
+
+
 class ImageTypes:
     '''Image types for every index (e.g. NDVI) used and additionally the RGB image.'''
     RGB = "rgb"
     NDVI = "ndvi"
     WATER = "water"
     NDWI = "ndwi"
+
 
 class Sentinel2BData:
     # Basic capture information
@@ -29,6 +33,7 @@ class Sentinel2BData:
     CITY = ""
     COUNTRY = ""
     POSTAL_CODE = 0
+    CREATION_TIME = datetime.datetime.now()
     RGB_IMG_PATH_LOCAL = ""
     RGB_IMG_PATH_STORAGE = ""
 
@@ -58,11 +63,11 @@ class Sentinel2BData:
     NDVI_IMG_PATH_LOCAL = ""
     NDVI_IMG_PATH_STORAGE = ""
     NDVI_CALC_TIME = None
-    # WATER INDEX
-    WATER = -1.0
-    WATER_IMG_PATH_LOCAL = ""
-    WATER_IMG_PATH_STORAGE = ""
-    WATER_CALC_TIME = None
+    # MOISTURE INDEX
+    MOISTURE = -1.0
+    MOISTURE_IMG_PATH_LOCAL = ""
+    MOISTURE_IMG_PATH_STORAGE = ""
+    MOISTURE_CALC_TIME = None
 
     # Geographic bounding box
     WEST_BOUND_LONGITUDE = None
@@ -127,7 +132,7 @@ class Sentinel2BData:
 
     def __init__(self, directory_path_local: str, user_id: str = "Unknown", img_save_location: str = "",
                  file_save_location: str = "", area_name: str = "Unknown", country: str = "Unknown",
-                 city: str = "Unknown", postal_code: int = 0, calculate: bool = True):
+                 city: str = "Unknown", postal_code: int = 0, generate_imgs: bool = True):
         """
         A satellite image data object contains information about the capturing, indexes, image files and many more.
 
@@ -150,8 +155,10 @@ class Sentinel2BData:
         # Directory path
         self.DIRECTORY_PATH_LOCAL = directory_path_local
         # Other information
-        self.METADATA_FILE_NAME = FileUtils.generate_path(self.DIRECTORY_PATH_LOCAL, S2B_METADATA_FILE_NAME)
-        self.INSPIRE_FILE_NAME = FileUtils.generate_path(self.DIRECTORY_PATH_LOCAL, S2B_INSPIRE_FILE_NAME)
+        self.METADATA_FILE_NAME = FileUtils.generate_path(
+            self.DIRECTORY_PATH_LOCAL, S2B_METADATA_FILE_NAME)
+        self.INSPIRE_FILE_NAME = FileUtils.generate_path(
+            self.DIRECTORY_PATH_LOCAL, S2B_INSPIRE_FILE_NAME)
         # Set directory name by extraction from zip path
         self.__set_directory_name(directory_path_local)
 
@@ -165,9 +172,7 @@ class Sentinel2BData:
                 "-convention for more information.")
             return  # exit program
 
-        # Set basic information
-        self.__set_root_path(directory_path_local)  # Parses and sets root path
-        # Gets information about captured satellite image
+        # Sets information about captured satellite image
         self.__set_satellite_img_information()
 
         # Set save locations
@@ -182,12 +187,11 @@ class Sentinel2BData:
             self.FILE_SAVE_LOCATION = OTHER_FILES_PATH
 
         # Object can be created without calculation. Be aware: no images can be shown!
-        if calculate:
-            # Create RGB-image
-            self.RGB_IMG_PATH_LOCAL = self.create_rgb_img()
-            # Calculate indexes
-            self.NDVI_IMG_PATH_LOCAL = self.calculate_ndvi()
-            self.WATER_IMG_PATH_LOCAL = self.calculate_water_content()
+        if generate_imgs:
+            ok = self.generate_imgs()
+            if ok <= 0:
+                logging.error(f"Failed to generate images. error='{ok}'")
+                return
 
         # Set coordinates
         self.set_coordinates()
@@ -197,29 +201,74 @@ class Sentinel2BData:
         if valid >= 1:
             ok = self.upload()
             if ok <= 0:
-                logging.error(f"Failed to upload data and files of satellite image data object. error='{ok}', id='{self.ID}'")
+                logging.error(
+                    f"Failed to upload data and files of satellite image data object. error='{ok}', id='{self.ID}'")
+                return
+            else:
+                logging.debug(
+                    f"Successfully uploaded data and files ot of satellite image data object. id='{self.ID}'")
+                return
         else:
-            logging.error(f"Satellite image data object is not valid! error='{valid}', id='{self.ID}'")
-            
+            logging.error(
+                f"Satellite image data object is not valid! error='{valid}', id='{self.ID}'")
+            return
+
+    @staticmethod
+    def init_from_json(json_data):
+        return Sentinel2BData(
+            directory_path_local=json_data["directory_path_local"],
+            user_id=json_data["user_id"],
+            area_name=json_data["area_name"],
+            city=json_data["city"],
+            postal_code=json_data["postal_code"],
+            country=json_data["country"],
+        )
+
+    def generate_imgs(self) -> int:
+        try:
+            # Create RGB-image
+            logging.debug(
+                f"Starting RGB (image generation. id='{self.ID}', satellite_type='{SatelliteTypes.SENTINEL_2B.lower()}'")
+            self.create_rgb_img()
+            # Calculate indexes
+            # NDVI
+            logging.debug(
+                f"Starting NDVI image generation. id='{self.ID}', satellite_type='{SatelliteTypes.SENTINEL_2B.lower()}'")
+            self.calculate_ndvi()
+            # Water
+            logging.debug(
+                f"Starting water image generation. id='{self.ID}', satellite_type='{SatelliteTypes.SENTINEL_2B.lower()}'")
+            self.calculate_moisture()
+        except Exception as e:
+            logging.error(
+                f"Failed to generate images. id='{self.ID}', satellite_type='{SatelliteTypes.SENTINEL_2B.lower()}'")
+            return -1
+
+        return 1
+
     def upload(self) -> int:
         # Upload files
-        self.RGB_IMG_PATH_STORAGE = self.upload_image(ImageTypes.RGB) # RGB
-        self.NDVI_IMG_PATH_STORAGE = self.upload_image(ImageTypes.NDVI) # NDVI
-        self.WATER_IMG_PATH_STORAGE = self.upload_image(ImageTypes.WATER) # Water content
+        self.RGB_IMG_PATH_STORAGE = self.upload_image(ImageTypes.RGB)  # RGB
+        self.NDVI_IMG_PATH_STORAGE = self.upload_image(ImageTypes.NDVI)  # NDVI
+        self.MOISTURE_IMG_PATH_STORAGE = self.upload_image(
+            ImageTypes.WATER)  # Water content
         logging.debug(f"Upload to storage complete. id='{self.ID}'")
 
         # Write to database
-        db_ref = os.path.join("sid", SatelliteTypes.SENTINEL_2B.lower(), self.ID)
+        db_ref = os.path.join(
+            "sid", SatelliteTypes.SENTINEL_2B.lower(), self.ID)
         self.DIRECTORY_PATH_STORAGE = db_ref
         self.IMG_SAVE_PATH_STORAGE = os.path.join(db_ref, "images")
 
         data_dict = self.to_dict()
         ok = FirebaseDatabase.set_entry(db_ref, data_dict)
         if ok <= 0:
-            logging.error(f"Failed to set entry for satellte image data object in database. error='{ok}', id='{self.ID}', db_ref='{db_ref}'")
+            logging.error(
+                f"Failed to set entry for satellte image data object in database. error='{ok}', id='{self.ID}', db_ref='{db_ref}'")
             return -1
 
-        logging.debug(f"Write to database complete. id='{self.ID}', db_ref='{db_ref}'")
+        logging.debug(
+            f"Write to database complete. id='{self.ID}', db_ref='{db_ref}'")
         return 1
 
     def upload_image(self, img_type: str):
@@ -233,12 +282,14 @@ class Sentinel2BData:
         elif img_type == ImageTypes.NDVI:
             local_path = self.NDVI_IMG_PATH_LOCAL
         elif img_type == ImageTypes.WATER:
-            local_path = self.WATER_IMG_PATH_LOCAL
+            local_path = self.MOISTURE_IMG_PATH_LOCAL
 
-        directory_path = os.path.join("sid",  SatelliteTypes.SENTINEL_2B.lower(), self.ID, "images", img_type)
+        directory_path = os.path.join(
+            "sid",  SatelliteTypes.SENTINEL_2B.lower(), self.ID, "images", img_type)
         storage_path = FirebaseStorage.upload_file(directory_path, local_path)
-        logging.debug(f"Uploaded {img_type} image to storage. id='{self.ID}', directory_path='{directory_path}', {img_type}_img_path_local='{local_path}'")
-        
+        logging.debug(
+            f"Uploaded {img_type} image to storage. id='{self.ID}', directory_path='{directory_path}', {img_type}_img_path_local='{local_path}'")
+
         return storage_path
 
     def __set_directory_name(self, zip_path: str):
@@ -248,23 +299,6 @@ class Sentinel2BData:
         self.DIRECTORY_PATH_LOCAL = zip_path[zip_path.rfind("/"):]
         logging.debug(
             f"Directory name has been set. DIRECTORY_NAME='{self.DIRECTORY_PATH_LOCAL}'.")
-
-    def __set_root_path(self, zip_path: str):
-        """
-        Sets root path. Unzips zip, if not already done, and adds extracted subdirectory to root path.
-        """
-        # output_path = zip_path[0:zip_path.rfind("/")]  # "home/user/files/SATELLITE_IMAGES" -> "home/user/files"
-        self.ROOT_PATH = FileUtils.unzip(zip_path, EXTRACTED_FILES_PATH)
-        if self.ROOT_PATH == "":
-            logging.error(
-                f"Zip file has not been unzipped due to an error. ZIP_PATH='{self.DIRECTORY_PATH_LOCAL}', ROOT_PATH='{self.ROOT_PATH}'")
-            return
-        logging.debug(
-            f"Zip has been unzipped. ZIP_PATH='{self.DIRECTORY_PATH_LOCAL}'.")
-        sub_dir = self.ROOT_PATH[self.ROOT_PATH.rfind("/") + 1:] + ".SAFE"
-        # 'sub_dir' contains subdirectory with ".SAFE" extension
-        self.ROOT_PATH = self.ROOT_PATH + "/" + sub_dir
-        logging.debug(f"Root path has been set. ROOT_PATH='{self.ROOT_PATH}'.")
 
     def read_metadata_xml(self, metadata_path: str):
         """
@@ -287,7 +321,6 @@ class Sentinel2BData:
         split_img_data_path = img_data_path.split("/")
         subdir = split_img_data_path[-4]
         # e.g. [... , 'L2A_T32UNE_A033353_20230726T103642', 'IMG_DATA', 'R20m', 'T32UNE_20230726T103629_AOT_20m.jp2']]
-        # self.GRANULE_PATH = self.ROOT_PATH + "/" + "GRANULE" + "/" + subdir
         self.GRANULE_PATH = os.path.join(
             self.DIRECTORY_PATH_LOCAL, "GRANULE", subdir)
         logging.debug(
@@ -311,7 +344,8 @@ class Sentinel2BData:
             if self.GRANULE_PATH == "":
                 self.set_basic_granule_path(img_data_path)
 
-            path = FileUtils.generate_path(EXTRACTED_FILES_PATH, SatelliteTypes.SENTINEL_2B.lower(), self.DIRECTORY_PATH_LOCAL, img_data_path + S2B_IMG_FILE_EXTENSION)
+            path = FileUtils.generate_path(EXTRACTED_FILES_PATH, SatelliteTypes.SENTINEL_2B.lower(
+            ), self.DIRECTORY_PATH_LOCAL, img_data_path + S2B_IMG_FILE_EXTENSION)
             if range_meters in variable_mapping:
                 variable_mapping[range_meters][f"R{range_meters}_{frequency_band}"] = path
 
@@ -319,7 +353,8 @@ class Sentinel2BData:
         """
         Gets and sets information read from a metadata XML file.
         """
-        metadata_dict = self.read_metadata_xml(self.METADATA_FILE_NAME)  # reading metadata XML file "MTD_MSIL2A.xml"
+        metadata_dict = self.read_metadata_xml(
+            self.METADATA_FILE_NAME)  # reading metadata XML file "MTD_MSIL2A.xml"
 
         # get and set paths to satellite image data
         granule_img_data_paths = \
@@ -343,8 +378,13 @@ class Sentinel2BData:
 
         logging.debug(f"Set satellite image information. id='{self.ID}'")
 
-    def get_root_path(self):
-        return self.ROOT_PATH
+    def get_directory_path(self):
+        """
+        Returns local directory path and storage directory path as tuple.
+
+        Return value: (self.DIRECTORY_PATH_LOCAL, self.DIRECTORY_PATH_STORAGE)
+        """
+        return self.DIRECTORY_PATH_LOCAL, self.DIRECTORY_PATH_STORAGE
 
     def set_coordinates(self):
         """
@@ -375,24 +415,51 @@ class Sentinel2BData:
         return 0
 
     def is_valid(self) -> int:
+        # Check coordinates
+        logging.debug(f"Checking coordinates. id='{self.ID}'")
         ok_coordinates = self.__check_coordinates()
-
         if ok_coordinates != 1:
             logging.error(
                 f"Error occured while checking coordinates! error={ok_coordinates}, id='{self.ID}'")
+            return -1  # TODO: error code
         else:
             logging.debug(f"Coordinates are complete. id='{self.ID}'")
 
-        ok_paths = self.__check_for_empty_paths()
+        # Check file paths
+        logging.debug(f"Checking file paths. id='{self.ID}'")
+        ok_paths = self.__check_file_paths()
         if ok_paths != 1:
             logging.error(
-                f"Error occured while checking paths! error={ok_paths}, id='{self.ID}'")
-            if ok_coordinates != 1:
-                return -1  # TODO: error code
-            else:
-                return -2  # TODO: error code
+                f"Error occured while checking file paths! error={ok_paths}, id='{self.ID}'")
+            return -1
         else:
-            logging.debug(f"Paths are complete. id='{self.ID}'")
+            logging.debug(f"File paths are complete. id='{self.ID}'")
+
+        # Check image generation
+        logging.debug(f"Checking if image generation. id='{self.ID}'")
+        ok_imgs = self.__check_imgs()
+        if ok_imgs != 1:
+            logging.error(
+                f"Error occured while checking images! error={ok_paths}, id='{self.ID}'")
+            return -1  # TODO: error code
+
+        return 1  # object is valid
+
+    def __check_imgs(self) -> int:
+        empty_paths = []
+        if self.NDVI_IMG_PATH_LOCAL == "":
+            empty_paths.append("NDVI")
+        if self.MOISTURE_IMG_PATH_LOCAL == "":
+            empty_paths.append("Moisture")
+        if self.RGB_IMG_PATH_LOCAL == "":
+            empty_paths.append("RGB")
+
+        if len(empty_paths) >= 1:
+            logging.error(
+                f"Image paths for {empty_paths} are empty. id='{self.ID}'")
+            return -1
+        else:
+            logging.debug(f"Image paths are complete. id='{self.ID}'")
             return 1
 
     def __check_coordinates(self) -> int:
@@ -420,7 +487,7 @@ class Sentinel2BData:
 
         return 1
 
-    def __check_for_empty_paths(self) -> int:
+    def __check_file_paths(self) -> int:
         """
          Checks if any needed path to a satellite image file is missing.
          """
@@ -452,14 +519,15 @@ class Sentinel2BData:
         )
         logging.debug(
             f"Merged red, green and blue bands and created image. rgb_img_path='{rgb_img_path}'")
-        
+
+        self.RGB_IMG_PATH_LOCAL = rgb_img_path
         return rgb_img_path
 
     def calculate_ndvi(self):
         ndvi_img_path = MetricsCalculator.calculate_ndvi(
             sid_id=self.ID,
-            image_path_04=self.r20m_vars["R20m_B04"],
-            image_path_8a=self.r20m_vars["R20m_B8A"],
+            image_path_04=self.r10m_vars["R10m_B04"],
+            image_path_08=self.r10m_vars["R10m_B08"],
             save_location=self.IMG_SAVE_PATH_LOCAL,
         )
         logging.debug(
@@ -468,25 +536,26 @@ class Sentinel2BData:
         self.NDVI_CALC_TIME = current_datetime
         logging.debug(
             f"Calculated NDVI for SatelliteImageData. id='{self.ID}'.")
-        
-        return ndvi_img_path
-        
 
-    def calculate_water_content(self):
-        local_path = MetricsCalculator.calculate_water_content(
+        self.NDVI_IMG_PATH_LOCAL = ndvi_img_path
+        return ndvi_img_path
+
+    def calculate_moisture(self):
+        water_img_path = MetricsCalculator.calculate_moisture(
             sid_id=self.ID,
             image_path_8a=self.r20m_vars["R20m_B8A"],
-            image_path_12=self.r20m_vars["R20m_B12"],
+            image_path_11=self.r20m_vars["R20m_B12"],
             save_location=self.IMG_SAVE_PATH_LOCAL,
         )
         current_datetime = datetime.datetime.now()
-        self.WATER_CALC_TIME = current_datetime
+        self.MOISTURE_CALC_TIME = current_datetime
 
         logging.debug(
-            f"Calculated water content for SatelliteImageData. id='{self.ID}', local_path='{local_path}'")
+            f"Calculated water content for SatelliteImageData. id='{self.ID}', local_path='{water_img_path}'")
 
-        return local_path
-    
+        self.MOISTURE_IMG_PATH_LOCAL = water_img_path
+        return water_img_path
+
     def to_dict(self):
         return {
             "basic": {
@@ -496,6 +565,8 @@ class Sentinel2BData:
                 "country": self.COUNTRY,
                 "city": self.CITY,
                 "postal_code": self.POSTAL_CODE,
+                "creation_time": self.CREATION_TIME.strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
+                "satellite_type": SatelliteTypes.SENTINEL_2B,
             },
 
             "images": {
@@ -512,11 +583,11 @@ class Sentinel2BData:
                         "calc_time": self.NDVI_CALC_TIME.strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
                         "archived_img_paths": [],
                     },
-                    "water": {
-                        "value": self.WATER,
-                        "img_path_storage": self.WATER_IMG_PATH_STORAGE,
-                        "img_path_local": self.WATER_IMG_PATH_LOCAL,
-                        "calc_time": self.WATER_CALC_TIME.strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
+                    "moisture": {
+                        "value": self.MOISTURE,
+                        "img_path_storage": self.MOISTURE_IMG_PATH_STORAGE,
+                        "img_path_local": self.MOISTURE_IMG_PATH_LOCAL,
+                        "calc_time": self.MOISTURE_CALC_TIME.strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
                         "archived_img_paths": [],
                     }
                 },

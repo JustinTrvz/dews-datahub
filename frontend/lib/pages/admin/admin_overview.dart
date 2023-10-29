@@ -1,9 +1,12 @@
+import 'package:firebase_database/firebase_database.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:gui/models/notification_model.dart';
 import 'package:gui/models/sid_model.dart';
 import 'package:gui/pages/sid/add_sid.dart';
 import 'package:gui/pages/sid/show_sid.dart';
-import 'package:gui/utils/database.dart';
+import 'package:gui/utils/firebase_database.dart';
+import 'package:gui/utils/firebase_storage.dart';
 import 'package:gui/utils/image_utils.dart';
 
 class AdminOverviewPage extends StatefulWidget {
@@ -14,7 +17,7 @@ class AdminOverviewPage extends StatefulWidget {
 }
 
 class _AdminOverviewPageState extends State<AdminOverviewPage> {
-  List<SatelliteImageDataModel> sidList = [];
+  List<dynamic> sidList = [];
   List<NotificationModel> notificationList = [];
   int _activeIndex = 1; // Overview page
   List<Widget> _pages = [];
@@ -46,7 +49,7 @@ class _AdminOverviewPageState extends State<AdminOverviewPage> {
     return FutureBuilder<int>(
       future: _getSidEntries(),
       builder: ((context, snapshot) {
-        return getHomeScaffold(context);
+          return getHomeScaffold(context);
       }),
     );
   }
@@ -80,11 +83,27 @@ class _AdminOverviewPageState extends State<AdminOverviewPage> {
   }
 
   Column profilesWidget() {
-    return const Column(
+    return Column(
       children: [
-        Center(
-          child: Text("pro"),
-        )
+        const Padding(
+          padding: EdgeInsets.only(left: 20),
+          child: Text(
+            'Profiles',
+            style: TextStyle(
+              color: Colors.black,
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+        const SizedBox(
+          height: 10,
+        ),
+        Container(
+          height: 700,
+          color: Colors.amber,
+          child: const Text("Test"),
+        ),
       ],
     );
   }
@@ -95,7 +114,7 @@ class _AdminOverviewPageState extends State<AdminOverviewPage> {
         const Padding(
           padding: EdgeInsets.only(left: 20),
           child: Text(
-            'Satellite Image Areas',
+            'Notifications',
             style: TextStyle(
               color: Colors.black,
               fontSize: 18,
@@ -217,9 +236,18 @@ class _AdminOverviewPageState extends State<AdminOverviewPage> {
 
   Future<int> _getSidEntries() async {
     print("-> -> -> -> -> -> -> -> ->");
-    sidList = await Database.getSidBatch();
-    print("SIDLIST_LENGTH: ${sidList.length}");
-    print(DateTime.now());
+    List<dynamic> response = await FirebaseDatabaseUtils
+        .getSidEntries(); // returns [<error code>, <sid list>]
+    // Check if error occured
+    if (response[0] <= 0) {
+      // Error handling
+      return response[0];
+    }
+    // Get sid list from return value
+    sidList = response[1];
+    print("SIDLIST RESPONSE: ${response[0]}");
+    print("SIDLIST LENGTH: ${sidList.length}");
+    print("SIDLIST: $sidList");
     print("<- <- <- <- <- <- <- <- <-");
     return sidList.length;
   }
@@ -240,7 +268,7 @@ class _AdminOverviewPageState extends State<AdminOverviewPage> {
                   context,
                   MaterialPageRoute(
                       builder: (context) =>
-                          ShowSatelliteImageData(sidId: sidList[index].sidId)));
+                          ShowSatelliteImageData(sid: sidList[index])));
             },
             child: Container(
               width: widthVal,
@@ -258,8 +286,10 @@ class _AdminOverviewPageState extends State<AdminOverviewPage> {
                           padding: const EdgeInsets.all(5.0),
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(8.0),
-                            child: ImageUtils.decodeBase64EncodedImg(
-                                sidList[index].sidImg, widthVal),
+                            child: Image.network(
+                              FirebaseStorageUtils.generateImgUrl(
+                                  sidList[index].rgbImgStoragePath),
+                            ),
                           ),
                         ),
                       ),
@@ -269,20 +299,20 @@ class _AdminOverviewPageState extends State<AdminOverviewPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // General information
-                      attrContainer("ID", sidList[index].sidId, 0),
+                      attrContainer("ID", sidList[index].id, 0),
                       attrContainer("Name", sidList[index].areaName),
                       attrContainer("Location",
                           "${sidList[index].postalCode} ${sidList[index].city}, ${sidList[index].country}"),
-                      attrContainer("Owner", sidList[index].ownerName),
+                      attrContainer("User ID", sidList[index].userId),
                       attrContainer(
                           "Creation time", sidList[index].creationTime, 1),
                       // Indexes
                       attrContainer("NDVI", sidList[index].ndvi, 0),
                       attrContainer("NDVI (last calculation)",
                           sidList[index].ndviCalcDateTime),
-                      attrContainer("Water index", sidList[index].water),
-                      attrContainer("Water index (last calculation)",
-                          sidList[index].waterCalcDateTime, 1),
+                      attrContainer("Moisture index", sidList[index].moisture),
+                      attrContainer("Moisture index (last calculation)",
+                          sidList[index].moistureCalcDateTime, 1),
                     ],
                   ),
                 ],
@@ -291,11 +321,11 @@ class _AdminOverviewPageState extends State<AdminOverviewPage> {
           );
         }));
 
-        if (sidList.isEmpty) {
-           return const Center(child: CircularProgressIndicator());
-        } else {
-          return listView;
-        }
+    if (sidList.isEmpty) {
+      return const Center(child: CircularProgressIndicator());
+    } else {
+      return listView;
+    }
   }
 
   Container attrContainer(String attrName, attrVal, [int? position]) {
