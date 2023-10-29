@@ -4,6 +4,8 @@ import os
 ROOT_PATH = os.path.dirname(os.path.abspath(__file__))
 CONFIG_YML_PATH = os.path.join(ROOT_PATH, "config.yml")
 DEBUG_STATUS = True
+MAX_RETRIES = 20
+THREAD_TIMEOUT = 180
 
 # Flask API
 MAX_CONTENT_LENGTH = 2000 * 1024 * 1024  # 2GB, 2000 MB
@@ -13,8 +15,8 @@ FB_TOKEN_PATH = "/home/jtrvz/Git/drought-ews/backend/drought-ews-dev.json"
 FB_EMULATOR_URL = "http://localhost:8080"
 RETRY_LIMIT = 5
 ## Database
-DB_URL = "http://127.0.0.1:9000/?ns=fake-server" # INFO: "fake-server" need to be used because of an issue of the Firebase Admin SDK
-DB_URL_DEV = "localhost:9000/?ns=fake-server"
+DB_URL = "http://127.0.0.1:9000/?ns=drought-ews-dev"
+DB_URL_DEV = "localhost:9000/?ns=drought-ews-dev"
 ## Storage
 STORAGE_URL = "drought-ews-dev.appspot.com" # Adjust this path! => ATTENTION: Do not use 'http://' or 'http://'!
 STORAGE_URL_DEV = "http://localhost:9199"

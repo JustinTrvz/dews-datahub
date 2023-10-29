@@ -43,6 +43,11 @@ dependencies:
   dio: ^5.3.2
   firebase_storage: ^11.2.7
   firebase_core: ^2.19.0
+  path_provider: ^2.1.1
+  archive: ^3.4.6
+  firebase_database: ^10.3.1
+  firebase_auth: ^4.11.1
+  flutter_native_splash: ^2.3.5
 
 dev_dependencies:
   flutter_test:

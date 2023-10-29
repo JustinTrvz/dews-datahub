@@ -1,57 +1,134 @@
 class SatelliteImageDataModel {
-  String sidId;
-  String sidImg;
+  // basic
+  String id;
   String areaName;
   String country;
   String city;
   int postalCode;
-  String thumbnail;
-  String ownerName;
+  String userId;
   DateTime? creationTime;
+  String satelliteType;
+  // images/rgb
+  String rgbImgStoragePath;
+  // images/indexes/ndvi
   late double ndvi;
-  late String ndviImg;
+  late String ndviImgStoragePath;
   late DateTime? ndviCalcDateTime;
-  late double water;
-  late String waterImg;
-  late DateTime? waterCalcDateTime;
+  // images/indexes/water
+  late double moisture;
+  late String moistureImgStoragePath;
+  late DateTime? moistureCalcDateTime;
+  // bound latitudes
+  double? northBoundLatitude;
+  double? eastBoundLatitude;
+  double? southBoundLatitude;
+  double? westBoundLatitude;
+  // capture information
+  late DateTime? productStartTime;
+  late DateTime? productStopTime;
+  String processingLevel;
+  String productType;
+  late DateTime? generationTime;
 
   SatelliteImageDataModel({
-    this.sidId = "",
-    this.sidImg = "",
+    // basic
+    this.id = "", //
+    this.userId = "",
     this.areaName = "",
     this.country = "",
     this.city = "",
     this.postalCode = 0,
-    this.thumbnail = "",
-    this.ownerName = "",
     this.creationTime,
-    this.ndvi = -1,
-    this.ndviImg = "",
+    this.satelliteType = "", // default value
+    // images/rgb
+    this.rgbImgStoragePath = "",
+    // images/indexes/ndvi
+    this.ndvi = -1.0,
+    this.ndviImgStoragePath = "",
     this.ndviCalcDateTime,
-    this.water = -1,
-    this.waterImg = "",
-    this.waterCalcDateTime,
+    // images/indexes/moisture
+    this.moisture = -1,
+    this.moistureImgStoragePath = "",
+    this.moistureCalcDateTime,
+    // bound latitudes
+    this.northBoundLatitude,
+    this.eastBoundLatitude,
+    this.southBoundLatitude,
+    this.westBoundLatitude,
+    // capture information
+    this.productStartTime,
+    this.productStopTime,
+    this.processingLevel = "",
+    this.productType = "",
+    this.generationTime,
   });
 
   factory SatelliteImageDataModel.fromJson(Map<String, dynamic> json) {
-    print(json["basic"]["owner_id"]);
+    print(json["basic"]["user_id"]);
+    Map<String, dynamic> basicJson = json["basic"];
+    Map<String, dynamic> captureInfoJson = json["capture_information"];
+    Map<String, dynamic> boundLatitudesJson = json["bound_latitudes"];
+    Map<String, dynamic> imagesJson = json["images"];
+    Map<String, dynamic> indexesJson = imagesJson["indexes"];
+    // print("- - - - - - - - - - -");
+    // print(basicJson);
+    // print("- - - - - - - - - - -");
+    // print(captureInfoJson);
+    // print("- - - - - - - - - - -");
+    // print(boundLatitudesJson);
+    // print("- - - - - - - - - - -");
+    // print(imagesJson);
+    // print("- - - - - - - - - - -");
+    // print(basicJson["postal_code"].runtimeType);
+    // print("- - - - - - - - - - -");
     return SatelliteImageDataModel(
-      sidId: json["basic"]["id"] as String,
-      sidImg: json["basic"]["img"] as String,
-      areaName: json["basic"]["area_name"] as String,
-      country: json["basic"]["country"] as String,
-      city: json["basic"]["city"] as String,
-      postalCode: int.parse(json["basic"]["postal_code"]),
-      thumbnail: "",
-      ownerName: json["basic"]["owner_id"] as String,
-      creationTime:
-          DateTime.parse(json["capture_information"]["generation_time"]).toUtc(),
-      ndvi: json["indexes"]["ndvi"]["value"],
-      ndviImg: json["indexes"]["ndvi"]["img"] as String,
-      ndviCalcDateTime: DateTime.parse(json["indexes"]["ndvi"]["calc_time"]).toUtc(),
-      water:json["indexes"]["water"]["value"],
-      waterImg: json["indexes"]["water"]["img"] as String,
-      waterCalcDateTime: DateTime.parse(json["indexes"]["water"]["calc_time"]).toUtc(),
+      // basics
+      areaName: basicJson["area_name"] as String,
+      city: basicJson["city"] as String,
+      country: basicJson["country"] as String,
+      creationTime: DateTime.parse(basicJson["creation_time"]).toUtc(),
+      id: basicJson["id"] as String,
+      postalCode: basicJson["postal_code"],
+      satelliteType: basicJson["satellite_type"],
+      userId: basicJson["user_id"] as String,
+
+      // bound latitudes
+      // northBoundLatitude: double.parse(boundLatitudesJson["north"]),
+      // eastBoundLatitude: double.parse(boundLatitudesJson["east"]),
+      // southBoundLatitude: double.parse(boundLatitudesJson["south"]),
+      // westBoundLatitude: double.parse(boundLatitudesJson["west"]),
+      eastBoundLatitude: boundLatitudesJson["east"],
+      northBoundLatitude: boundLatitudesJson["north"],
+      southBoundLatitude: boundLatitudesJson["south"],
+      westBoundLatitude: boundLatitudesJson["west"],
+
+      // file paths (not needed)
+
+      // capture info
+      generationTime:
+          DateTime.parse(captureInfoJson["generation_time"]).toUtc(),
+      processingLevel: captureInfoJson["processing_level"],
+      productStartTime:
+          DateTime.parse(captureInfoJson["product_start_time"]).toUtc(),
+      productStopTime:
+          DateTime.parse(captureInfoJson["product_stop_time"]).toUtc(),
+      productType: captureInfoJson["product_type"],
+
+      // images/rgb
+      rgbImgStoragePath: imagesJson["rgb"]["img_path_storage"],
+
+      // images/indexes/ndvi
+      ndviCalcDateTime:
+          DateTime.parse(indexesJson["ndvi"]["calc_time"]).toUtc(),
+      ndviImgStoragePath: indexesJson["ndvi"]["img_path_storage"],
+      ndvi: indexesJson["ndvi"]["value"],
+
+      // images/indexes/moisture
+      moistureCalcDateTime:
+          DateTime.parse(indexesJson["moisture"]["calc_time"]).toUtc(),
+      moistureImgStoragePath:
+          indexesJson["moisture"]["img_path_storage"],
+      moisture: indexesJson["moisture"]["value"],
     );
   }
 }
