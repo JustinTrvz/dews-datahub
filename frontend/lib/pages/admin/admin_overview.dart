@@ -45,13 +45,13 @@ class _AdminOverviewPageState extends State<AdminOverviewPage> {
       overviewWidget(),
       notificationsWidget(),
     ];
-
-    return FutureBuilder<int>(
-      future: _getSidEntries(),
-      builder: ((context, snapshot) {
-          return getHomeScaffold(context);
-      }),
-    );
+    return getHomeScaffold(context);
+    // return FutureBuilder<int>(
+    //   future: _getSidEntries(),
+    //   builder: ((context, snapshot) {
+    //     return getHomeScaffold(context);
+    //   }),
+    // );
   }
 
   Scaffold getHomeScaffold(BuildContext context) {
@@ -219,7 +219,28 @@ class _AdminOverviewPageState extends State<AdminOverviewPage> {
             Container(
               height: 700,
               color: Colors.amber,
-              child: createSidEntries(),
+              child: FutureBuilder(
+                  future: _getSidEntries(),
+                  initialData: const [],
+                  builder: (BuildContext context, AsyncSnapshot snapshot) {
+                    switch (snapshot.connectionState) {
+                      case ConnectionState.none:
+                        return new Text("Restart needed (top right corner)!");
+                      case ConnectionState.waiting:
+                        return const SizedBox(
+                          width: double.infinity,
+                          child: Center(
+                            child: Text("Loading..."),
+                          ),
+                        );
+                      default:
+                        if (snapshot.hasError) {
+                          return new Text("Error: '${snapshot.error}'");
+                        } else {
+                          return sidEntriesListView(snapshot);
+                        }
+                    }
+                  }),
             ),
           ],
         ),
@@ -234,26 +255,25 @@ class _AdminOverviewPageState extends State<AdminOverviewPage> {
     );
   }
 
-  Future<int> _getSidEntries() async {
+  Future<List<dynamic>> _getSidEntries() async {
     print("-> -> -> -> -> -> -> -> ->");
     List<dynamic> response = await FirebaseDatabaseUtils
         .getSidEntries(); // returns [<error code>, <sid list>]
-    // Check if error occured
-    if (response[0] <= 0) {
-      // Error handling
-      return response[0];
+
+    // Check if is empty
+    if (response.isEmpty) {
+      print("Empty sid entries list");
+      return response;
     }
-    // Get sid list from return value
-    sidList = response[1];
-    print("SIDLIST RESPONSE: ${response[0]}");
-    print("SIDLIST LENGTH: ${sidList.length}");
-    print("SIDLIST: $sidList");
+    print("Response: $response");
+
     print("<- <- <- <- <- <- <- <- <-");
-    return sidList.length;
+    return response;
   }
 
-  Widget createSidEntries() {
-    var listView = ListView.separated(
+  Widget sidEntriesListView(AsyncSnapshot snapshot) {
+    sidList = snapshot.data!; // previously checked if has data
+    return ListView.separated(
         itemCount: sidList.length,
         scrollDirection: Axis.vertical,
         padding: const EdgeInsets.only(top: 10, left: 5, right: 5, bottom: 10),
@@ -320,12 +340,6 @@ class _AdminOverviewPageState extends State<AdminOverviewPage> {
             ),
           );
         }));
-
-    if (sidList.isEmpty) {
-      return const Center(child: CircularProgressIndicator());
-    } else {
-      return listView;
-    }
   }
 
   Container attrContainer(String attrName, attrVal, [int? position]) {

@@ -79,28 +79,59 @@ class FirebaseDatabaseUtils {
   ///
   /// Please check the error code before using the sid list.
   static Future<List<dynamic>> getSidEntries() async {
-    List<SatelliteImageDataModel> entriesList = [];
     try {
-      DatabaseReference databaseReference =
-          FirebaseDatabase.instance.ref().child("sid");
-      databaseReference.once().then((DatabaseEvent dbEvent) {
-        Map<String, dynamic> satelliteTypesMap =
-            dbEvent.snapshot.value as Map<String, dynamic>;
-        if (satelliteTypesMap.isNotEmpty) {
-          satelliteTypesMap.forEach((satelliteType, sidMap) {
-            sidMap.forEach((id, sidJson) {
-              entriesList.add(SatelliteImageDataModel.fromJson(sidJson));
-            });
+      DatabaseReference dbRef = FirebaseDatabase.instance.ref().child("sid");
+      final dbEvent = await dbRef.once();
+      Map<String, dynamic> satelliteTypesMap =
+          dbEvent.snapshot.value as Map<String, dynamic>;
+      List<SatelliteImageDataModel> entriesList = [];
+
+      if (satelliteTypesMap.isNotEmpty) {
+        satelliteTypesMap.forEach((satelliteType, sidMap) {
+          sidMap.forEach((id, sidJson) {
+            var sidModel = SatelliteImageDataModel.fromJson(sidJson);
+            entriesList.add(sidModel);
+            print("LENGTH: ${entriesList.length}");
           });
-        } else {
-          print("Database event's snapshot value is empty.");
-        }
-      });
+        });
+      } else {
+        print("Database event's snapshot value is empty.");
+      }
+
+      return entriesList;
+
+      //
+      // dbRef.once().then((DatabaseEvent dbEvent) {
+      //   Map<String, dynamic> satelliteTypesMap =
+      //       dbEvent.snapshot.value as Map<String, dynamic>;
+      //   print("* * * * * * * * * *");
+      //   print(satelliteTypesMap);
+      //   print("* * * * * * * * * *");
+      //   if (satelliteTypesMap.isNotEmpty) {
+      //     satelliteTypesMap.forEach((satelliteType, sidMap) {
+      //       print("# # # # # # # # # # # #");
+      //       print(sidMap);
+      //       print("# # # # # # # # # # # #");
+      //       sidMap.forEach((id, sidJson) {
+      //         print("~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~");
+      //         print(sidJson);
+      //         print("~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~");
+      //         var sidModel = SatelliteImageDataModel.fromJson(sidJson);
+      //         print("${sidModel.id} -~*");
+      //         entriesList.add(sidModel);
+      //         print("LENGTH: ${entriesList.length}");
+      //       });
+      //     });
+      //   } else {
+      //     print("Database event's snapshot value is empty.");
+      //   }
+      // });
     } catch (e) {
       // Error handling
       print("Could not get SID entries: $e");
-      return [-1, entriesList];
+      return [];
     }
-    return [1, entriesList];
+    // print("jupp: ${entriesList.length}");
+    // return [1, entriesList];
   }
 }
