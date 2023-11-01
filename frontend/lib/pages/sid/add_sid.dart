@@ -234,6 +234,7 @@ class _AddSatelliteImageDataState extends State<AddSatelliteImageData> {
               if (apiOk <= 0) {
                 print("Could not send json data to api. apiOk=$apiOk");
               }
+              print("Send upload notification");
 
               setState(() {
                 isUploading = false;
