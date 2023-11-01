@@ -3,8 +3,7 @@ import threading
 import time
 import uuid
 
-from flask import Flask, jsonify
-from backend.data.database.db_listener import UploadListener
+from flask import Flask
 from backend.data.models.satellite_data.satellite_types import SatelliteTypes
 from backend.data.models.satellite_data.sentinel2b_data import Sentinel2BData
 from backend.data.models.user import User, UserGroups
@@ -19,6 +18,9 @@ app = Flask(__name__)
 app.register_blueprint(uploads_api)
 app.register_blueprint(basics_api)
 
+def run_flask_app():
+    app.run(host="0.0.0.0")
+
 if __name__ == "__main__":
     # --- Create logger ---
     logger = SidLogger()
@@ -26,7 +28,7 @@ if __name__ == "__main__":
 
     # --- Flask API init (run as thread)
     try:
-        threading.Thread(target=app.run).start()
+        threading.Thread(target=run_flask_app).start()
         print("Started Flask API server in thread...")
     except Exception as e:
         logging.error(f"Error occured while starting Flask API server in thread. error='{e}'")

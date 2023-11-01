@@ -1,4 +1,4 @@
-affine==2.4.0
+affine>=2.4.0
 anyio==3.7.0
 argon2-cffi==21.3.0
 argon2-cffi-bindings==21.2.0
@@ -23,10 +23,10 @@ defusedxml==0.7.1
 exceptiongroup==1.1.1
 executing==1.2.0
 fastjsonschema==2.17.1
-Flask==2.3.2
+flask==2.3.2
 fonttools==4.39.4
 fqdn==1.5.1
-GDAL==3.4.3
+GDAL==3.4.1
 idna==3.4
 ipykernel==6.23.1
 ipython==8.14.0
@@ -37,7 +37,7 @@ itsdangerous==2.1.2
 jedi==0.18.2
 Jinja2==3.1.2
 jsonpointer==2.3
-jsonschema==4.17.3
+jsonschema>=4.17.3
 jupyter==1.0.0
 jupyter-console==6.6.3
 jupyter-events==0.6.3

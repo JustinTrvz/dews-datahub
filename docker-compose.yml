@@ -1,0 +1,35 @@
+version: '3'
+services:
+  python:
+    image: dews-python:latest
+    container_name: python-container
+    build:
+      context: .
+      dockerfile: Dockerfile.python
+    working_dir: /app/backend
+    # command: venv/bin/python3 /app/backend/main.py
+    ports:
+      - "8000:8000"
+
+  firebase:
+    image: dews-firebase:latest
+    container_name: firebase-container
+    build:
+      context: .
+      dockerfile: Dockerfile.firebase
+    working_dir: /app/backend
+    command: firebase emulators:start
+    ports:
+      - "9000:9000"
+
+  flutter:
+    image: dews-flutter:latest
+    container_name: flutter-container
+    build:
+      context: .
+      dockerfile: Dockerfile.flutter
+    working_dir: /app/frontend
+    command: >
+        sh -c "flutter pub get && flutter run -d web-server --web-hostname 0.0.0.0 --web-port 8080 "
+    ports:
+      - "8080:8080" 

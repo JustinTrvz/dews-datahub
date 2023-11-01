@@ -33,6 +33,7 @@ class Database {
     if (response.statusCode == 200) {
       final Map<String, dynamic> jsonData = json.decode(response.body);
       return SatelliteImageDataModel.fromJson(jsonData);
+      // return SatelliteImageDataModel.fromJson(jsonData);
     } else {
       throw Exception(
           "Failed to load satellite image data model with id '$sidId'. (statusCode=${response.statusCode})");
