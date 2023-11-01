@@ -30,12 +30,12 @@ ENV C_INCLUDE_PATH=/usr/include/gdal
 
 
 # Copy your Python application
-COPY . /app
+COPY backend /app/backend
 COPY backend/requirements.txt /app/backend/requirements.txt
 WORKDIR /app/backend
 
 # Add project's path to python path
-ENV PYTHONPATH /app/backend
+ENV PYTHONPATH="${PYTHONPATH}:/app:/app/backend"
 
 # Create a virtual environment
 RUN python3 -m venv venv

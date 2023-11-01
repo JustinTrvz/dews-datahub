@@ -8,8 +8,10 @@ services:
       dockerfile: Dockerfile.python
     working_dir: /app/backend
     # command: venv/bin/python3 /app/backend/main.py
+    volumes:
+      - ./backend/tmp:/app/backend/tmp
     ports:
-      - "8000:8000"
+      - "5000:5000"
 
   firebase:
     image: dews-firebase:latest
@@ -20,7 +22,11 @@ services:
     working_dir: /app/backend
     command: firebase emulators:start
     ports:
+      - "4000:4000"
+      - "5001:5001"
       - "9000:9000"
+      - "9099:9099"
+      - "9199:9199"
 
   flutter:
     image: dews-flutter:latest
