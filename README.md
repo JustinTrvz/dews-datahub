@@ -7,7 +7,7 @@
 3. Start a terminal.
 4. Change directory to the root of the project (_e.g. `cd  ~/Git/drought-ews`_).
 5. Build the Docker containers by executing `sudo docker-compose up --build`.
-6. If you once build the Docker containers you can start them by executing `sudo docker-compose up` (_starts in foreground_) or `sudo docker-compose up -d` (_starts in background_).
+6. If you have already build the Docker containers you can start them by executing `sudo docker-compose up` (_starts in foreground_) or `sudo docker-compose up -d` (_starts in background_) in the future.
    - This command will launch the Python backend, the Firebase Emulator Suite and the Flutter web app. 
 
 ## GUI
