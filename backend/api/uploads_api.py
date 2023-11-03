@@ -9,10 +9,21 @@ from config import *
 
 uploads_api = Blueprint("uploads_api", __name__)
 
+@uploads_api.after_request
+def after_request(response):
+    response.headers.add("Access-Control-Allow-Origin", "*")
+    response.headers.add("Access-Control-Allow-Headers", "Content-Type,Authorization")
+    response.headers.add("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+    return response
 
-@uploads_api.route("/uploads/notify", methods=["POST"])
+@uploads_api.route("/uploads/notify", methods=["POST", "OPTIONS"])
 def uploadNotification():
-    logging.debug("Received a uploads notification!")
+
+    if request.method == "POST":
+        logging.debug("Received a uploads notification!")
+    elif request.method == "OPTIONS":
+        return jsonify(success=True), 200
+
     print(" - - - ")
     print(f"Rquest.: {request.headers}")
     print(" . . . ")
@@ -50,7 +61,7 @@ def uploadNotification():
         err_msg = f"Could not download '{upload_path}'. user_id='{user_id}', upload_path='{upload_path}', local_path='{local_path}', area_name='{area_name}'"
         logging.error(err_msg)
         # TODO: error code
-        return jsonify(ApiUtils.create_err_msg(-1, err_msg))
+        return jsonify(ApiUtils.create_err_msg(-1, err_msg)), 500
     else:
         # Create request json to respond
         request_json = {"request":
@@ -71,16 +82,16 @@ def uploadNotification():
             except Exception as e:
                 # Creation failure
                 logging.error(f"Failed to create Sentinel2BData object. error='{e}' user_id='{user_id}', local_path='{local_path}', area_name='{area_name}'")
-                return jsonify(ApiUtils.create_err_msg(-1, f"Faield to create Sentinel-2B object: '{e}'", request_json))
+                return jsonify(ApiUtils.create_err_msg(-1, f"Faield to create Sentinel-2B object: '{e}'", request_json)), 500
 
             # Creation success
             logging.debug(
                 f"Creating Sentinel2BData object... user_id='{user_id}', area_name='{area_name}', satellite_type='{satellite_type}', upload_path='{upload_path}', local_path='{local_path}'")
             return jsonify(
-                ApiUtils.create_success_msg(f"We will notify you via the client when we are done calculating the indexes.", request_json))
+                ApiUtils.create_success_msg(f"We will notify you via the client when we are done calculating the indexes.", request_json)), 200
         else:
             # Satellite type not supported
             err_msg = f"Satellite type '{satellite_type}' not supported."
             logging.error(err_msg)
             # TODO: error code
-            return jsonify(ApiUtils.create_err_msg(-1, err_msg, request_json))
+            return jsonify(ApiUtils.create_err_msg(-1, err_msg, request_json)), 500

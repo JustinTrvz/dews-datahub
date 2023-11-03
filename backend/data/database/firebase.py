@@ -10,53 +10,36 @@ from config import *
 
 
 class FirebaseApp:
-    _app = None
-
     @staticmethod
-    def get_app() -> firebase_admin.App:
-        if FirebaseApp._app is None:
-            # Initialize the Firebase app if it doesn't exist
-            try:
-                FirebaseApp._app = firebase_admin.initialize_app(
-                    credentials.Certificate(FB_TOKEN_PATH),
-                    options={
-                        "databaseURL": DB_URL,
-                        "storageBucket": STORAGE_URL,
-                    })
-            except Exception as e:
-                logging.error(
-                    f"Firebase app was not initialized. Abort program. Please try again! error='{e}', DB_URL='{DB_URL}', STORAGE_URL='{STORAGE_URL}'")
-        return FirebaseApp._app
-    
-    @staticmethod
-    def init_app() -> bool:
-        """
-        Returns true if app did not exist and initializes the app.
-        Returns false if app already exists.
-        """
-        if FirebaseApp._app is None:
-            FirebaseApp.get_app()
-            return True
-        else:
-            return False
+    def init_app() -> firebase_admin.App:
+        try:
+            return firebase_admin.initialize_app(
+                credentials.Certificate(FB_TOKEN_PATH),
+                options={
+                    "databaseURL": DB_URL,
+                    "storageBucket": STORAGE_URL,
+                })
+        except Exception as e:
+            logging.error(
+                f"Firebase app was not initialized. Abort program. Please try again! error='{e}', DB_URL='{DB_URL}', STORAGE_URL='{STORAGE_URL}'")
+            return None
 
     @staticmethod
     def get_reference(path: str):
-        FirebaseApp.init_app()
-        return db.reference(f"/{path}", app=FirebaseApp._app)
+        app = firebase_admin.get_app(name='[DEFAULT]')
+        return db.reference(path=f"/{path}", app=app)
 
     @staticmethod
     def get_bucket():
-        FirebaseApp.init_app()
-        return storage.bucket(app=FirebaseApp._app)
+        app = firebase_admin.get_app(name='[DEFAULT]')
+        return storage.bucket(app=app)
 
     @staticmethod
     def clean_up():
-        FirebaseApp.init_app()
+        app = firebase_admin.get_app(name='[DEFAULT]')
         try:
-            app_name = FirebaseApp._app.name
-            firebase_admin.delete_app(FirebaseApp._app)
-            logging.debug(f"Deleted Firebase app '{app_name}'.")
+            firebase_admin.delete_app(app=app)
+            logging.debug(f"Deleted Firebase app '{app.name}'.")
         except Exception as e:
             logging.error(
                 f"Could not delete Firebase app. Maybe the app is not initialized. error='{e}'")
@@ -65,7 +48,6 @@ class FirebaseApp:
 class FirebaseDatabase:
     @staticmethod
     def entry_exists(reference: str):
-        FirebaseApp.init_app()
         data = FirebaseApp.get_reference(reference).get()
         if data:
             return data, True
@@ -74,10 +56,10 @@ class FirebaseDatabase:
 
     @staticmethod
     def set_entry(reference: str, data):
-        FirebaseApp.init_app()
         _, exists = FirebaseDatabase.entry_exists(reference)
         if exists:
-            logging.debug(f"Reference '{reference}' already exists. Trying to push to entry...")
+            logging.debug(
+                f"Reference '{reference}' already exists. Trying to push to entry...")
             ok = FirebaseDatabase.push_to_entry(reference, data)
             return (ok is not None)
 
@@ -92,7 +74,6 @@ class FirebaseDatabase:
 
     @staticmethod
     def push_to_entry(reference: str, data):
-        FirebaseApp.init_app()
         _, exists = FirebaseDatabase.entry_exists(reference)
         if not exists:
             logging.error(
@@ -110,10 +91,9 @@ class FirebaseDatabase:
                 f"Could not push data to database reference '{reference}'. error='{e}', data='{data}'")
             return
         return key
-    
+
     @staticmethod
     def add_to_array(reference: str, data):
-        FirebaseApp.init_app()
         ref = FirebaseApp.get_reference(reference)
         existing_arr, exists = FirebaseDatabase.entry_exists(reference)
 
@@ -122,27 +102,30 @@ class FirebaseDatabase:
                 existing_arr.append(data)
                 try:
                     ref.set(existing_arr)
-                    logging.debug(f"Appended data to existing array. reference='{reference}'")
+                    logging.debug(
+                        f"Appended data to existing array. reference='{reference}'")
                 except Exception as e:
-                    logging.error(f"Could not append data to existing array. error='{e}', reference='{reference}', data='{data}'")
+                    logging.error(
+                        f"Could not append data to existing array. error='{e}', reference='{reference}', data='{data}'")
                     return -1
             else:
-                logging.error(f"Can not add to array. Data at reference '{reference}' is not of type 'list'.")
+                logging.error(
+                    f"Can not add to array. Data at reference '{reference}' is not of type 'list'.")
                 return -1
         else:
             try:
                 ref.set([data])
-                logging.debug(f"Created and pushed array with data. reference='{reference}'")
+                logging.debug(
+                    f"Created and pushed array with data. reference='{reference}'")
             except Exception as e:
-                logging.error(f"Could create array with data. error='{e}', reference='{reference}', data='{data}'")
+                logging.error(
+                    f"Could create array with data. error='{e}', reference='{reference}', data='{data}'")
                 return -1
 
         return 1
 
-
     @staticmethod
     def update_field(reference: str, field: str, data):
-        FirebaseApp.init_app()
         _, exists = FirebaseDatabase.entry_exists(reference)
         if not exists:
             logging.error(
@@ -152,7 +135,8 @@ class FirebaseDatabase:
         ref = FirebaseApp.get_reference(reference)
         try:
             ref.update({field: data})
-            logging.debug(f"Updated field. reference='{reference}', field='{field}'.")
+            logging.debug(
+                f"Updated field. reference='{reference}', field='{field}'.")
         except Exception as e:
             logging.error(
                 f"Could not update field. reference='{reference}', field='{field}'. error='{e}', data='{data}'")
@@ -161,7 +145,6 @@ class FirebaseDatabase:
 
     @staticmethod
     def get_entry(reference: str, entry: str):
-        FirebaseApp.init_app()
         _, exists = FirebaseDatabase.entry_exists(reference)
         if not exists:
             logging.error(
@@ -171,13 +154,13 @@ class FirebaseDatabase:
         ref = FirebaseApp.get_reference(reference)
         try:
             val = ref.child(entry).get()
-            logging.debug(f"Got entry. reference='{reference}', entry='{entry}'")
+            logging.debug(
+                f"Got entry. reference='{reference}', entry='{entry}'")
         except Exception as e:
             logging.error(
                 f"Value not available at database reference '{reference}/{entry}'. error='{e}'")
             return None
         return val
-
 
     """     
     @staticmethod
@@ -209,7 +192,6 @@ class FirebaseDatabase:
 
     @staticmethod
     def get_entries():
-        FirebaseApp.init_app()
         return FirebaseApp.get_reference("sid").get()
 
     @staticmethod
@@ -224,7 +206,6 @@ class FirebaseDatabase:
 
         # TODO: find a way to assemble the absolute path from the XML files (e.g. capture time)
         # Find info about naming convention!
-        FirebaseApp.init_app()
         sid_blob = FirebaseApp.get_bucket().blob(
             f"sid/{folder_name}/{folder_name}.SAFE/GRANULE/L2A_T32UPE_A032595_20230603T103434/IMG_DATA/R{range}m/T32UPE_20230603T102559_{band}_{range}m.jp2")
         img_data = sid_blob.download_as_bytes()
@@ -233,7 +214,6 @@ class FirebaseDatabase:
     @staticmethod
     def get_sdi_batch() -> {}:
         # TODO: batching
-        FirebaseApp.init_app()
         sid_dict = FirebaseApp.get_reference("sid").get()
         return sid_dict
 
@@ -241,8 +221,7 @@ class FirebaseDatabase:
     def create_user(user_obj: User) -> str:
         if user_obj.is_valid() is False:
             return ""
-        
-        FirebaseApp.init_app()
+
         user_ref = FirebaseApp.get_reference("user").child(user_obj.ID)
         user_ref.set(user_obj.to_dict())
         return user_obj.ID
@@ -250,7 +229,6 @@ class FirebaseDatabase:
     @staticmethod
     def get_user_batch() -> {}:
         # TODO: batching
-        FirebaseApp.init_app()
         user_dict = FirebaseApp.get_reference("user").get()
         return user_dict
 
@@ -263,16 +241,17 @@ class FirebaseStorage:
 
         E.g. upload_file("test/123", "/home/user/Downloads/file.zip") will write the file "file.zip" to "test/123/file.zip".
         '''
-        FirebaseApp.init_app()
         # "test/img.jpeg" -> ["test", "img.jpeg"] -> "img.jpeg"
         img_name = file_path.split("/")[-1]
         # Get a reference to the Firebase Storage bucket
         blob_destination = f"{destination_path}/{img_name}"
-        sid_img_folder = FirebaseApp.get_bucket().blob(blob_destination)
         try:
+            sid_img_folder = FirebaseApp.get_bucket().blob(blob_destination)
             sid_img_folder.upload_from_filename(filename=file_path)
         except Exception as e:
-            logging.error(f"Failed to upload from file name. destination_path='{destination_path}', file_path='{file_path}', blob_destination='{blob_destination}'")
+            logging.error(
+                f"Failed to upload from file name. error='{e}', destination_path='{destination_path}', file_path='{file_path}', blob_destination='{blob_destination}'")
+            return ""
 
         return blob_destination
 
@@ -283,7 +262,6 @@ class FirebaseStorage:
 
         E.g. upload_file_bin("test/123", "file.zip", "z4R3bYx2Bnj3A") will write the file "file.zip" to "test/123/file.zip".
         '''
-        FirebaseApp.init_app()
         # Get a reference to the Firebase Storage bucket
         sid_img_folder = FirebaseApp.get_bucket().blob(
             f"{destination_path}/{file_name}")
@@ -292,7 +270,6 @@ class FirebaseStorage:
 
     @staticmethod
     def upload_zip_from_path(zip_path: str):
-        FirebaseApp.init_app()
         # Set file name
         if "/" in zip_path:
             # "test/abc.zip" -> ["test", "abc.zip"] -> "abc.zip"
@@ -312,7 +289,6 @@ class FirebaseStorage:
         if not os.path.exists(zip_path):
             return -1  # TODO: ERROR CODE
 
-        FirebaseApp.init_app()
         extracted_zip_path = FileUtils.extract_zip(zip_path)
         ok = FirebaseStorage.upload_directory(extracted_zip_path, storage_path)
 
@@ -320,7 +296,6 @@ class FirebaseStorage:
 
     @staticmethod
     def download_file(file_path: str, counter: int = 0) -> str:
-        FirebaseApp.init_app()
         # Handle retries
         if counter >= RETRY_LIMIT:
             logging.error(
@@ -352,7 +327,6 @@ class FirebaseStorage:
 
     @staticmethod
     def upload_directory(local_path, storage_path):
-        FirebaseApp.init_app()
         # Set storage_path
         if "/" in local_path:
             # "test/abc.zip" -> ["test", "abc.zip"] -> "abc.zip"
@@ -386,24 +360,25 @@ class FirebaseStorage:
         '''
         Returns local directory's root path on success and an empty string on failure.
         '''
-        FirebaseApp.init_app()
         # Check if local directory exists
         splitted_storage_path = storage_path.split('/')
         satellite_type = splitted_storage_path[-2]
         directory_name = splitted_storage_path[-1]
         full_local_path = f"{local_path}/{satellite_type}/{directory_name}"
         if os.path.exists(full_local_path):
-            logging.debug(f"Local directory already exists. Will not download directory. full_local_path='{full_local_path}'")
+            logging.debug(
+                f"Local directory already exists. Will not download directory. full_local_path='{full_local_path}'")
             return full_local_path
 
-        logging.debug(f"Local directory does not exist. About to download the remote directory. full_local_path='{full_local_path}', storage_path='{storage_path}'")
+        logging.debug(
+            f"Local directory does not exist. About to download the remote directory. full_local_path='{full_local_path}', storage_path='{storage_path}'")
         blobs = FirebaseApp.get_bucket().list_blobs(prefix=storage_path)
 
         for blob in blobs:
             # Extract blob name
             path_components = blob.name.split("/")
             path_components.pop(0)  # Remove the first component ('uploads')
-            
+
             # Generate local file path
             local_file_path = os.path.join(local_path, *path_components)
 
@@ -419,7 +394,7 @@ class FirebaseStorage:
 
         # Extract the directory name from the storage path
         components = storage_path.split("/")
-        components.pop(0) # remove "uploads/" part
+        components.pop(0)  # remove "uploads/" part
         local_dir_path = "/".join(components)
         print(f"local_dir_path: {local_dir_path}")
 
@@ -427,7 +402,6 @@ class FirebaseStorage:
 
     @staticmethod
     def delete_directory(storage_path: str):
-        FirebaseApp.init_app()
         blobs = list(FirebaseApp.get_bucket().list_blobs(prefix=storage_path))
         for blob in blobs:
             try:

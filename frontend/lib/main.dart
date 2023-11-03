@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:gui/pages/admin/admin_overview.dart';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
@@ -8,7 +7,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:gui/firebase_options.dart';
 import 'package:gui/pages/splash_screen.dart';
-
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,7 +19,7 @@ void main() async {
       await FirebaseStorage.instance.useStorageEmulator("localhost", 9199);
       await FirebaseAuth.instance.useAuthEmulator("localhost", 9000);
       FirebaseDatabase.instance.useDatabaseEmulator("localhost", 9000);
-      print("Using Firebase Emulator Suite...");
+      ("Using Firebase Emulator Suite...");
     } catch (e) {
       print("Can not use Firebase Emulator Suite. error='$e'");
     }

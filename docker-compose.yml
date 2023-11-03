@@ -3,12 +3,16 @@ services:
   python:
     image: dews-python:latest
     container_name: python-container
+    networks:
+      dews-network:
+        ipv4_address: 172.19.0.2
     build:
       context: .
       dockerfile: Dockerfile.python
     working_dir: /app/backend
     # command: venv/bin/python3 /app/backend/main.py
     volumes:
+      - ./backend/backend.log:/app/backend/backend.log
       - ./backend/tmp:/app/backend/tmp
     ports:
       - "5000:5000"
@@ -16,6 +20,9 @@ services:
   firebase:
     image: dews-firebase:latest
     container_name: firebase-container
+    networks:
+      dews-network:
+        ipv4_address: 172.19.0.3
     build:
       context: .
       dockerfile: Dockerfile.firebase
@@ -31,6 +38,9 @@ services:
   flutter:
     image: dews-flutter:latest
     container_name: flutter-container
+    networks:
+      dews-network:
+        ipv4_address: 172.19.0.4
     build:
       context: .
       dockerfile: Dockerfile.flutter
@@ -39,3 +49,13 @@ services:
         sh -c "flutter pub get && flutter run -d web-server --web-hostname 0.0.0.0 --web-port 8080 "
     ports:
       - "8080:8080" 
+
+networks:
+  dews-network:
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.name: dews-bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.19.0.0/16
