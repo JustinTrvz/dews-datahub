@@ -1,0 +1,29 @@
+# Use an official Node.js image as the base image
+FROM node:14
+
+# Set the working directory within the container
+WORKDIR /app/backend
+
+# Copy Firebase config
+COPY backend/.firebaserc /app/backend/.firebaserc
+COPY backend/database.rules.json /app/backend/database.rules.json
+COPY backend/storage.rules /app/backend/storage.rules
+COPY backend/drought-ews-dev.json /app/backend/drought-ews-dev.json
+COPY backend/firebase.json /app/backend/firebase.json
+
+# Install the Firebase CLI
+RUN apt update && apt install -y --fix-missing \
+  curl \
+  nodejs \
+  default-jdk \
+  && \
+  npm install firebase && \
+  npm install -g firebase-tools@latest
+
+# Update Node.js and NPM
+RUN npm install -g n
+RUN n latest
+RUN npm install npm@latest -g
+
+# Expose the necessary ports for Firebase Emulators
+EXPOSE 9000 8080

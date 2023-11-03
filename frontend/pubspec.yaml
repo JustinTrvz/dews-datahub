@@ -48,6 +48,8 @@ dependencies:
   firebase_database: ^10.3.1
   firebase_auth: ^4.11.1
   flutter_native_splash: ^2.3.5
+  logging: ^1.2.0
+  logging_appenders: ^1.2.0+1
 
 dev_dependencies:
   flutter_test:

@@ -10,38 +10,36 @@ from config import *
 
 
 class FirebaseApp:
-    _app = None
-
     @staticmethod
-    def get_app() -> firebase_admin.App:
-        if FirebaseApp._app is None:
-            # Initialize the Firebase app if it doesn't exist
-            try:
-                FirebaseApp._app = firebase_admin.initialize_app(
-                    credentials.Certificate(FB_TOKEN_PATH),
-                    options={
-                        "databaseURL": DB_URL,
-                        "storageBucket": STORAGE_URL,
-                    })
-            except Exception as e:
-                logging.error(
-                    f"Firebase app was not initialized. Abort program. Please try again! error='{e}', DB_URL='{DB_URL}', STORAGE_URL='{STORAGE_URL}'")
-        return FirebaseApp._app
+    def init_app() -> firebase_admin.App:
+        try:
+            return firebase_admin.initialize_app(
+                credentials.Certificate(FB_TOKEN_PATH),
+                options={
+                    "databaseURL": DB_URL,
+                    "storageBucket": STORAGE_URL,
+                })
+        except Exception as e:
+            logging.error(
+                f"Firebase app was not initialized. Abort program. Please try again! error='{e}', DB_URL='{DB_URL}', STORAGE_URL='{STORAGE_URL}'")
+            return None
 
     @staticmethod
     def get_reference(path: str):
-        return db.reference(f"/{path}", app=FirebaseApp._app)
+        app = firebase_admin.get_app(name='[DEFAULT]')
+        return db.reference(path=f"/{path}", app=app)
 
     @staticmethod
     def get_bucket():
-        return storage.bucket(app=FirebaseApp._app)
+        app = firebase_admin.get_app(name='[DEFAULT]')
+        return storage.bucket(app=app)
 
     @staticmethod
     def clean_up():
+        app = firebase_admin.get_app(name='[DEFAULT]')
         try:
-            app_name = FirebaseApp._app.name
-            firebase_admin.delete_app(FirebaseApp._app)
-            logging.debug(f"Deleted Firebase app '{app_name}'.")
+            firebase_admin.delete_app(app=app)
+            logging.debug(f"Deleted Firebase app '{app.name}'.")
         except Exception as e:
             logging.error(
                 f"Could not delete Firebase app. Maybe the app is not initialized. error='{e}'")
@@ -60,7 +58,8 @@ class FirebaseDatabase:
     def set_entry(reference: str, data):
         _, exists = FirebaseDatabase.entry_exists(reference)
         if exists:
-            logging.debug(f"Reference '{reference}' already exists. Trying to push to entry...")
+            logging.debug(
+                f"Reference '{reference}' already exists. Trying to push to entry...")
             ok = FirebaseDatabase.push_to_entry(reference, data)
             return (ok is not None)
 
@@ -92,7 +91,7 @@ class FirebaseDatabase:
                 f"Could not push data to database reference '{reference}'. error='{e}', data='{data}'")
             return
         return key
-    
+
     @staticmethod
     def add_to_array(reference: str, data):
         ref = FirebaseApp.get_reference(reference)
@@ -103,23 +102,27 @@ class FirebaseDatabase:
                 existing_arr.append(data)
                 try:
                     ref.set(existing_arr)
-                    logging.debug(f"Appended data to existing array. reference='{reference}'")
+                    logging.debug(
+                        f"Appended data to existing array. reference='{reference}'")
                 except Exception as e:
-                    logging.error(f"Could not append data to existing array. error='{e}', reference='{reference}', data='{data}'")
+                    logging.error(
+                        f"Could not append data to existing array. error='{e}', reference='{reference}', data='{data}'")
                     return -1
             else:
-                logging.error(f"Can not add to array. Data at reference '{reference}' is not of type 'list'.")
+                logging.error(
+                    f"Can not add to array. Data at reference '{reference}' is not of type 'list'.")
                 return -1
         else:
             try:
                 ref.set([data])
-                logging.debug(f"Created and pushed array with data. reference='{reference}'")
+                logging.debug(
+                    f"Created and pushed array with data. reference='{reference}'")
             except Exception as e:
-                logging.error(f"Could create array with data. error='{e}', reference='{reference}', data='{data}'")
+                logging.error(
+                    f"Could create array with data. error='{e}', reference='{reference}', data='{data}'")
                 return -1
 
         return 1
-
 
     @staticmethod
     def update_field(reference: str, field: str, data):
@@ -132,7 +135,8 @@ class FirebaseDatabase:
         ref = FirebaseApp.get_reference(reference)
         try:
             ref.update({field: data})
-            logging.debug(f"Updated field. reference='{reference}', field='{field}'.")
+            logging.debug(
+                f"Updated field. reference='{reference}', field='{field}'.")
         except Exception as e:
             logging.error(
                 f"Could not update field. reference='{reference}', field='{field}'. error='{e}', data='{data}'")
@@ -150,13 +154,13 @@ class FirebaseDatabase:
         ref = FirebaseApp.get_reference(reference)
         try:
             val = ref.child(entry).get()
-            logging.debug(f"Got entry. reference='{reference}', entry='{entry}'")
+            logging.debug(
+                f"Got entry. reference='{reference}', entry='{entry}'")
         except Exception as e:
             logging.error(
                 f"Value not available at database reference '{reference}/{entry}'. error='{e}'")
             return None
         return val
-
 
     """     
     @staticmethod
@@ -241,11 +245,13 @@ class FirebaseStorage:
         img_name = file_path.split("/")[-1]
         # Get a reference to the Firebase Storage bucket
         blob_destination = f"{destination_path}/{img_name}"
-        sid_img_folder = FirebaseApp.get_bucket().blob(blob_destination)
         try:
+            sid_img_folder = FirebaseApp.get_bucket().blob(blob_destination)
             sid_img_folder.upload_from_filename(filename=file_path)
         except Exception as e:
-            logging.error(f"Failed to upload from file name. destination_path='{destination_path}', file_path='{file_path}', blob_destination='{blob_destination}'")
+            logging.error(
+                f"Failed to upload from file name. error='{e}', destination_path='{destination_path}', file_path='{file_path}', blob_destination='{blob_destination}'")
+            return ""
 
         return blob_destination
 
@@ -360,17 +366,19 @@ class FirebaseStorage:
         directory_name = splitted_storage_path[-1]
         full_local_path = f"{local_path}/{satellite_type}/{directory_name}"
         if os.path.exists(full_local_path):
-            logging.debug(f"Local directory already exists. Will not download directory. full_local_path='{full_local_path}'")
+            logging.debug(
+                f"Local directory already exists. Will not download directory. full_local_path='{full_local_path}'")
             return full_local_path
 
-        logging.debug(f"Local directory does not exist. About to download the remote directory. full_local_path='{full_local_path}', storage_path='{storage_path}'")
+        logging.debug(
+            f"Local directory does not exist. About to download the remote directory. full_local_path='{full_local_path}', storage_path='{storage_path}'")
         blobs = FirebaseApp.get_bucket().list_blobs(prefix=storage_path)
 
         for blob in blobs:
             # Extract blob name
             path_components = blob.name.split("/")
             path_components.pop(0)  # Remove the first component ('uploads')
-            
+
             # Generate local file path
             local_file_path = os.path.join(local_path, *path_components)
 
@@ -386,7 +394,7 @@ class FirebaseStorage:
 
         # Extract the directory name from the storage path
         components = storage_path.split("/")
-        components.pop(0) # remove "uploads/" part
+        components.pop(0)  # remove "uploads/" part
         local_dir_path = "/".join(components)
         print(f"local_dir_path: {local_dir_path}")
 

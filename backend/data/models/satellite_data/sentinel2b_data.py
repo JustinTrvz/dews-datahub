@@ -287,8 +287,11 @@ class Sentinel2BData:
         directory_path = os.path.join(
             "sid",  SatelliteTypes.SENTINEL_2B.lower(), self.ID, "images", img_type)
         storage_path = FirebaseStorage.upload_file(directory_path, local_path)
-        logging.debug(
-            f"Uploaded {img_type} image to storage. id='{self.ID}', directory_path='{directory_path}', {img_type}_img_path_local='{local_path}'")
+        if storage_path == "":
+            logging.error(f"Failed to upload file. directory_path='{directory_path}', local_path='{local_path}'")
+        else:
+            logging.debug(
+            f"Uploaded {img_type} image to storage. self.ID='{self.ID}', directory_path='{directory_path}', {img_type}_img_path_local='{local_path}'")
 
         return storage_path
 

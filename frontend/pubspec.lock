@@ -328,6 +328,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.1"
+  logging:
+    dependency: "direct main"
+    description:
+      name: logging
+      sha256: "623a88c9594aa774443aa3eb2d41807a48486b5613e67599fb4c41c0ad47c340"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.2.0"
+  logging_appenders:
+    dependency: "direct main"
+    description:
+      name: logging_appenders
+      sha256: "1fb8a008c04246f4677a0d034d69779a5975e56e02573a5162240239b247e239"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.2.0+1"
   lottie:
     dependency: "direct main"
     description:
