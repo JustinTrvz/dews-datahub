@@ -1,6 +1,5 @@
 import "package:flutter/material.dart";
 import "package:gui/models/user_model.dart";
-import "package:gui/pages/sid/show_sid.dart";
 import "package:gui/pages/side_navigation_bar/side_nav_bar_controller.dart";
 import "package:gui/utils/firebase_database.dart";
 import "package:gui/utils/firebase_storage.dart";
@@ -201,11 +200,7 @@ class _SatelliteDataPageState extends State<SatelliteDataPage> {
           double widthVal = 400.0;
           return GestureDetector(
             onTap: () {
-              Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) =>
-                          ShowSatelliteImageData(sid: sidList[index])));
+              print("SHOW SID"); //TODO: show entry details
             },
             child: Container(
               width: widthVal,

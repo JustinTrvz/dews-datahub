@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:gui/models/user_model.dart';
-import 'package:gui/pages/admin/admin_overview.dart';
 import 'package:gui/pages/user/user_overview.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -37,7 +36,7 @@ class _SplashScreenState extends State<SplashScreen>
 
     Future.delayed(const Duration(seconds: 1), () {
       Navigator.of(context).pushReplacement(MaterialPageRoute(
-        builder: (_) => const AdminOverviewPage(),
+        builder: (_) => const UserOverviewPage(),
         // builder: (_) => UserOverviewPage(
         //   user: user,
         // ),
