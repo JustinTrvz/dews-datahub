@@ -64,7 +64,7 @@ class _AdminOverviewPageState extends State<AdminOverviewPage> {
           width: 200,
           child: FloatingActionButton.extended(
             onPressed: () {
-              AddSatelliteImageData.show(context, () {});
+              AddSatelliteData.show(context, () {});
             },
             icon: const Icon(Icons.add),
             label: const Text("Add new entry"),
@@ -136,11 +136,11 @@ class _AdminOverviewPageState extends State<AdminOverviewPage> {
 
   ListView createNotifications() {
     notificationList.add(NotificationModel(
-      notificationId: "lfjrertpojert",
+      id: "lfjrertpojert",
       userId: "rgemrglkermg",
       category: "Upload",
       message: "Upload of file 'xyz' is done.",
-      thumbnail: "",
+      thumbnailStoragePath: "",
     ));
     return ListView.separated(
       itemCount: notificationList.length,
@@ -170,7 +170,7 @@ class _AdminOverviewPageState extends State<AdminOverviewPage> {
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(8.0),
                           child: ImageUtils.decodeBase64EncodedImg(
-                              notificationList[index].thumbnail, widthVal),
+                              notificationList[index].thumbnailStoragePath, widthVal),
                         ),
                       ),
                     ),
@@ -287,8 +287,9 @@ class _AdminOverviewPageState extends State<AdminOverviewPage> {
               Navigator.push(
                   context,
                   MaterialPageRoute(
-                      builder: (context) =>
-                          ShowSatelliteImageData(sid: sidList[index])));
+                      builder: (context) => ShowSatelliteImageData(
+                            sid: sidList[index],
+                          )));
             },
             child: Container(
               width: widthVal,
@@ -426,7 +427,7 @@ class _AdminOverviewPageState extends State<AdminOverviewPage> {
   AppBar appBar() {
     return AppBar(
       title: const Text(
-        "Remote Sensing Analysis",
+        "DE-DH",
         style: TextStyle(
           color: Colors.black,
           fontSize: 18,

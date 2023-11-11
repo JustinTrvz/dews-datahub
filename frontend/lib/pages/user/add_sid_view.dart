@@ -2,28 +2,22 @@ import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:gui/models/user_model.dart';
+import 'package:gui/pages/side_navigation_bar/side_nav_bar_controller.dart';
 import 'package:gui/utils/api.dart';
 import 'package:gui/utils/firebase_database.dart';
 import 'package:gui/utils/firebase_storage.dart';
 
-class AddSatelliteData extends StatefulWidget {
-  const AddSatelliteData({super.key});
-
-  static Future show(BuildContext context, void Function()? onFinish) async {
-    return showDialog(
-        context: context,
-        builder: (context) => const AddSatelliteData()).then((_) {
-      if (onFinish != null) {
-        onFinish();
-      }
-    });
-  }
+class AddSidPage extends StatefulWidget {
+  const AddSidPage({Key? key, required this.sideBarController})
+      : super(key: key);
+  final SideBarController sideBarController;
 
   @override
-  State<AddSatelliteData> createState() => _AddSatelliteDataState();
+  State<AddSidPage> createState() => _AddSidPageState();
 }
 
-class _AddSatelliteDataState extends State<AddSatelliteData> {
+class _AddSidPageState extends State<AddSidPage> {
   final TextEditingController _satelliteTypeController =
       TextEditingController();
   final TextEditingController _areaNameController = TextEditingController();
@@ -82,7 +76,60 @@ class _AddSatelliteDataState extends State<AddSatelliteData> {
       setState(() {});
     });
 
-    return showAddDialog(context);
+    return Expanded(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: <Widget>[
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                selectFileButton(),
+              ],
+            ),
+            isLoadingFile
+                ? const Text(
+                    'Upload may take a while... Thanks for being patient!',
+                    style: TextStyle(color: Colors.red))
+                : const SizedBox(
+                    height: 0), // Display warning if a file is selected
+
+            TextFormField(
+              controller: _areaNameController,
+              decoration: const InputDecoration(labelText: 'Area Name'),
+            ),
+            TextFormField(
+              controller: _cityController,
+              decoration: const InputDecoration(labelText: 'City'),
+            ),
+            TextFormField(
+              controller: _countryController,
+              decoration: const InputDecoration(labelText: 'Country'),
+            ),
+            TextFormField(
+              controller: _postalCodeController,
+              decoration: const InputDecoration(labelText: 'Postal Code'),
+            ),
+            // Drop-down menu: Satellite type
+            selectSatelliteType(),
+            // Tail buttons
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Cancel button
+                cancelButton(context),
+                // Gap between buttons
+                const SizedBox(
+                  width: 5,
+                ),
+                // Save button
+                saveButton(),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   void pickFile() async {
@@ -127,35 +174,6 @@ class _AddSatelliteDataState extends State<AddSatelliteData> {
     } else {
       return const Text("Select a file");
     }
-  }
-
-  AlertDialog showAddDialog(BuildContext dialogContext) {
-    return AlertDialog(
-      title: const Text("Add a new entry"),
-      content: SingleChildScrollView(
-        child: Column(
-          children: <Widget>[
-            // File upload
-            selectFileButton(),
-            // Dropdown menu
-            selectSatelliteType(),
-            // Text fields
-            attrRow("Areaname", _areaNameController),
-            attrRow("City", _cityController),
-            attrRow("Country", _countryController),
-            attrRow("Postal code", _postalCodeController),
-
-            // Upload info
-            uploadInfoBox(),
-          ],
-        ),
-      ),
-      // Buttons
-      actions: <Widget>[
-        cancelButton(dialogContext),
-        saveButton(),
-      ],
-    );
   }
 
   Row selectSatelliteType() {
@@ -240,7 +258,10 @@ class _AddSatelliteDataState extends State<AddSatelliteData> {
                 isUploading = false;
               });
 
-              Navigator.pop(context); // TODO: rewrite! do not use this!
+              FirebaseDatabaseUtils.getUserById("123").calculationsInProgress += 1; // TODO: get actual user
+              setState(() {
+                widget.sideBarController.index.value = 2; // jumps to "Satellite Image Data" page
+              }); 
             },
       icon: (isUploading) ? saveLoadingIcon() : const Icon(Icons.save),
       label: (saveClicked) ? const Text("Uploading...") : const Text("Save"),
@@ -252,7 +273,7 @@ class _AddSatelliteDataState extends State<AddSatelliteData> {
       icon: const Icon(Icons.cancel),
       label: const Text("Cancel"),
       onPressed: () {
-        Navigator.pop(dialogContext);
+        widget.sideBarController.index.value = 2; // jumps to "Satellite Image Data" page
       },
     );
   }
@@ -277,7 +298,7 @@ class _AddSatelliteDataState extends State<AddSatelliteData> {
         children: [
           Icon(Icons.priority_high),
           Padding(
-            padding: EdgeInsets.all(5),
+            padding: EdgeInsets.all(10),
             child: Text(
               "Uploading a file may take a while...\nPlease be patient! Thank you!",
               style: TextStyle(
@@ -341,20 +362,6 @@ class _AddSatelliteDataState extends State<AddSatelliteData> {
       child: const CircularProgressIndicator(
         color: Colors.white,
         strokeWidth: 3,
-      ),
-    );
-  }
-
-  SnackBar uploadSnackbar() {
-    return SnackBar(
-      content: const Text(
-          'Uploading a file may take a while... Please be patient! Thank you!'),
-      duration: const Duration(seconds: 15),
-      action: SnackBarAction(
-        label: 'Cancel Upload',
-        onPressed: () {
-          // TODO: implement cancel upload
-        },
       ),
     );
   }

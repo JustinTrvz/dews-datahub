@@ -1,30 +1,30 @@
 import 'package:uuid/uuid.dart';
 
 class NotificationModel {
-  String notificationId;
+  String id;
   String userId;
   String category;
   String message;
-  String? thumbnail;
+  String? thumbnailStoragePath;
   DateTime creationTime = DateTime.now();
   
 
   NotificationModel({
-    this.notificationId = "Unknown",
+    this.id = "Unknown",
     this.userId = "Unknown",
     this.category = "Unknown",
     this.message = "No message",
-    this.thumbnail = "",
+    this.thumbnailStoragePath = "",
   });
 
   factory NotificationModel.fromJson(Map<String, dynamic> json) {
     var jsonNotification = json["notification"];
     return NotificationModel(
-      notificationId: jsonNotification["notification_id"] as String,
-      userId: jsonNotification["user_id"] as String,
+      id: jsonNotification["id"] as String,
+      userId: jsonNotification["userId"] as String,
       category: jsonNotification["category"] as String,
       message:  jsonNotification["message"] as String,
-      thumbnail: jsonNotification["thumbnail"] as String
+      thumbnailStoragePath: jsonNotification["thumbnailStoragePath"] as String
     );
   }
 

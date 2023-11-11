@@ -28,8 +28,8 @@ class ApiUtils {
   }
 
   static Future<int> sendUploadNotification(Map<String, dynamic> data) async {
-    // const String apiEndpoint = "http://127.0.0.1:5000/uploads/notify";
-    const String apiEndpoint = "http://172.19.0.2:5000/uploads/notify";
+    // const String apiEndpoint = "http://127.0.0.1:5000/uploads/notify"; // local
+    const String apiEndpoint = "http://172.19.0.2:5000/uploads/notify"; // docker
 
     try {
       String jsonBody = jsonEncode(data);

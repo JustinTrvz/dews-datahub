@@ -1,5 +1,8 @@
 import "package:firebase_database/firebase_database.dart";
+import "package:flutter/material.dart";
+import "package:gui/models/notification_model.dart";
 import "package:gui/models/sid_model.dart";
+import "package:gui/models/user_model.dart";
 
 class FirebaseDatabaseUtils {
   static Future<int> createEntry(String path, dynamic data) async {
@@ -75,9 +78,10 @@ class FirebaseDatabaseUtils {
     return 1;
   }
 
-  /// Returns a list of all satellite image data models stored in the database using this convention [int errorCode, List<Map<String, SatelliteImageDataModel>> entriesList].
+  /// Returns a list of all satellite image data models stored in the database.
   ///
-  /// Please check the error code before using the sid list.
+  /// Return value: List<Map<String, SatelliteImageDataModel>>
+
   static Future<List<dynamic>> getSidEntries() async {
     try {
       DatabaseReference dbRef = FirebaseDatabase.instance.ref().child("sid");
@@ -91,11 +95,11 @@ class FirebaseDatabaseUtils {
           sidMap.forEach((id, sidJson) {
             var sidModel = SatelliteImageDataModel.fromJson(sidJson);
             entriesList.add(sidModel);
-            print("LENGTH: ${entriesList.length}");
+            print("LENGTH (sid): ${entriesList.length}");
           });
         });
       } else {
-        print("Database event's snapshot value is empty.");
+        print("Database event's snapshot value is empty (sid).");
       }
 
       return entriesList;
@@ -133,5 +137,52 @@ class FirebaseDatabaseUtils {
     }
     // print("jupp: ${entriesList.length}");
     // return [1, entriesList];
+  }
+
+  static DewsUser getUserById(String userId) {
+    // TODO: implement real function
+    return DewsUser(
+      id: "test123",
+      // userGroups: ["admin"],
+      email: "peter@web.de",
+      firstName: "Peter",
+      lastName: "Manfred",
+      streetName: "Herrmann Straße",
+      streetNumber: 81,
+      postalCode: 98045,
+      country: "Germany",
+      phoneNumber: "016205738280",
+      createdTimestamp: DateTime.now(),
+      lastModifiedTimestamp: DateTime.now(),
+      newFilesCount: 1,
+      notificationsCount: 1,
+    );
+  }
+
+  static Future<List<dynamic>> getNotificationEntries(String userId) async {
+    try {
+      DatabaseReference dbRef =
+          FirebaseDatabase.instance.ref().child("notifications/${userId}");
+      final dbEvent = await dbRef.once();
+      Map<String, dynamic> notificationsMap =
+          dbEvent.snapshot.value as Map<String, dynamic>;
+      List<NotificationModel> entriesList = [];
+
+      if (notificationsMap.isNotEmpty) {
+        notificationsMap.forEach((id, notificationJson) {
+          var notificationModel = NotificationModel.fromJson(notificationJson);
+          entriesList.add(notificationModel);
+          print("LENGTH (notification): ${entriesList.length}");
+        });
+      } else {
+        print("Database event's snapshot value is empty (notification). userId='$userId'");
+      }
+
+      return entriesList;
+    } catch (e) {
+      // Error handling
+      print("Could not get notification entries. userId='$userId', error='$e'");
+      return [];
+    }
   }
 }
