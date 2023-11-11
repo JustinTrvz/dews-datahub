@@ -4,7 +4,7 @@ import os.path
 from zipfile import ZipFile
 import zipfile
 
-from config import *
+from backend.config import *
 
 
 class FileUtils:

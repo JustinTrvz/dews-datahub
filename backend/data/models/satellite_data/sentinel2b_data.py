@@ -1,16 +1,14 @@
-import base64
 import datetime
 import logging
-import time
 
 import xmltodict
 import uuid
 from backend.data.database.firebase import FirebaseDatabase, FirebaseStorage
 from backend.data.models.satellite_data.satellite_types import SatelliteTypes
 
-from statistics.utils.file_utils import FileUtils
-from statistics.metrics_calculator import MetricsCalculator
-from config import *
+from backend.statistics.utils.file_utils import FileUtils
+from backend.statistics.metrics_calculator import MetricsCalculator
+from backend.config import *
 
 """
 Satellite image data object specialized for S2B MSIL2A (Sentinel-2B) satellite image data.
@@ -207,11 +205,26 @@ class Sentinel2BData:
             else:
                 logging.debug(
                     f"Successfully uploaded data and files ot of satellite image data object. id='{self.ID}'")
+                self.createNotification()
                 return
         else:
             logging.error(
                 f"Satellite image data object is not valid! error='{valid}', id='{self.ID}'")
             return
+        
+    def createNotification(self):
+        data = {
+           "id": str(uuid.uuid4()),
+           "userId": self.USER_ID,
+           "category": "Calculation",
+           "message": f"Calculation done for satellite image data '{self.ID}'",
+           "thumbnailStoragePath": self.RGB_IMG_PATH_STORAGE,
+        }
+        ok = FirebaseDatabase.set_entry(
+            f"notifications/{self.USER_ID}", data)
+        if not ok:
+            logging.error(f"Could not set notification. self.USER_ID='{self.USER_ID}', self.ID='{self.ID}'")
+
 
     @staticmethod
     def init_from_json(json_data):
