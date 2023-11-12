@@ -5,7 +5,8 @@ tmp/
 
 # Firebase
 firebase_options*.dart
-
+firebase_data/
+firebase_data.zip
 
 # Visual Studio Code
 .vscode
