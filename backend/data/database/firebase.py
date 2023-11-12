@@ -5,8 +5,8 @@ import firebase_admin
 from firebase_admin import credentials, db, storage
 from backend.statistics.utils.file_utils import FileUtils
 
-from data.models.user import User
-from config import *
+from backend.data.models.user import User
+from backend.config import *
 
 
 class FirebaseApp:
@@ -251,6 +251,7 @@ class FirebaseStorage:
         except Exception as e:
             logging.error(
                 f"Failed to upload from file name. error='{e}', destination_path='{destination_path}', file_path='{file_path}', blob_destination='{blob_destination}'")
+            print(f"Failed to upload from file name. error='{e}', destination_path='{destination_path}', file_path='{file_path}', blob_destination='{blob_destination}'")
             return ""
 
         return blob_destination
@@ -293,6 +294,15 @@ class FirebaseStorage:
         ok = FirebaseStorage.upload_directory(extracted_zip_path, storage_path)
 
         return ok
+    
+    @staticmethod
+    def file_exists(reference: str, file_name: str) -> bool:
+        try:
+            blob = FirebaseApp.get_bucket().blob(f"{reference}/{file_name}")
+            return blob.exists()
+        except Exception as e:
+            logging.error(f"Could not check if file exists. error='{e}', reference='{reference}', file_name='{file_name}'")
+            return False
 
     @staticmethod
     def download_file(file_path: str, counter: int = 0) -> str:

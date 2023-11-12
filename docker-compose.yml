@@ -27,7 +27,7 @@ services:
       context: .
       dockerfile: Dockerfile.firebase
     working_dir: /app/backend
-    command: firebase emulators:start
+    command: firebase emulators:start --import ./firebase_data
     ports:
       - "4000:4000"
       - "5001:5001"

@@ -8,19 +8,19 @@ MAX_RETRIES = 20
 THREAD_TIMEOUT = 180
 
 # Flask API
-FLASK_HOST = "127.0.0.1"
+FLASK_HOST = "0.0.0.0"
 MAX_CONTENT_LENGTH = 2000 * 1024 * 1024  # 2GB, 2000 MB
 
 # Firebase
 FB_TOKEN_PATH = ROOT_PATH + "/drought-ews-dev.json"
-FB_EMULATOR_URL = "http://127.0.0.1:8080"
+FB_EMULATOR_URL = "http://172.19.0.3:8080"
 RETRY_LIMIT = 5
 ## Database
-DB_URL = "http://127.0.0.1:9000/?ns=drought-ews-dev"
-DB_URL_DEV = "127.0.0.1:9000/?ns=drought-ews-dev"
+DB_URL = "http://172.19.0.3:9000/?ns=drought-ews-dev"
+DB_URL_DEV = "172.19.0.3:9000/?ns=drought-ews-dev"
 ## Storage
 STORAGE_URL = "drought-ews-dev.appspot.com"
-STORAGE_URL_DEV = "http://127.0.0.1:9199"
+STORAGE_URL_DEV = "http://172.19.0.3:9199"
 
 # Logger
 LOGGER_FILE_LOCATION = os.path.join(ROOT_PATH, "backend.log")

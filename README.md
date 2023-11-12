@@ -47,5 +47,9 @@ For a video tutorial see this [YouTube video](https://www.youtube.com/watch?v=sM
 12. Download any product that you want by clicking the download button.
 
 # More information
+## Backend testing
+- `cd backend/tests`
+- `python -m unittest testClassName`
+
 ## Config file
 Configs are saved in the config Python file (`config.py`).

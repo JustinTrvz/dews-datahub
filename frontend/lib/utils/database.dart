@@ -23,7 +23,7 @@ class Database {
 
   static String apiUrl = "http://127.0.0.1:5000";
 
-  static Future<SatelliteImageDataModel> getSidById(String sidId) async {
+  static Future<SatelliteDataModel> getSidById(String sidId) async {
     var uri = Uri.parse("$apiUrl/sid/get/$sidId");
     http.Response response = await http.get(
       uri,
@@ -32,7 +32,7 @@ class Database {
 
     if (response.statusCode == 200) {
       final Map<String, dynamic> jsonData = json.decode(response.body);
-      return SatelliteImageDataModel.fromJson(jsonData);
+      return SatelliteDataModel.fromJson(jsonData);
       // return SatelliteImageDataModel.fromJson(jsonData);
     } else {
       throw Exception(
@@ -40,7 +40,7 @@ class Database {
     }
   }
 
-  static Future<List<SatelliteImageDataModel>> getSidBatch() async {
+  static Future<List<SatelliteDataModel>> getSidBatch() async {
     print("Get SID batches");
     var page = 1;
     var pageSize = 10;
@@ -60,8 +60,8 @@ class Database {
       final List<dynamic> jsonReponse = json.decode(response.body);
       print("JSON RESPONSE: ${jsonReponse}");
 
-      final List<SatelliteImageDataModel> sidList = jsonReponse.map((item) {
-        return SatelliteImageDataModel.fromJson(item);
+      final List<SatelliteDataModel> sidList = jsonReponse.map((item) {
+        return SatelliteDataModel.fromJson(item);
       }).toList();
 
       print("TEST");

@@ -54,7 +54,7 @@ emulators:
 	@echo "Starting Firebase emulators..."
 	echo $$FIREBASE_DATABASE_EMULATOR_HOST
 	echo $$STORAGE_EMULATOR_HOST
-	cd backend && firebase emulators:start
+	cd backend && firebase emulators:start --import ./firebase_data
 
 # - - - Frontend - - -
 # Set the location of your Flutter SDK.

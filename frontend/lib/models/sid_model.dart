@@ -1,4 +1,4 @@
-class SatelliteImageDataModel {
+class SatelliteDataModel {
   // basic
   String id;
   String areaName;
@@ -30,7 +30,7 @@ class SatelliteImageDataModel {
   String productType;
   late DateTime? generationTime;
 
-  SatelliteImageDataModel({
+  SatelliteDataModel({
     // basic
     this.id = "", //
     this.userId = "",
@@ -63,7 +63,7 @@ class SatelliteImageDataModel {
     this.generationTime,
   });
 
-  factory SatelliteImageDataModel.fromJson(Map<String, dynamic> json) {
+  factory SatelliteDataModel.fromJson(Map<String, dynamic> json) {
     print(json["basic"]["user_id"]);
     Map<String, dynamic> basicJson = json["basic"];
     Map<String, dynamic> captureInfoJson = json["capture_information"];
@@ -81,7 +81,7 @@ class SatelliteImageDataModel {
     // print("- - - - - - - - - - -");
     // print(basicJson["postal_code"].runtimeType);
     // print("- - - - - - - - - - -");
-    return SatelliteImageDataModel(
+    return SatelliteDataModel(
       // basics
       areaName: basicJson["area_name"] as String,
       city: basicJson["city"] as String,

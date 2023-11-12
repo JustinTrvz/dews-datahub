@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:gui/pages/admin/admin_overview.dart';
+import 'package:gui/pages/user/user_overview.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -16,9 +16,12 @@ class _SplashScreenState extends State<SplashScreen>
     super.initState();
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
 
-    Future.delayed(const Duration(seconds: 2), () {
+    Future.delayed(const Duration(seconds: 1), () {
       Navigator.of(context).pushReplacement(MaterialPageRoute(
-        builder: (_) => const AdminOverviewPage(),
+        builder: (_) => const UserOverviewPage(),
+        // builder: (_) => UserOverviewPage(
+        //   user: user,
+        // ),
       ));
     });
   }
@@ -49,10 +52,11 @@ class _SplashScreenState extends State<SplashScreen>
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.satellite_outlined, size: 80, color: Colors.pink),
-          SizedBox(height: 20),
+          const Icon(Icons.satellite_outlined,
+              size: 80, color: Colors.lightBlue),
+          const SizedBox(height: 20),
           const Text(
-            "Drought-EWS Datahub",
+            "Drought-EWS's Datahub",
             style: TextStyle(
               fontSize: 32,
             ),
@@ -62,7 +66,7 @@ class _SplashScreenState extends State<SplashScreen>
             height: 30,
             padding: const EdgeInsets.all(2.0),
             child: const CircularProgressIndicator(
-              color: Colors.pink,
+              color: Colors.lightBlue,
               strokeWidth: 2,
             ),
           ),
