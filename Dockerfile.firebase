@@ -10,6 +10,7 @@ COPY backend/database.rules.json /app/backend/database.rules.json
 COPY backend/storage.rules /app/backend/storage.rules
 COPY backend/drought-ews-dev.json /app/backend/drought-ews-dev.json
 COPY backend/firebase.json /app/backend/firebase.json
+COPY backend/firebase_data /app/backend/firebase_data
 
 # Install the Firebase CLI
 RUN apt update && apt install -y --fix-missing \
