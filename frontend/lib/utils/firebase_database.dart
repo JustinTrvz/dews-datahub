@@ -160,29 +160,27 @@ class FirebaseDatabaseUtils {
   }
 
   static Future<List<dynamic>> getNotificationEntries(String userId) async {
+    List<dynamic> entriesList = [];
     try {
       DatabaseReference dbRef =
-          FirebaseDatabase.instance.ref().child("notifications/${userId}");
+          FirebaseDatabase.instance.ref().child("notifications/$userId");
       final dbEvent = await dbRef.once();
-      Map<String, dynamic> notificationsMap =
-          dbEvent.snapshot.value as Map<String, dynamic>;
-      List<NotificationModel> entriesList = [];
+      List<dynamic> notificationsList = dbEvent.snapshot.value as List<dynamic>;
 
-      if (notificationsMap.isNotEmpty) {
-        notificationsMap.forEach((id, notificationJson) {
-          var notificationModel = NotificationModel.fromJson(notificationJson);
+      if (notificationsList.isNotEmpty) {
+        for (var index = 0; index < notificationsList.length; index++) {
+          var notificationModel = NotificationModel.fromJson(notificationsList[index]);
           entriesList.add(notificationModel);
-          print("LENGTH (notification): ${entriesList.length}");
-        });
+        }
       } else {
-        print("Database event's snapshot value is empty (notification). userId='$userId'");
+        print("Database event's snapshot value is empty (notifications). userId='$userId'");
       }
 
       return entriesList;
     } catch (e) {
       // Error handling
       print("Could not get notification entries. userId='$userId', error='$e'");
-      return [];
+      return entriesList;
     }
   }
 }

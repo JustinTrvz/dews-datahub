@@ -258,10 +258,13 @@ class _AddSidPageState extends State<AddSidPage> {
                 isUploading = false;
               });
 
-              FirebaseDatabaseUtils.getUserById("123").calculationsInProgress += 1; // TODO: get actual user
               setState(() {
-                widget.sideBarController.index.value = 2; // jumps to "Satellite Image Data" page
-              }); 
+                // Add up calculations
+                FirebaseDatabaseUtils.getUserById("123")
+                    .calculationsInProgress += 1; // TODO: get actual user
+                // Jump back to "Satellite Data" page
+                widget.sideBarController.index.value = 2;
+              });
             },
       icon: (isUploading) ? saveLoadingIcon() : const Icon(Icons.save),
       label: (saveClicked) ? const Text("Uploading...") : const Text("Save"),
@@ -273,7 +276,8 @@ class _AddSidPageState extends State<AddSidPage> {
       icon: const Icon(Icons.cancel),
       label: const Text("Cancel"),
       onPressed: () {
-        widget.sideBarController.index.value = 2; // jumps to "Satellite Image Data" page
+        widget.sideBarController.index.value =
+            2; // jumps to "Satellite Image Data" page
       },
     );
   }

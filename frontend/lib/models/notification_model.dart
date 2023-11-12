@@ -18,7 +18,7 @@ class NotificationModel {
   });
 
   factory NotificationModel.fromJson(Map<String, dynamic> json) {
-    var jsonNotification = json["notification"];
+    var jsonNotification = json;
     return NotificationModel(
       id: jsonNotification["id"] as String,
       userId: jsonNotification["userId"] as String,

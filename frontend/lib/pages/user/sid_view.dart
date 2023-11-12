@@ -23,9 +23,8 @@ class _SatelliteDataPageState extends State<SatelliteDataPage> {
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
-          setState(() {
-            widget.sideBarController.index.value = 7; // jumps to "Add Sid View" page
-          });
+          widget.sideBarController.index.value =
+              7; // jumps to "Add Sid View" page
         },
         icon: const Icon(Icons.add),
         label: const Text("Add new entry"),
@@ -214,6 +213,7 @@ class _SatelliteDataPageState extends State<SatelliteDataPage> {
                     children: [
                       SizedBox(
                         width: widthVal,
+                        height: 300.0,
                         child: Padding(
                           padding: const EdgeInsets.all(5.0),
                           child: ClipRRect(
@@ -221,6 +221,7 @@ class _SatelliteDataPageState extends State<SatelliteDataPage> {
                             child: Image.network(
                               FirebaseStorageUtils.generateImgUrl(
                                   sidList[index].rgbImgStoragePath),
+                              fit: BoxFit.cover,
                             ),
                           ),
                         ),
@@ -267,7 +268,6 @@ class _SatelliteDataPageState extends State<SatelliteDataPage> {
 
     return Container(
       decoration: const BoxDecoration(
-        color: Colors.white,
         shape: BoxShape.rectangle,
       ),
       child: Padding(

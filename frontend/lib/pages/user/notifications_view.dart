@@ -5,9 +5,10 @@ import "package:gui/utils/firebase_database.dart";
 import "package:gui/utils/firebase_storage.dart";
 
 class NotificationsPage extends StatefulWidget {
-const NotificationsPage({Key? key, required this.sideBarController}) : super(key: key);
+  const NotificationsPage({Key? key, required this.sideBarController})
+      : super(key: key);
   final SideBarController sideBarController;
-  
+
   @override
   State<NotificationsPage> createState() => _NotificationsPageState();
 }
@@ -116,7 +117,8 @@ class _NotificationsPageState extends State<NotificationsPage> {
 
   Future<List<dynamic>> getNotificationEntries() async {
     print("-> -> -> -> -> -> -> -> ->");
-    List<dynamic> response = await FirebaseDatabaseUtils.getNotificationEntries("123"); // returns [<error code>, <sid list>]
+    List<dynamic> response = await FirebaseDatabaseUtils.getNotificationEntries(
+        "kj23n4kj234n"); // returns [<error code>, <sid list>] // TODO: get real user id
 
     // Check if is empty
     if (response.isEmpty) {
@@ -140,7 +142,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
               height: 5,
             ),
         itemBuilder: ((context, index) {
-          double widthVal = 400.0;
+          double widthVal = 200.0;
           return GestureDetector(
             onTap: () {
               // TODO: show notification details
@@ -157,6 +159,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
                     children: [
                       SizedBox(
                         width: widthVal,
+                        height: 100.0,
                         child: Padding(
                           padding: const EdgeInsets.all(5.0),
                           child: ClipRRect(
@@ -165,6 +168,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
                               FirebaseStorageUtils.generateImgUrl(
                                   notificationsList[index]
                                       .thumbnailStoragePath),
+                              fit: BoxFit.cover,
                             ),
                           ),
                         ),
@@ -175,12 +179,14 @@ class _NotificationsPageState extends State<NotificationsPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // General information
-                      attrContainer("ID", notificationsList[index].id, 0),
-                      attrContainer("User", notificationsList[index].userId),
-                      attrContainer(
-                          "Category", notificationsList[index].category),
+                      // attrContainer("ID", notificationsList[index].id, 0),
+                      // attrContainer("User", notificationsList[index].userId),
                       attrContainer("Creation time",
                           notificationsList[index].creationTime),
+                      attrContainer(
+                          "Category", notificationsList[index].category),
+                      attrContainer(
+                          "Message", notificationsList[index].message),
                     ],
                   ),
                 ],
@@ -203,7 +209,6 @@ class _NotificationsPageState extends State<NotificationsPage> {
 
     return Container(
       decoration: const BoxDecoration(
-        color: Colors.white,
         shape: BoxShape.rectangle,
       ),
       child: Padding(

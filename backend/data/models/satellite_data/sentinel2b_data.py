@@ -220,7 +220,7 @@ class Sentinel2BData:
            "message": f"Calculation done for satellite image data '{self.ID}'",
            "thumbnailStoragePath": self.RGB_IMG_PATH_STORAGE,
         }
-        ok = FirebaseDatabase.set_entry(
+        ok = FirebaseDatabase.add_to_array(
             f"notifications/{self.USER_ID}", data)
         if not ok:
             logging.error(f"Could not set notification. self.USER_ID='{self.USER_ID}', self.ID='{self.ID}'")
