@@ -141,7 +141,7 @@ class FirebaseDatabaseUtils {
   static DewsUser getUserById(String userId) {
     // TODO: implement real function
     return DewsUser(
-      id: "test123",
+      id: "kj23n4kj234n",
       // userGroups: ["admin"],
       email: "peter@web.de",
       firstName: "Peter",

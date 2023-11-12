@@ -245,6 +245,20 @@ class _SatelliteDataPageState extends State<SatelliteDataPage> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // Header
+                      Row(
+                        children: [
+                          Icon(Icons.satellite_alt_outlined, size: 20),
+                          SizedBox(width: 5),
+                          RichText(
+                            text: TextSpan(
+                              text: "${sidList[index].satelliteType}",
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        ],
+                      ),
                       // General information
                       attrContainer("ID", sidList[index].id, 0),
                       attrContainer("Name", sidList[index].areaName),
@@ -256,8 +270,8 @@ class _SatelliteDataPageState extends State<SatelliteDataPage> {
                           sidList[index].creationTime, 0),
                       attrContainer("Product start time",
                           sidList[index].productStartTime),
-                      attrContainer("Product stop time",
-                          sidList[index].productStopTime),
+                      attrContainer(
+                          "Product stop time", sidList[index].productStopTime),
                       attrContainer("Data generation time",
                           sidList[index].generationTime, 1),
 

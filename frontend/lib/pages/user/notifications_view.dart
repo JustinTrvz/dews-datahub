@@ -190,6 +190,20 @@ class _NotificationsPageState extends State<NotificationsPage> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // Header
+                      Row(
+                        children: [
+                          Icon(Icons.circle_notifications_outlined, size: 20),
+                          SizedBox(width: 5),
+                          RichText(
+                            text: TextSpan(
+                              text: "Notification",
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        ],
+                      ),
                       // General information
                       // attrContainer("ID", notificationsList[index].id, 0),
                       // attrContainer("User", notificationsList[index].userId),

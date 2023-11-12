@@ -13,37 +13,145 @@ class SidDetailsPage extends StatefulWidget {
 class _SidDetailsPageState extends State<SidDetailsPage> {
   @override
   Widget build(BuildContext context) {
+    return indexListView();
+  }
+
+  ListView indexListView() {
+    return ListView(
+      padding: const EdgeInsets.all(8),
+      children: <Widget>[
+        sidDetails(),
+        const SizedBox(height: 10),
+        indexExpansionTile(
+          "RGB",
+          widget.sid.rgbImgStoragePath,
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              attrContainer("RGB calculation time", widget.sid.creationTime),
+            ],
+          ),
+        ),
+        indexExpansionTile(
+          "NDVI index",
+          widget.sid.ndviImgStoragePath,
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              attrContainer("NDVI value", widget.sid.ndvi),
+              attrContainer(
+                  "NDVI calculation time", widget.sid.ndviCalcDateTime),
+            ],
+          ),
+        ),
+        indexExpansionTile(
+          "Moisture Index",
+          widget.sid.moistureImgStoragePath,
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              attrContainer("NDVI value", widget.sid.ndvi),
+              attrContainer(
+                  "NDVI calculation time", widget.sid.ndviCalcDateTime),
+            ],
+          ),
+        )
+      ],
+    );
+  }
+
+  Column sidDetails() {
+    return Column(
+      children: [
+        // Header
+        Row(
+          children: [
+            const Icon(Icons.satellite_alt_outlined),
+            const SizedBox(width: 10),
+            Text(
+              widget.sid.areaName,
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            )
+          ],
+        ),
+      ],
+    );
+  }
+
+  ExpansionTile indexExpansionTile(
+      String indexName, String imgStoragePath, Widget indexDetails) {
+    return ExpansionTile(
+      title: Text(indexName),
+      children: <Widget>[
+        indexContainer(indexName, imgStoragePath, indexDetails)
+      ],
+    );
+  }
+
+  Container indexContainer(
+      String indexName, String imgStoragePath, Widget indexDetails) {
+    double size = 400.0;
     return Container(
-      // width: 200.0,
+      padding: const EdgeInsets.only(left: 15),
       decoration: BoxDecoration(
         color: Colors.grey[100],
         borderRadius: BorderRadius.circular(15),
       ),
-      child: Column(
+      child: Row(
         children: [
-          const Row(
-            children: [Text("RGB Image")],
+          SizedBox(
+            width: size,
+            height: size,
+            child: Padding(
+              padding: const EdgeInsets.all(5.0),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8.0),
+                child: Image.network(
+                  FirebaseStorageUtils.generateImgUrl(imgStoragePath),
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ),
           ),
-          Row(
-            children: [
-              SizedBox(
-                        width: 400,
-                        height: 300.0,
-                        child: Padding(
-                          padding: const EdgeInsets.all(5.0),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(8.0),
-                            child: Image.network(
-                              FirebaseStorageUtils.generateImgUrl(
-                                  widget.sid.rgbImgStoragePath),
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                        ),
-                      ),
-            ],
-          )
+          indexDetails,
         ],
+      ),
+    );
+  }
+
+  Container attrContainer(String attrName, attrVal, [int? position]) {
+    var edgeInsets = const EdgeInsets.only(left: 5, top: 1, bottom: 1);
+
+    if (position != null) {
+      if (position == 0) {
+        edgeInsets = const EdgeInsets.only(left: 5, top: 5);
+      } else if (position == 1) {
+        edgeInsets = const EdgeInsets.only(left: 5, bottom: 5);
+      }
+    }
+
+    return Container(
+      decoration: const BoxDecoration(
+        shape: BoxShape.rectangle,
+      ),
+      child: Padding(
+        padding: edgeInsets,
+        child: RichText(
+          text: TextSpan(children: <TextSpan>[
+            TextSpan(
+              text: "$attrName: ",
+              style: const TextStyle(
+                  fontWeight: FontWeight.bold, color: Colors.black),
+            ),
+            TextSpan(
+                text: attrVal.toString(),
+                style: const TextStyle(color: Colors.black)),
+          ]),
+          selectionColor: Colors.black,
+        ),
       ),
     );
   }
