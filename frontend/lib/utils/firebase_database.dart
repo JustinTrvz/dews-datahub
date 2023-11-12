@@ -100,42 +100,13 @@ class FirebaseDatabaseUtils {
       } else {
         print("Database event's snapshot value is empty (sid).");
       }
-
       return entriesList;
 
-      //
-      // dbRef.once().then((DatabaseEvent dbEvent) {
-      //   Map<String, dynamic> satelliteTypesMap =
-      //       dbEvent.snapshot.value as Map<String, dynamic>;
-      //   print("* * * * * * * * * *");
-      //   print(satelliteTypesMap);
-      //   print("* * * * * * * * * *");
-      //   if (satelliteTypesMap.isNotEmpty) {
-      //     satelliteTypesMap.forEach((satelliteType, sidMap) {
-      //       print("# # # # # # # # # # # #");
-      //       print(sidMap);
-      //       print("# # # # # # # # # # # #");
-      //       sidMap.forEach((id, sidJson) {
-      //         print("~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~");
-      //         print(sidJson);
-      //         print("~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~");
-      //         var sidModel = SatelliteImageDataModel.fromJson(sidJson);
-      //         print("${sidModel.id} -~*");
-      //         entriesList.add(sidModel);
-      //         print("LENGTH: ${entriesList.length}");
-      //       });
-      //     });
-      //   } else {
-      //     print("Database event's snapshot value is empty.");
-      //   }
-      // });
     } catch (e) {
       // Error handling
       print("Could not get SID entries: $e");
       return [];
     }
-    // print("jupp: ${entriesList.length}");
-    // return [1, entriesList];
   }
 
   static DewsUser getUserById(String userId) {

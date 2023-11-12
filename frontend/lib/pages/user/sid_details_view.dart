@@ -1,10 +1,13 @@
 import "package:flutter/material.dart";
 import "package:gui/models/sid_model.dart";
+import "package:gui/pages/side_navigation_bar/side_nav_bar_controller.dart";
 import "package:gui/utils/firebase_storage.dart";
+import 'package:gui/utils/widgets/dews_style.dart';
 
 class SidDetailsPage extends StatefulWidget {
-  const SidDetailsPage({super.key, required this.sid});
+  const SidDetailsPage({super.key, required this.sid, required this.sideBarController});
   final SatelliteDataModel sid;
+  final SideBarController sideBarController;
 
   @override
   State<SidDetailsPage> createState() => _SidDetailsPageState();
@@ -60,23 +63,25 @@ class _SidDetailsPageState extends State<SidDetailsPage> {
     );
   }
 
-  Column sidDetails() {
-    return Column(
+  Widget sidDetails() {
+    return Row(
       children: [
-        // Header
-        Row(
-          children: [
-            const Icon(Icons.satellite_alt_outlined),
-            const SizedBox(width: 10),
-            Text(
-              widget.sid.areaName,
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-            )
-          ],
+        GestureDetector(
+          onTap: () {
+            // Go back to "Satellite data" page
+            widget.sideBarController.setPage("satellite-data");
+          },
+          child: DewsStyle.buttonContainer(Icons.arrow_back_ios_new_outlined, Colors.orange, Colors.black),
         ),
+        const Icon(Icons.satellite_alt_outlined),
+        const SizedBox(width: 10),
+        Text(
+          widget.sid.areaName,
+          style: const TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+        )
       ],
     );
   }

@@ -203,7 +203,10 @@ class _SatelliteDataPageState extends State<SatelliteDataPage> {
               if (!widget.sideBarController
                   .pageExists("satellite-data/${sidList[index].id}")) {
                 // Create and add sid details page
-                Widget sidDetailsPage = SidDetailsPage(sid: sidList[index]);
+                Widget sidDetailsPage = SidDetailsPage(
+                  sid: sidList[index],
+                  sideBarController: widget.sideBarController,
+                );
                 bool ok = widget.sideBarController.addPage(
                     "satellite-data/${sidList[index].id}", sidDetailsPage);
                 if (!ok) {

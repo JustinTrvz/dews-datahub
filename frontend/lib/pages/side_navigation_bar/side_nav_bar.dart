@@ -69,7 +69,7 @@ class _SideNavBarState extends State<SideNavBar> {
           buttonContainer(Icons.bar_chart, Colors.white, Colors.black),
           buttonContainer(Icons.settings, Colors.white, Colors.black),
           buttonContainer(Icons.supervisor_account, Colors.white, Colors.black),
-          buttonContainer(Icons.logout, Colors.orange, Colors.black),
+          buttonContainer(Icons.logout, Colors.white, Colors.black),
         ],
       ),
       body: Row(

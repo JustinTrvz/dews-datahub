@@ -1,4 +1,5 @@
 import "package:flutter/material.dart";
+import "package:gui/models/sid_model.dart";
 import "package:gui/pages/side_navigation_bar/side_nav_bar_controller.dart";
 import 'package:gui/pages/user/sid_details_view.dart';
 import "package:gui/utils/firebase_database.dart";
@@ -145,19 +146,8 @@ class _NotificationsPageState extends State<NotificationsPage> {
           double widthVal = 200.0;
           return GestureDetector(
             onTap: () {
-              if (notificationsList[index].category == "Calculation") {
-                // Check if sid details page exists
-              if (! widget.sideBarController.pageExists("satellite-data/${notificationsList[index].sidId}")) {
-                // Create and add sid details page
-                Widget sidDetailsPage = SidDetailsPage(sid: notificationsList[index]);
-                bool ok = widget.sideBarController.addPage("satellite-data/${notificationsList[index].sidId}", sidDetailsPage);
-                if (!ok) {
-                  print("Could not show SID details page. id='${notificationsList[index].sidId}'");
-                }
-              }
-              // Go to sid details page
-              widget.sideBarController.setPage("satellite-data/${notificationsList[index].sidId}");
-              }
+              // TODO: go to satellite data details page
+              print("TODO: Not implemented yet...");
             },
             child: Container(
               width: widthVal,
