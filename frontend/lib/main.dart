@@ -10,7 +10,6 @@ import 'package:gui/models/user_model.dart';
 import 'package:gui/pages/side_navigation_bar/side_nav_bar.dart';
 import 'package:gui/pages/side_navigation_bar/side_nav_bar_controller.dart';
 import 'package:gui/pages/user/add_sid_view.dart';
-import 'package:gui/pages/user/dashboard_view.dart';
 import 'package:gui/pages/user/logout_view.dart';
 import 'package:gui/pages/user/notifications_view.dart';
 import 'package:gui/pages/user/overview_view.dart';
@@ -18,7 +17,6 @@ import 'package:gui/pages/user/profile_view.dart';
 import 'package:gui/pages/user/settings_view.dart';
 import 'package:gui/pages/user/sid_view.dart';
 import 'package:gui/pages/user/statistics_view.dart';
-import 'package:gui/pages/user/user_overview.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -46,17 +44,14 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     SideBarController sideBarController = Get.put(SideBarController());
-    var pages = [
-      DashboardPage(sideBarController: sideBarController),
-      NotificationsPage(sideBarController: sideBarController),
-      SatelliteDataPage(sideBarController: sideBarController),
-      StatisticsPage(sideBarController: sideBarController),
-      ProfilePage(sideBarController: sideBarController),
-      SettingsPage(sideBarController: sideBarController),
-      LogoutPage(),
-      AddSidPage(sideBarController: sideBarController),
-    ];
-    sideBarController.pages = pages;
+    sideBarController.addPage("dashboard", DashboardPage(sideBarController: sideBarController));
+    sideBarController.addPage("notifications", NotificationsPage(sideBarController: sideBarController));
+    sideBarController.addPage("satellite-data", SatelliteDataPage(sideBarController: sideBarController));
+    sideBarController.addPage("statistics", StatisticsPage(sideBarController: sideBarController));
+    sideBarController.addPage("profile", ProfilePage(sideBarController: sideBarController));
+    sideBarController.addPage("settings", SettingsPage(sideBarController: sideBarController));
+    sideBarController.addPage("logout", LogoutPage());
+    sideBarController.addPage("satellite-data/add", AddSidPage(sideBarController: sideBarController));
 
     DewsUser user = DewsUser(
       id: "kj23n4kj234n",

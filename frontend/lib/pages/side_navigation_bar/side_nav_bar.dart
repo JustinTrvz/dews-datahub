@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:gui/models/user_model.dart';
 import 'package:gui/pages/side_navigation_bar/side_nav_bar_controller.dart';
 
 class SideNavBar extends StatefulWidget {
-  const SideNavBar({Key? key})
-      : super(key: key);
+  const SideNavBar({Key? key}) : super(key: key);
 
   @override
   State<SideNavBar> createState() => _SideNavBarState();
@@ -64,41 +62,14 @@ class _SideNavBarState extends State<SideNavBar> {
                 ),
         ),
         actions: [
+          buttonContainer(Icons.dashboard, Colors.white, Colors.black),
+          buttonContainer(Icons.notifications, Colors.white, Colors.black),
           buttonContainer(
-            Icons.dashboard,
-            Colors.white,
-            Colors.black,
-          ),
-          buttonContainer(
-            Icons.notifications,
-            Colors.white,
-            Colors.black,
-          ),
-          buttonContainer(
-            Icons.satellite_alt_outlined,
-            Colors.white,
-            Colors.black,
-          ),
-          buttonContainer(
-            Icons.bar_chart,
-            Colors.white,
-            Colors.black,
-          ),
-          buttonContainer(
-            Icons.settings,
-            Colors.white,
-            Colors.black,
-          ),
-          buttonContainer(
-            Icons.supervisor_account,
-            Colors.white,
-            Colors.black,
-          ),
-          buttonContainer(
-            Icons.logout,
-            Colors.orange,
-            Colors.black,
-          ),
+              Icons.satellite_alt_outlined, Colors.white, Colors.black),
+          buttonContainer(Icons.bar_chart, Colors.white, Colors.black),
+          buttonContainer(Icons.settings, Colors.white, Colors.black),
+          buttonContainer(Icons.supervisor_account, Colors.white, Colors.black),
+          buttonContainer(Icons.logout, Colors.orange, Colors.black),
         ],
       ),
       body: Row(
@@ -117,7 +88,7 @@ class _SideNavBarState extends State<SideNavBar> {
             selectedIndex: _selectedIndex,
             onDestinationSelected: (int index) {
               setState(() {
-                sideBarController.index.value = index;
+                sideBarController.setCurrentPageIndex(index);
                 _selectedIndex = index;
               });
             },
@@ -161,9 +132,7 @@ class _SideNavBarState extends State<SideNavBar> {
             ],
           ),
           // Shows actual page
-          Expanded(
-              child: Obx(() =>
-                  sideBarController.pages[sideBarController.index.value])),
+          Expanded(child: Obx(() => sideBarController.getCurrentPage())),
         ],
       ),
     );
@@ -183,5 +152,4 @@ class _SideNavBarState extends State<SideNavBar> {
       ),
     );
   }
-
 }

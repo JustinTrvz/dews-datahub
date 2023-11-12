@@ -216,6 +216,7 @@ class Sentinel2BData:
         data = {
            "id": str(uuid.uuid4()),
            "userId": self.USER_ID,
+           "sidID": self.ID,
            "category": "Calculation",
            "message": f"Calculation done for satellite image data '{self.ID}'",
            "thumbnailStoragePath": self.RGB_IMG_PATH_STORAGE,

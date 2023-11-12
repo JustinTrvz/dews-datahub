@@ -1,6 +1,7 @@
 import "package:flutter/material.dart";
 import "package:gui/models/user_model.dart";
 import "package:gui/pages/side_navigation_bar/side_nav_bar_controller.dart";
+import 'package:gui/pages/user/sid_details_view.dart';
 import "package:gui/utils/firebase_database.dart";
 import "package:gui/utils/firebase_storage.dart";
 
@@ -23,8 +24,7 @@ class _SatelliteDataPageState extends State<SatelliteDataPage> {
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
-          widget.sideBarController.index.value =
-              7; // jumps to "Add Sid View" page
+          widget.sideBarController.setPage("satellite-data/add");
         },
         icon: const Icon(Icons.add),
         label: const Text("Add new entry"),
@@ -199,7 +199,21 @@ class _SatelliteDataPageState extends State<SatelliteDataPage> {
           double widthVal = 400.0;
           return GestureDetector(
             onTap: () {
-              print("SHOW SID"); //TODO: show entry details
+              // Check if sid details page exists
+              if (!widget.sideBarController
+                  .pageExists("satellite-data/${sidList[index].id}")) {
+                // Create and add sid details page
+                Widget sidDetailsPage = SidDetailsPage(sid: sidList[index]);
+                bool ok = widget.sideBarController.addPage(
+                    "satellite-data/${sidList[index].id}", sidDetailsPage);
+                if (!ok) {
+                  print(
+                      "Could not show SID details page. id='${sidList[index].id}'");
+                }
+              }
+              // Go to sid details page
+              widget.sideBarController
+                  .setPage("satellite-data/${sidList[index].id}");
             },
             child: Container(
               width: widthVal,
@@ -236,9 +250,17 @@ class _SatelliteDataPageState extends State<SatelliteDataPage> {
                       attrContainer("Name", sidList[index].areaName),
                       attrContainer("Location",
                           "${sidList[index].postalCode} ${sidList[index].city}, ${sidList[index].country}"),
-                      attrContainer("User ID", sidList[index].userId),
-                      attrContainer(
-                          "Creation time", sidList[index].creationTime, 1),
+                      attrContainer("User ID", sidList[index].userId, 1),
+                      // Time data
+                      attrContainer("Entry creation time",
+                          sidList[index].creationTime, 0),
+                      attrContainer("Product start time",
+                          sidList[index].productStartTime),
+                      attrContainer("Product stop time",
+                          sidList[index].productStopTime),
+                      attrContainer("Data generation time",
+                          sidList[index].generationTime, 1),
+
                       // Indexes
                       attrContainer("NDVI", sidList[index].ndvi, 0),
                       attrContainer("NDVI (last calculation)",

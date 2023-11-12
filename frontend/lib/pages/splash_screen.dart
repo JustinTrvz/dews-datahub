@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:gui/models/user_model.dart';
 import 'package:gui/pages/user/user_overview.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -16,23 +15,6 @@ class _SplashScreenState extends State<SplashScreen>
   void initState() {
     super.initState();
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
-
-    DewsUser user = DewsUser(
-      id: "test123",
-      // userGroups: ["admin"],
-      email: "peter@web.de",
-      firstName: "Peter",
-      lastName: "Manfred",
-      streetName: "Herrmann Straße",
-      streetNumber: 81,
-      postalCode: 98045,
-      country: "Germany",
-      phoneNumber: "016205738280",
-      createdTimestamp: DateTime.now(),
-      lastModifiedTimestamp: DateTime.now(),
-      newFilesCount: 1,
-      notificationsCount: 1,
-    );
 
     Future.delayed(const Duration(seconds: 1), () {
       Navigator.of(context).pushReplacement(MaterialPageRoute(

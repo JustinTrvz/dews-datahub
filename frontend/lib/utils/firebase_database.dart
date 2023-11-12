@@ -1,5 +1,4 @@
 import "package:firebase_database/firebase_database.dart";
-import "package:flutter/material.dart";
 import "package:gui/models/notification_model.dart";
 import "package:gui/models/sid_model.dart";
 import "package:gui/models/user_model.dart";
@@ -88,12 +87,12 @@ class FirebaseDatabaseUtils {
       final dbEvent = await dbRef.once();
       Map<String, dynamic> satelliteTypesMap =
           dbEvent.snapshot.value as Map<String, dynamic>;
-      List<SatelliteImageDataModel> entriesList = [];
+      List<SatelliteDataModel> entriesList = [];
 
       if (satelliteTypesMap.isNotEmpty) {
         satelliteTypesMap.forEach((satelliteType, sidMap) {
           sidMap.forEach((id, sidJson) {
-            var sidModel = SatelliteImageDataModel.fromJson(sidJson);
+            var sidModel = SatelliteDataModel.fromJson(sidJson);
             entriesList.add(sidModel);
             print("LENGTH (sid): ${entriesList.length}");
           });

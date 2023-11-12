@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:gui/models/user_model.dart';
 import 'package:gui/pages/side_navigation_bar/side_nav_bar_controller.dart';
 import 'package:gui/utils/api.dart';
 import 'package:gui/utils/firebase_database.dart';
@@ -262,8 +261,8 @@ class _AddSidPageState extends State<AddSidPage> {
                 // Add up calculations
                 FirebaseDatabaseUtils.getUserById("123")
                     .calculationsInProgress += 1; // TODO: get actual user
-                // Jump back to "Satellite Data" page
-                widget.sideBarController.index.value = 2;
+                // Go back to "Satellite Data" page
+                widget.sideBarController.setPage("satellite-data");
               });
             },
       icon: (isUploading) ? saveLoadingIcon() : const Icon(Icons.save),
@@ -276,8 +275,8 @@ class _AddSidPageState extends State<AddSidPage> {
       icon: const Icon(Icons.cancel),
       label: const Text("Cancel"),
       onPressed: () {
-        widget.sideBarController.index.value =
-            2; // jumps to "Satellite Image Data" page
+        // Go back to "Satellite Image Data" page
+        widget.sideBarController.setPage("satellite-data");
       },
     );
   }

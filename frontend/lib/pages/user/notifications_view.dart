@@ -1,6 +1,6 @@
 import "package:flutter/material.dart";
-import "package:gui/models/user_model.dart";
 import "package:gui/pages/side_navigation_bar/side_nav_bar_controller.dart";
+import 'package:gui/pages/user/sid_details_view.dart';
 import "package:gui/utils/firebase_database.dart";
 import "package:gui/utils/firebase_storage.dart";
 
@@ -39,7 +39,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
                         width: 20,
                         child: Center(
                           child: CircularProgressIndicator(
-                            color: Colors.lightBlue,
+                            color: Colors.orange,
                             strokeWidth: 2,
                           ),
                         ),
@@ -145,7 +145,19 @@ class _NotificationsPageState extends State<NotificationsPage> {
           double widthVal = 200.0;
           return GestureDetector(
             onTap: () {
-              // TODO: show notification details
+              if (notificationsList[index].category == "Calculation") {
+                // Check if sid details page exists
+              if (! widget.sideBarController.pageExists("satellite-data/${notificationsList[index].sidId}")) {
+                // Create and add sid details page
+                Widget sidDetailsPage = SidDetailsPage(sid: notificationsList[index]);
+                bool ok = widget.sideBarController.addPage("satellite-data/${notificationsList[index].sidId}", sidDetailsPage);
+                if (!ok) {
+                  print("Could not show SID details page. id='${notificationsList[index].sidId}'");
+                }
+              }
+              // Go to sid details page
+              widget.sideBarController.setPage("satellite-data/${notificationsList[index].sidId}");
+              }
             },
             child: Container(
               width: widthVal,

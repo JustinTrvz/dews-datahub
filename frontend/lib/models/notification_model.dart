@@ -3,6 +3,7 @@ import 'package:uuid/uuid.dart';
 class NotificationModel {
   String id;
   String userId;
+  String sidId;
   String category;
   String message;
   String? thumbnailStoragePath;
@@ -12,6 +13,7 @@ class NotificationModel {
   NotificationModel({
     this.id = "Unknown",
     this.userId = "Unknown",
+    this.sidId = "Unknown",
     this.category = "Unknown",
     this.message = "No message",
     this.thumbnailStoragePath = "",
@@ -22,6 +24,7 @@ class NotificationModel {
     return NotificationModel(
       id: jsonNotification["id"] as String,
       userId: jsonNotification["userId"] as String,
+      sidId: jsonNotification["sidId"] as String,
       category: jsonNotification["category"] as String,
       message:  jsonNotification["message"] as String,
       thumbnailStoragePath: jsonNotification["thumbnailStoragePath"] as String
