@@ -4,7 +4,8 @@
 tmp/
 
 # Firebase
-firebase_options.dart
+firebase_options*.dart
+
 
 # Visual Studio Code
 .vscode
