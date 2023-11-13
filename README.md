@@ -37,7 +37,7 @@ A new project shortcut called `Realtime Database` appears below `Project Overvie
 2. Install `Docker Compose` using the [official installation guide](https://docs.docker.com/compose/install/).
 3. Install `Docker BuildX`.
    - **Linux:** `apt install docker-buildx`
-   - **MacOS:** `brew install docker-buildx` \
+   - **MacOS:** `brew install docker-buildx` 
    - *For other operating systems please see the [Docker BuildX installation guide](https://github.com/docker/buildx#installing).*
 
 4. Start a terminal.
@@ -76,12 +76,12 @@ The following use cases show how a user should interact with the system. \
 Please read and follow the guide ["Start DEWS's DataHub"](#start-dewss-datahub) beforehand.
 
 #### Open dashboard
-1. Visit the Flutter web app at [http://172.19.0.4:8080/](http://172.19.0.4:8080/).
-2. You will see a dashboard about events that happened since you last login. \
+1. Visit the Flutter web app at [http://172.19.0.4/](http://172.19.0.4/).
+2. You will see a dashboard about events that happened since your last login. \
 <img src="documentation/images/webapp/dashboard.png" alt="GUI" width="500"/>
 
-#### Look at satellite data
-1. Visit the Flutter web app at [http://172.19.0.4:8080/](http://172.19.0.4:8080/).
+#### View satellite data
+1. Visit the Flutter web app at [http://172.19.0.4/](http://172.19.0.4/).
 2. Click on the navigation item `Satellite Data` to look at already uploaded satellite datasets. \
 <img src="documentation/images/webapp/satellite-data.png" alt="GUI" width="500"/>
 3. If you want to see more about a dataset click on the entry.
@@ -90,17 +90,16 @@ Please read and follow the guide ["Start DEWS's DataHub"](#start-dewss-datahub) 
 5. You can return to the `Satellite data` main page by clicking the left arrow in the top left corner. 
 
 
-#### Upload a ZIP archive
-1. Visit the Flutter web app at [http://172.19.0.4:8080/](http://172.19.0.4:8080/).
+#### Upload a satellite dataset
+1. Visit the Flutter web app at [http://172.19.0.4/](http://172.19.0.4/).
 2. Click on the navigation item `Satellite Data`. \
 <img src="documentation/images/webapp/satellite-data.png" alt="GUI" width="500"/>
 
-3. If you want to add a new satellite dataset click on `Add new entry` on the bottom of the screen.
-   - Select a ZIP archive, fill out the form, select the satellite type and click on save. 
-   - ℹ️**INFO:** The upload can tak a few seconds. Please be patient! 
-4. Fill out the form and save your input.
-   - ℹ️**INFO:** The calculation in the backend are taking time. Please be patient! 
-5. If the backend calculated all the indexes you will see a new entry pop up. In case no entry is shown please press the `F5` key or click on the navigation item `Satellite Data` to refresh the page.
+3. If you want to add a new satellite dataset click on `Add new entry` on the bottom of the screen. \
+<img src="documentation/images/webapp/satellite-data-create.png" alt="GUI" width="500"/>
+   - Select a ZIP archive file, fill out the form, select the satellite type and click on save. 
+   - ℹ️**INFO:** The upload and calculation can take a few seconds. Please be patient! 
+1. If the backend calculated all the indexes you will see a new entry pop up. In case no entry is shown please press the `F5` key and/or click on the navigation item `Satellite Data` to refresh the page.
 
 
 # Satellite images
@@ -117,7 +116,7 @@ Please read and follow the guide ["Start DEWS's DataHub"](#start-dewss-datahub) 
 
 ### How to download satellite image data manually
 For a video tutorial see this [YouTube video](https://www.youtube.com/watch?v=sMax7wkUrlI).
-1. Open [Copernicus Open Access Hub](https://scihub.copernicus.eu/dhus/#/home).
+1. Open [Dataspace Copernicus](https://dataspace.copernicus.eu/browser/).
 2. Login with your account or register first.
 3. Select the selection tool on the right side.
 4. Select your desired area on the map.
