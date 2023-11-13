@@ -1,7 +1,5 @@
 import "package:flutter/material.dart";
-import "package:gui/models/sid_model.dart";
 import "package:gui/pages/side_navigation_bar/side_nav_bar_controller.dart";
-import 'package:gui/pages/user/sid_details_view.dart';
 import "package:gui/utils/firebase_database.dart";
 import "package:gui/utils/firebase_storage.dart";
 
