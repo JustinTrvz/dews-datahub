@@ -109,7 +109,7 @@ Please read and follow the guide ["Start DEWS's DataHub"](#start-dewss-datahub) 
   -  [Dataspace Copernicus](https://dataspace.copernicus.eu/browser/)
 - **Missions:** 
   - `Sentinel-1 C-SAR` / `S1_...` ❌ *(WIP)*
-  - `Sentinel-2 L1C` / `S2B_MSIL2A_...` ❌ *(WIP)*
+  - `Sentinel-2 L1C` / `S2B_MSIL1C_...` ❌ *(WIP)*
   - `Sentinel-2 L2A` / `S2B_MSIL2A_...` ✅
   - `Sentinel-3 OLCI` / `S3:...` ❌ *(WIP)*
   - `Sentinel-3 SRAL` / `S3:...` ❌ *(WIP)*
