@@ -2,7 +2,6 @@ import os
 
 # Project
 ROOT_PATH = os.path.dirname(os.path.abspath(__file__))
-CONFIG_YML_PATH = os.path.join(ROOT_PATH, "config.yml")
 DEBUG_STATUS = True
 MAX_RETRIES = 20
 THREAD_TIMEOUT = 180

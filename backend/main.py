@@ -25,6 +25,14 @@ def run_flask_app():
     app.run(host=FLASK_HOST)
 
 if __name__ == "__main__":
+    # --- Set environmental variables ---
+    print(f"Debug status: {DEBUG_STATUS}")
+    if DEBUG_STATUS:
+        os.environ["FIRESTORE_EMULATOR_HOST"] = FB_EMULATOR_URL
+        os.environ["FIREBASE_DATABASE_EMULATOR_HOST"] = DB_URL_DEV
+        os.environ["STORAGE_EMULATOR_HOST"] = STORAGE_URL_DEV
+        print("Set environmental variables...")
+
     # --- Create logger ---
     logger = SidLogger()
     print("Created logger...")
@@ -39,15 +47,6 @@ if __name__ == "__main__":
     except KeyboardInterrupt as e:
         logging.error(
             f"Flask API server thread interrupted by keyboard input. error='{e}'")
-
-    # --- Set environmental variables ---
-    print(f"Debug status: {DEBUG_STATUS}")
-    if DEBUG_STATUS:
-        os.environ["FIRESTORE_EMULATOR_HOST"] = FB_EMULATOR_URL
-        os.environ["FIREBASE_DATABASE_EMULATOR_HOST"] = DB_URL_DEV
-        os.environ["STORAGE_EMULATOR_HOST"] = STORAGE_URL_DEV
-        print("Set environmental variables...")
-
 
     # --- Firebase init ---
     FileUtils.create_file_directories()
