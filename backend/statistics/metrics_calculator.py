@@ -19,7 +19,8 @@ class MetricsCalculator:
         """
         Creates an image with MatPlotLib and saves it to desired save location.
         """
-        logging.debug(f"Creating plot image. save_location='{save_location}', cmap='{cmap}', interpolation='{interpolation}'")
+        logging.debug(
+            f"Creating plot image. save_location='{save_location}', cmap='{cmap}', interpolation='{interpolation}'")
         mpl.use("agg")
         if cmap != "" and interpolation != "":
             plt.imshow(nested_array, cmap=cmap, interpolation=interpolation)
@@ -111,7 +112,8 @@ class MetricsCalculator:
 
         ndwi = [0]
         try:
-            ndwi = (green_band_03 - vnir_band_08) / (green_band_03 - vnir_band_08)
+            ndwi = (green_band_03 - vnir_band_08) / \
+                (green_band_03 + vnir_band_08)
         except RuntimeWarning as e:
             logging.warning(
                 f"Invalid value found during division of the enhanced vegetation index (EVI). error='{e}', sid_id='{sid_id}'")
@@ -151,7 +153,8 @@ class MetricsCalculator:
         # Calculate NIR and RED bands
         vnir_band_08 = dataset_8.read(1).astype(float)
         red_band_04 = dataset_04.read(1).astype(float)
-        logging.debug(f"Read near-infrared (VNIR/band 08) and red (RED/band 04) from dataset. sid_id='{sid_id}'")
+        logging.debug(
+            f"Read near-infrared (VNIR/band 08) and red (RED/band 04) from dataset. sid_id='{sid_id}'")
 
         # Calculate NDVI
         ndvi = [0]
@@ -195,12 +198,14 @@ class MetricsCalculator:
         # Calculate SWIR and RED bands
         vnir_band_8a = dataset_8a.read(1).astype(float)
         swir_band_11 = dataset_11.read(1).astype(float)
-        logging.debug(f"Read visible and near infrared (VNIR/band 8a) and short-wave infrared (SWIR/band 11). id='{sid_id}'")
+        logging.debug(
+            f"Read visible and near infrared (VNIR/band 8a) and short-wave infrared (SWIR/band 11). id='{sid_id}'")
 
         # Calculate moisture index
         moisture_index = [0]
         try:
-            moisture_index = (vnir_band_8a - swir_band_11) / (vnir_band_8a + swir_band_11)
+            moisture_index = (vnir_band_8a - swir_band_11) / \
+                (vnir_band_8a + swir_band_11)
         except RuntimeWarning as e:
             logging.warning(
                 f"Invalid value found during division of the moisture index. error='{e}', sid_id='{sid_id}'")
@@ -220,7 +225,7 @@ class MetricsCalculator:
         logging.debug(
             f"Saved moisture index image '{save_location} with cmap '{cmap}' under location '{save_location}'. sid_id='{sid_id}'")
         return save_location
-    
+
     @staticmethod
     def calculate_ndsi(sid_id, image_path_03, image_path_11, save_location="") -> str:
         """
@@ -235,13 +240,14 @@ class MetricsCalculator:
         dataset_11 = DatasetUtils.get_dataset(image_path_11)  # SWIR
 
         green_band_03 = dataset_03.read(1).astype(float)
-        vnir_band_11 = dataset_11.read(1).astype(float)
+        swir_band_11 = dataset_11.read(1).astype(float)
         logging.debug(
             f"Read green (GREEN/band 03) and near-infrared (SWIR/band 11) from dataset. sid_id='{sid_id}'")
 
         ndsi = [0]
         try:
-            ndsi = (green_band_03 - vnir_band_11) / (green_band_03 - vnir_band_11)
+            ndsi = (green_band_03 - swir_band_11) / \
+                (green_band_03 + swir_band_11)
         except RuntimeWarning as e:
             logging.warning(
                 f"Invalid value found during division of the normalized difference snow index index (NDSI). error='{e}', sid_id='{sid_id}'")

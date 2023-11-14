@@ -1,0 +1,3 @@
+# Ignore Firebase Emulator Import data
+firebase_data/
+firebase_data.zip/

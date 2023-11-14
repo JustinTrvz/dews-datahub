@@ -3,8 +3,8 @@
 *.log
 tmp/
 
-# Firebase
-firebase_options.dart
+# Python
+backend/venv
 
 # Visual Studio Code
 .vscode

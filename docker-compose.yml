@@ -8,9 +8,9 @@ services:
         ipv4_address: 172.19.0.2
     build:
       context: .
-      dockerfile: Dockerfile.python
+      dockerfile: docker/backend/Dockerfile.python
     working_dir: /app/backend
-    # command: venv/bin/python3 /app/backend/main.py
+    command: venv/bin/python3 /app/backend/main.py
     volumes:
       - ./backend/backend.log:/app/backend/backend.log
       - ./backend/tmp:/app/backend/tmp
@@ -25,7 +25,7 @@ services:
         ipv4_address: 172.19.0.3
     build:
       context: .
-      dockerfile: Dockerfile.firebase
+      dockerfile: docker/database/Dockerfile.firebase
     working_dir: /app/backend
     command: firebase emulators:start --import ./firebase_data
     ports:
@@ -43,12 +43,11 @@ services:
         ipv4_address: 172.19.0.4
     build:
       context: .
-      dockerfile: Dockerfile.flutter
+      dockerfile: docker/frontend/Dockerfile.flutter
     working_dir: /app/frontend
-    command: >
-        sh -c "flutter pub get && flutter run -d web-server --web-hostname 0.0.0.0 --web-port 8080 "
+    command: "flutter run -d web-server --web-hostname 0.0.0.0 --web-port 80"
     ports:
-      - "8080:8080" 
+      - "80:80" 
 
 networks:
   dews-network:

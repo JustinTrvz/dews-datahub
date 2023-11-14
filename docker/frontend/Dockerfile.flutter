@@ -1,0 +1,36 @@
+# Use the official Flutter image as the base image
+FROM ubuntu:20.04
+
+# Set the working directory in the container
+WORKDIR /app
+
+# Install necessary dependencies
+RUN apt-get update && \
+    apt-get install -y curl \
+    git \
+    unzip \
+    xz-utils && \
+    rm -rf /var/lib/apt/lists/*
+
+# Download and install Flutter
+ARG FLUTTER_SDK=/usr/local/flutter
+ARG FLUTTER_VERSION=3.13.9
+RUN git clone https://github.com/flutter/flutter.git $FLUTTER_SDK
+RUN cd $FLUTTER_SDK && git fetch && git checkout $FLUTTER_VERSION
+
+# Add Flutter to environment path
+ENV PATH="$FLUTTER_SDK/bin:$FLUTTER_SDK/bin/cache/dart-sdk/bin:${PATH}"
+
+# Run flutter doctor to pre-download dependencies
+RUN flutter doctor
+
+# Copy Flutter files
+COPY frontend /app/frontend
+WORKDIR /app/frontend
+
+# Build the Flutter web app
+RUN flutter pub get
+RUN flutter build web
+
+# Expose the port the app runs on
+EXPOSE 80
