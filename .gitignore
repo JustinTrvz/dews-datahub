@@ -3,8 +3,14 @@
 *.log
 tmp/
 
+# Python
+config.dev.py
+config.docker.py
+
 # Firebase
-firebase_options*.dart
+firebase.dev.json
+firebase.docker.json
+firebase_options.dart.bak
 firebase_data/
 firebase_data.zip
 

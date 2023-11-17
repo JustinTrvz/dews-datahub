@@ -6,7 +6,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:gui/firebase_options.dart';
-import 'package:gui/models/user_model.dart';
 import 'package:gui/pages/side_navigation_bar/side_nav_bar.dart';
 import 'package:gui/pages/side_navigation_bar/side_nav_bar_controller.dart';
 import 'package:gui/pages/user/add_sid_view.dart';

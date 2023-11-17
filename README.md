@@ -39,12 +39,16 @@ A new project shortcut called `Realtime Database` appears below `Project Overvie
    - **Linux:** `apt install docker-buildx`
    - **MacOS:** `brew install docker-buildx` 
    - *For other operating systems please see the [Docker BuildX installation guide](https://github.com/docker/buildx#installing).*
-
-4. Start a terminal.
-5. Change directory to the root of the project (_e.g. `cd  ~/Git/drought-ews`_).
-6. Build the Docker containers by executing `sudo docker-compose up --build`.
+4. Download the necessary Firebase Emulators data from [HAW Hamburg's OneDrive](https://hawhamburgedu-my.sharepoint.com/:u:/g/personal/wja999_haw-hamburg_de/ESmPOEhFQ3FIu2bCs3cOwuIB1Cn1hlBHeI-wXqGBrOmONQ?e=uj6Vr7).
+   - ℹ️**INFO:** Only members of the HAW Hamburg can download this file!
+5. Start a terminal.
+6. Change directory to the root of the project (_e.g. `cd  ~/Git/drought-ews`_).
+7. Unzip `backend/firebase_data.zip` to `backend/firebase_data`.
+   - **Linux:** `unzip backend/firebase_data.zip -d backend/.`
+   - **MacOS:** `unzip backend/firebase_data.zip -d backend/.`
+8. Build the Docker containers by executing `sudo docker-compose up --build`.
    - ℹ️**INFO:** The building process can take quite a long time. Please be patient!
-7. If you have already build the Docker containers you can start them by executing `sudo docker-compose up` (_starts in foreground_) or `sudo docker-compose up -d` (_starts in background_) in the future.
+9.  If you have already build the Docker containers you can start them by executing `sudo docker-compose up` (_starts in foreground_) or `sudo docker-compose up -d` (_starts in background_) in the future.
    - ℹ️**INFO:** This command will launch the Python backend, the Firebase Emulator Suite and the Flutter web app using Docker container.
 
 ## DataHub Web App
