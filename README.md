@@ -8,9 +8,9 @@ This guide shows how to create Firebase project, start the Docker container loca
    
 2. Create a new project called `drought-ews-dev`. \
 <img src="documentation/images/firebase/create-project.png" alt="GUI" width="400"/> \
-***INFO:** Please stay with the exact name `drought-ews-dev`. For demonstration purpose I had to create a new project with another name.* 
+ℹ️**INFO:** Please stay with the exact name `drought-ews-dev`. For demonstration purpose I had to create a new project with another name.
 1. Deactivate Google Analytics and create the project. \
-<img src="documentation/images/firebase/google-analytics.png" alt="GUI" width="400"/> \
+<img src="documentation/images/firebase/google-analytics.png" alt="GUI" width="400"/> 
 
 3. Click on `Build` on the left navigation bar and then on `Realtime Database`. \
 <img src="documentation/images/firebase/select-rtdb.png" alt="GUI" width="200"/> \
@@ -18,18 +18,18 @@ A new project shortcut called `Realtime Database` appears below `Project Overvie
 
 4. Click on the project shortcut `Realtime Database` and create a database. Use the **test mode rules**. \
 <img src="documentation/images/firebase/rtdb-setup-1.png" alt="GUI" width="400"/> \
-<img src="documentation/images/firebase/rtdb-setup-2.png" alt="GUI" width="400"/> \
+<img src="documentation/images/firebase/rtdb-setup-2.png" alt="GUI" width="400"/>
 
 5. Do the same steps 3 and 4 for `Storage` and create a new storage bucket. Use the **test mode rules**.
 <img src="documentation/images/firebase/storage-setup-1.png" alt="GUI" width="400"/> \
-<img src="documentation/images/firebase/storage-setup-2.png" alt="GUI" width="400"/> \
+<img src="documentation/images/firebase/storage-setup-2.png" alt="GUI" width="400"/> 
 
 1. Go to the `Project settings` by clicking the settings wheel next to the `Project Overview` button.
 2. Go to the tab `Service accounts`.
 3. Click on `Generate new private key` on the bottom. \
-<img src="documentation/images/firebase/create-key.png" alt="GUI" width="400"/> \
+<img src="documentation/images/firebase/create-key.png" alt="GUI" width="400"/>
 1. Rename the JSON file to `drought-ews-dev.json` and save it in the `backend/` directory of this project. \
-<img src="documentation/images/firebase/create-key-save.png" alt="GUI" width="400"/> \
+<img src="documentation/images/firebase/create-key-save.png" alt="GUI" width="400"/> 
 
 
 ## Start DEWS's DataHub
