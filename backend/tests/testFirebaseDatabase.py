@@ -1,7 +1,7 @@
 import unittest
-from backend.data.models.satellite_data.sentinel2b_data import Sentinel2BData
+from models.satellite_data.sentinel_2.sentinel2b_data import Sentinel2BData
 
-from backend.data.database.firebase import FirebaseApp, FirebaseDatabase
+from database.firebase import FirebaseApp, FirebaseDatabase
 
 
 class TestFirebaseDB(unittest.TestCase):

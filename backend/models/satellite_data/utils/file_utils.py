@@ -3,6 +3,8 @@ import logging
 import os.path
 from zipfile import ZipFile
 import zipfile
+import xmltodict
+
 
 from backend.config import *
 
@@ -93,3 +95,21 @@ class FileUtils:
             zip_ref.extractall(extraction_path)
 
         return extraction_path
+    
+    @staticmethod
+    def xml_to_dict(metadata_path: str) -> dict:
+        """
+        Reads XML file which contains metadata about satellite images and returns a dictionary with all parsed information.
+        """
+        metadata_file = open(metadata_path, "r")
+        metadata_dict = xmltodict.parse(metadata_file.read())
+        metadata_file.close()
+
+        if metadata_dict is False:
+            logging.error(
+                f"Could not read metadata file. metadata_path='{metadata_path}'")
+        else:
+            logging.debug(
+                f"Reading metadata file has been read successfully. metadata_path='{metadata_path}'")
+
+        return metadata_dict

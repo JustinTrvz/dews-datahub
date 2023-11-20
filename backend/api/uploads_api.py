@@ -2,9 +2,9 @@ import logging
 import threading
 from flask import Blueprint, request, jsonify
 from backend.api.utils import ApiUtils
-from backend.data.database.firebase import FirebaseStorage
-from backend.data.models.satellite_data.satellite_types import SatelliteTypes
-from backend.data.models.satellite_data.sentinel2b_data import Sentinel2BData
+from database.firebase import FirebaseStorage
+from models.satellite_data.satellite_types import SatelliteType
+from models.satellite_data.sentinel_2.sentinel2b_data import Sentinel2BData
 from config import *
 
 uploads_api = Blueprint("uploads_api", __name__)
@@ -71,7 +71,7 @@ def uploadNotification():
                          "postal_code": postal_code, "country": country}
                         }
         # Check for satellite type
-        if satellite_type.lower() == SatelliteTypes.SENTINEL_2B.lower():
+        if satellite_type.lower() == SatelliteType.SENTINEL_2B.lower():
             try:
                 # Create Sentinel-2B data object
                 # add local path to json

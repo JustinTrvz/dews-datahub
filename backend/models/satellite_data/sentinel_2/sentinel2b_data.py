@@ -3,25 +3,17 @@ import logging
 
 import xmltodict
 import uuid
-from backend.data.database.firebase import FirebaseDatabase, FirebaseStorage
-from backend.data.models.satellite_data.satellite_types import SatelliteTypes
+from database.firebase import FirebaseDatabase, FirebaseStorage
+from models.satellite_data.images_types import ImageType
+from models.satellite_data.satellite_types import SatelliteType
 
-from backend.statistics.utils.file_utils import FileUtils
-from backend.statistics.metrics_calculator import MetricsCalculator
+from models.satellite_data.utils.file_utils import FileUtils
+from models.satellite_data.statistics.metrics_calculator import MetricsCalculator
 from backend.config import *
 
 """
 Satellite image data object specialized for S2B MSIL2A (Sentinel-2B) satellite image data.
 """
-
-
-class ImageTypes:
-    '''Image types for every index (e.g. NDVI) used and additionally the RGB image.'''
-    RGB = "rgb"
-    NDVI = "ndvi"
-    WATER = "water"
-    NDWI = "ndwi"
-
 
 class Sentinel2BData:
     # Basic capture information
@@ -242,35 +234,35 @@ class Sentinel2BData:
         try:
             # Create RGB-image
             logging.debug(
-                f"Starting RGB (image generation. id='{self.ID}', satellite_type='{SatelliteTypes.SENTINEL_2B.lower()}'")
+                f"Starting RGB (image generation. id='{self.ID}', satellite_type='{SatelliteType.SENTINEL_2B.lower()}'")
             self.create_rgb_img()
             # Calculate indexes
             # NDVI
             logging.debug(
-                f"Starting NDVI image generation. id='{self.ID}', satellite_type='{SatelliteTypes.SENTINEL_2B.lower()}'")
+                f"Starting NDVI image generation. id='{self.ID}', satellite_type='{SatelliteType.SENTINEL_2B.lower()}'")
             self.calculate_ndvi()
             # Water
             logging.debug(
-                f"Starting water image generation. id='{self.ID}', satellite_type='{SatelliteTypes.SENTINEL_2B.lower()}'")
+                f"Starting water image generation. id='{self.ID}', satellite_type='{SatelliteType.SENTINEL_2B.lower()}'")
             self.calculate_moisture()
         except Exception as e:
             logging.error(
-                f"Failed to generate images. id='{self.ID}', satellite_type='{SatelliteTypes.SENTINEL_2B.lower()}'")
+                f"Failed to generate images. id='{self.ID}', satellite_type='{SatelliteType.SENTINEL_2B.lower()}'")
             return -1
 
         return 1
 
     def upload(self) -> int:
         # Upload files
-        self.RGB_IMG_PATH_STORAGE = self.upload_image(ImageTypes.RGB)  # RGB
-        self.NDVI_IMG_PATH_STORAGE = self.upload_image(ImageTypes.NDVI)  # NDVI
+        self.RGB_IMG_PATH_STORAGE = self.upload_image(ImageType.RGB)  # RGB
+        self.NDVI_IMG_PATH_STORAGE = self.upload_image(ImageType.NDVI)  # NDVI
         self.MOISTURE_IMG_PATH_STORAGE = self.upload_image(
-            ImageTypes.WATER)  # Water content
+            ImageType.MOISTURE)  # Moisture index
         logging.debug(f"Upload to storage complete. id='{self.ID}'")
 
         # Write to database
         db_ref = os.path.join(
-            "sid", SatelliteTypes.SENTINEL_2B.lower(), self.ID)
+            "sid", SatelliteType.SENTINEL_2B.lower(), self.ID)
         self.DIRECTORY_PATH_STORAGE = db_ref
         self.IMG_SAVE_PATH_STORAGE = os.path.join(db_ref, "images")
 
@@ -291,15 +283,15 @@ class Sentinel2BData:
 
         Use ImageTypes' constants as input for `img_type`. For example `upload_image(ImageTypes.NDVI, "test/image.png")`.
         '''
-        if img_type == ImageTypes.RGB:
+        if img_type == ImageType.RGB:
             local_path = self.RGB_IMG_PATH_LOCAL
-        elif img_type == ImageTypes.NDVI:
+        elif img_type == ImageType.NDVI:
             local_path = self.NDVI_IMG_PATH_LOCAL
-        elif img_type == ImageTypes.WATER:
+        elif img_type == ImageType.MOISTURE:
             local_path = self.MOISTURE_IMG_PATH_LOCAL
 
         directory_path = os.path.join(
-            "sid",  SatelliteTypes.SENTINEL_2B.lower(), self.ID, "images", img_type)
+            "sid",  SatelliteType.SENTINEL_2B.lower(), self.ID, "images", img_type)
         storage_path = FirebaseStorage.upload_file(directory_path, local_path)
         if storage_path == "":
             logging.error(f"Failed to upload file. directory_path='{directory_path}', local_path='{local_path}'")
@@ -315,24 +307,7 @@ class Sentinel2BData:
         """
         self.DIRECTORY_PATH_LOCAL = zip_path[zip_path.rfind("/"):]
         logging.debug(
-            f"Directory name has been set. DIRECTORY_NAME='{self.DIRECTORY_PATH_LOCAL}'.")
-
-    def read_metadata_xml(self, metadata_path: str):
-        """
-        Reads XML file which contains metadata about satellite images and returns a dictionary with all parsed information.
-        """
-        metadata_file = open(metadata_path, "r")
-        metadata_dict = xmltodict.parse(metadata_file.read())
-        metadata_file.close()
-
-        if metadata_dict is False:
-            logging.error(
-                f"Could not read metadata file. metadata_path='{metadata_path}'")
-        else:
-            logging.debug(
-                f"Reading metadata file has been read successfully. metadata_path='{metadata_path}'")
-
-        return metadata_dict
+            f"Directory name has been set. DIRECTORY_NAME='{self.DIRECTORY_PATH_LOCAL}'.") 
 
     def set_basic_granule_path(self, img_data_path: str):
         split_img_data_path = img_data_path.split("/")
@@ -361,7 +336,7 @@ class Sentinel2BData:
             if self.GRANULE_PATH == "":
                 self.set_basic_granule_path(img_data_path)
 
-            path = FileUtils.generate_path(EXTRACTED_FILES_PATH, SatelliteTypes.SENTINEL_2B.lower(
+            path = FileUtils.generate_path(EXTRACTED_FILES_PATH, SatelliteType.SENTINEL_2B.lower(
             ), self.DIRECTORY_PATH_LOCAL, img_data_path + S2B_IMG_FILE_EXTENSION)
             if range_meters in variable_mapping:
                 variable_mapping[range_meters][f"R{range_meters}_{frequency_band}"] = path
@@ -370,7 +345,7 @@ class Sentinel2BData:
         """
         Gets and sets information read from a metadata XML file.
         """
-        metadata_dict = self.read_metadata_xml(
+        metadata_dict = FileUtils.xml_to_dict(
             self.METADATA_FILE_NAME)  # reading metadata XML file "MTD_MSIL2A.xml"
 
         # get and set paths to satellite image data
@@ -407,7 +382,7 @@ class Sentinel2BData:
         """
         Parses coordinates from metadata file and set coordinates variables of this class.
         """
-        inspire_dict = self.read_metadata_xml(self.INSPIRE_FILE_NAME)
+        inspire_dict = FileUtils.xml_to_dict(self.INSPIRE_FILE_NAME)
         geograpic_bounding_box = \
             inspire_dict["gmd:MD_Metadata"]["gmd:identificationInfo"]["gmd:MD_DataIdentification"]["gmd:extent"][
                 "gmd:EX_Extent"]["gmd:geographicElement"]["gmd:EX_GeographicBoundingBox"]
@@ -583,7 +558,7 @@ class Sentinel2BData:
                 "city": self.CITY,
                 "postal_code": self.POSTAL_CODE,
                 "creation_time": self.CREATION_TIME.strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
-                "satellite_type": SatelliteTypes.SENTINEL_2B,
+                "satellite_type": SatelliteType.SENTINEL_2B,
             },
 
             "images": {

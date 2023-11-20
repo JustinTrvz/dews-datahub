@@ -5,7 +5,7 @@ import firebase_admin
 from firebase_admin import credentials, db, storage
 from backend.statistics.utils.file_utils import FileUtils
 
-from backend.data.models.user import User
+from backend.data.models.user.user import User
 from backend.config import *
 
 

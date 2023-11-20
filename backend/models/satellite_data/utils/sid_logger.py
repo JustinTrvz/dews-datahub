@@ -1,6 +1,5 @@
 import logging
 
-from statistics.utils.file_utils import FileUtils
 from config import *
 
 

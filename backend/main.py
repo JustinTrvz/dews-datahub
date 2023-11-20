@@ -5,12 +5,11 @@ import uuid
 
 from flask import Flask
 from flask_cors import CORS
-from backend.data.models.satellite_data.satellite_types import SatelliteTypes
-from backend.data.models.satellite_data.sentinel2b_data import Sentinel2BData
-from backend.data.models.user import User, UserGroups
-from backend.statistics.utils.sid_logger import SidLogger
-from data.database.firebase import *
-from statistics.utils.file_utils import FileUtils
+from models.satellite_data.satellite_types import SatelliteType
+from models.satellite_data.sentinel_2.sentinel2b_data import Sentinel2BData
+from models.satellite_data.utils.sid_logger import SidLogger
+from database.firebase import *
+from models.satellite_data.utils.file_utils import FileUtils
 from config import *
 from api.uploads_api import uploads_api
 from api.basics_api import basics_api
