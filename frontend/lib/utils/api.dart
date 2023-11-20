@@ -6,7 +6,7 @@ import "package:http/http.dart" as http;
 class ApiUtils {
   static Map<String, dynamic> createUploadJson(
       String uploadPath,
-      String satelliteType,
+      String satelliteMission,
       String userId,
       String areaName,
       String city,
@@ -16,7 +16,7 @@ class ApiUtils {
       "upload": {
         // System input: Do not touch the following three parameters!
         "upload_path": uploadPath,
-        "satellite_type": satelliteType,
+        "satellite_mission": satelliteMission,
         "user_id": userId,
         // User input: only user's input needs to be cleaned
         "area_name": areaName.toLowerCase().capitalize(),

@@ -46,7 +46,7 @@ def uploadNotification():
         return jsonify(ApiUtils.create_err_msg(-1, err_msg, {"error_msg": e}))
     # Parse json
     upload_path = upload_json["upload_path"]
-    satellite_type = upload_json["satellite_type"]
+    satellite_mission = upload_json["satellite_mission"]
     user_id = upload_json["user_id"]
     area_name = upload_json["area_name"]
     city = upload_json["city"]
@@ -67,12 +67,12 @@ def uploadNotification():
         # Create request json to respond
         request_json = {"request":
                         {"user_id": user_id, "area_name": area_name,
-                         "satellite_type": satellite_type, "upload_path": upload_path,
+                         "satellite_mission": satellite_mission, "upload_path": upload_path,
                          "local_path": local_path, "city": city,
                          "postal_code": postal_code, "country": country}
                         }
-        # Check for satellite type
-        if satellite_type.lower() == SatelliteMission.SENTINEL_2B.lower():
+        # Check for valid satellite type
+        if satellite_mission.lower() in [mission.value.lower() for mission in SatelliteMission]:
             try:
                 # Create Sentinel-2B data object
                 # Add local path to json
@@ -87,12 +87,12 @@ def uploadNotification():
 
             # Creation success
             logging.debug(
-                f"Creating Sentinel2BData object... user_id='{user_id}', area_name='{area_name}', satellite_type='{satellite_type}', upload_path='{upload_path}', local_path='{local_path}'")
+                f"Creating Sentinel2BData object... user_id='{user_id}', area_name='{area_name}', satellite_type='{satellite_mission}', upload_path='{upload_path}', local_path='{local_path}'")
             return jsonify(
                 ApiUtils.create_success_msg(f"We will notify you via the client when we are done calculating the indexes.", request_json)), 200
         else:
             # Satellite type not supported
-            err_msg = f"Satellite type '{satellite_type}' not supported."
+            err_msg = f"Satellite type '{satellite_mission}' not supported."
             logging.error(err_msg)
             # TODO: error code
             return jsonify(ApiUtils.create_err_msg(-1, err_msg, request_json)), 500

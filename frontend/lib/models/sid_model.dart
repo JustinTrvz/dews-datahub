@@ -7,7 +7,7 @@ class SatelliteDataModel {
   int postalCode;
   String userId;
   DateTime? creationTime;
-  String satelliteType;
+  String satelliteMission;
   // images/rgb
   String rgbImgStoragePath;
   // images/indexes/ndvi
@@ -39,7 +39,7 @@ class SatelliteDataModel {
     this.city = "",
     this.postalCode = 0,
     this.creationTime,
-    this.satelliteType = "", // default value
+    this.satelliteMission = "", // default value
     // images/rgb
     this.rgbImgStoragePath = "",
     // images/indexes/ndvi
@@ -89,7 +89,7 @@ class SatelliteDataModel {
       creationTime: DateTime.parse(basicJson["creation_time"]).toUtc(),
       id: basicJson["id"] as String,
       postalCode: basicJson["postal_code"],
-      satelliteType: basicJson["satellite_type"],
+      satelliteMission: basicJson["satellite_mission"],
       userId: basicJson["user_id"] as String,
 
       // bound latitudes

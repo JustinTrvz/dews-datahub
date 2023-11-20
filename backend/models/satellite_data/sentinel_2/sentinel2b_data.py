@@ -545,7 +545,7 @@ class Sentinel2BData:
                 "city": self.CITY,
                 "postal_code": self.POSTAL_CODE,
                 "creation_time": self.CREATION_TIME.strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
-                "satellite_type": SatelliteMission.SENTINEL_2B.value,
+                "satellite_mission": SatelliteMission.SENTINEL_2B.value,
             },
 
             "images": {
