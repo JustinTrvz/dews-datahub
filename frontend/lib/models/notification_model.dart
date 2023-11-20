@@ -1,5 +1,3 @@
-import 'package:uuid/uuid.dart';
-
 class NotificationModel {
   String id;
   String userId;

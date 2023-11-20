@@ -4,7 +4,7 @@ import uuid
 from os.path import exists
 
 from models.satellite_data.statistics.metrics_calculator import MetricsCalculator
-from backend.config import *
+from config import *
 
 class TestMetricsCalculator(unittest.TestCase):
     # Satellite image paths

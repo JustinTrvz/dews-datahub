@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from models.satellite_data.sentinel_2.sentinel2b_data import Sentinel2BData
 from database.firebase import FirebaseApp
-from backend.config import *
+from config import *
 
 import base64
 import logging

@@ -2,7 +2,7 @@ import unittest
 from models.satellite_data.sentinel_2.sentinel2b_data import Sentinel2BData
 
 from database.firebase import FirebaseApp, FirebaseStorage
-from backend.config import *
+from config import *
 from os.path import exists
 
 

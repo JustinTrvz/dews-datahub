@@ -5,7 +5,7 @@ import uuid
 
 from flask import Flask
 from flask_cors import CORS
-from models.satellite_data.satellite_types import SatelliteType
+from backend.models.satellite_data.satellite_mission import SatelliteMission
 from models.satellite_data.sentinel_2.sentinel2b_data import Sentinel2BData
 from models.satellite_data.utils.sid_logger import SidLogger
 from database.firebase import *

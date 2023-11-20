@@ -4,6 +4,7 @@
 tmp/
 
 # Python
+test.py
 config.dev.py
 config.docker.py
 

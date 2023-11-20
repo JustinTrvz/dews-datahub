@@ -10,9 +10,13 @@ class DatasetUtils:
 
     @staticmethod
     def get_dataset(image_path):
-        logging.debug(f"Returned dataset. image_path='{image_path}'.")
-
-        return rasterio.open(image_path)
+        try:
+            dataset = rasterio.open(image_path)
+        except Exception as e:
+            logging.error(f"Could not open dataset. error='{e}', image_path='{image_path}'")
+            return
+        logging.debug(f"Returning dataset. image_path='{image_path}'")
+        return dataset
 
     """
     Returns information about width, height, bands, crs and transform of loaded dataset.

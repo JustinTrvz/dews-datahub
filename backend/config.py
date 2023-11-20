@@ -37,11 +37,15 @@ OTHER_FILES_PATH = os.path.join(ROOT_FILES_PATH, "other")
 FILES_PATH_LIST = [ROOT_FILES_PATH, EXTRACTED_FILES_PATH, ZIP_FILES_PATH,
                    IMAGES_FILES_PATH, OTHER_FILES_PATH]
 
-
+# Sentinel-1A
+S1A_DIRECTORY_STORAGE = "uploads/sentinel-1a"
+S1A_MANIFEST_FILE_NAME = "manifest.safe"
+# Sentinel-1B
+S1B_DIRECTORY_STORAGE = "uploads/sentinel-1b"
 # Sentinel-2A
-S2A_UPLOAD_DIRECTORY = "uploads/sentinel-2a"
+S2A_DIRECTORY_STORAGE = "uploads/sentinel-2a"
 # Sentinel-2B
-S2B_UPLOAD_DIRECTORY = "uploads/sentinel-2b"
+S2B_DIRECTORY_STORAGE = "uploads/sentinel-2b"
 S2B_METADATA_FILE_NAME = "MTD_MSIL2A.xml"
 S2B_INSPIRE_FILE_NAME = "INSPIRE.xml"
 S2B_IMG_FILE_EXTENSION = ".jp2"

@@ -6,7 +6,7 @@ import zipfile
 import xmltodict
 
 
-from backend.config import *
+from config import *
 
 
 class FileUtils:
@@ -113,3 +113,18 @@ class FileUtils:
                 f"Reading metadata file has been read successfully. metadata_path='{metadata_path}'")
 
         return metadata_dict
+    
+    @staticmethod
+    def get_dict_value_by_key(dictionary, searched_key):
+        if isinstance(dictionary, dict):
+            for key, value in dictionary.items():
+                if key == searched_key:
+                    return value
+                result = FileUtils.get_dict_value_by_key(value, searched_key)
+                if result is not None:
+                    return result
+        elif isinstance(dictionary, list):
+            for item in dictionary:
+                result = FileUtils.get_dict_value_by_key(item, searched_key)
+                if result is not None:
+                    return result

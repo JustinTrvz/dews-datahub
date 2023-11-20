@@ -2,8 +2,9 @@ import logging
 import threading
 from flask import Blueprint, request, jsonify
 from backend.api.utils import ApiUtils
+from backend.models.satellite_data.satellite_data import SatelliteData
 from database.firebase import FirebaseStorage
-from models.satellite_data.satellite_types import SatelliteType
+from backend.models.satellite_data.satellite_mission import SatelliteMission
 from models.satellite_data.sentinel_2.sentinel2b_data import Sentinel2BData
 from config import *
 
@@ -71,13 +72,13 @@ def uploadNotification():
                          "postal_code": postal_code, "country": country}
                         }
         # Check for satellite type
-        if satellite_type.lower() == SatelliteType.SENTINEL_2B.lower():
+        if satellite_type.lower() == SatelliteMission.SENTINEL_2B.lower():
             try:
                 # Create Sentinel-2B data object
-                # add local path to json
+                # Add local path to json
                 upload_json.update({"directory_path_local": local_path})
-                init_thread = threading.Thread(
-                    target=Sentinel2BData.init_from_json, args=(upload_json,))
+                # init_thread = threading.Thread(target=Sentinel2BData.init_from_json, args=(upload_json,))
+                init_thread = threading.Thread(target=SatelliteData.from_json, args=(upload_json,))
                 init_thread.start()
             except Exception as e:
                 # Creation failure

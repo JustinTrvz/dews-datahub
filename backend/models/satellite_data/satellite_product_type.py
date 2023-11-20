@@ -8,3 +8,8 @@ class Sentinel1AProductType(Enum):
     OCN = "OCN"
     RAW = "RAW"
     SLC = "SLC"
+
+
+class Sentinel2BProductType(Enum):
+    MSI = "MSI"
+    L2A = "L2A"

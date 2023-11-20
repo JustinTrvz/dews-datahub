@@ -3,10 +3,8 @@ import logging
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
-import rasterio
-from PIL import Image
 
-from backend.statistics.utils.dataset_utils import DatasetUtils
+from models.satellite_data.utils.dataset_utils import DatasetUtils
 
 
 class MetricsCalculator:

@@ -1,12 +1,14 @@
 import logging
 import os
+import uuid
 
 import firebase_admin
 from firebase_admin import credentials, db, storage
-from backend.statistics.utils.file_utils import FileUtils
+from models.satellite_data.satellite_data import SatelliteData
+from models.satellite_data.utils.file_utils import FileUtils
 
-from backend.data.models.user.user import User
-from backend.config import *
+from models.user.user import User
+from config import *
 
 
 class FirebaseApp:
@@ -193,6 +195,23 @@ class FirebaseDatabase:
     @staticmethod
     def get_entries():
         return FirebaseApp.get_reference("sid").get()
+    
+    @staticmethod
+    def createNotification(sid: SatelliteData):
+        data = {
+           "id": str(uuid.uuid4()),
+           "userId": sid.USER_ID,
+           "sidID": sid.ID,
+           "category": "Calculation",
+           "message": f"Calculation done for satellite image data '{sid.ID}'",
+           "thumbnailStoragePath": sid.THUMBNAIL_IMG_PATH_STORAGE,
+        }
+        ok = FirebaseDatabase.add_to_array(
+            f"notifications/{sid.USER_ID}", data)
+        if not ok:
+            logging.error(f"Could not set notification. sid.USER_ID='{sid.USER_ID}', sid.ID='{sid.ID}'")
+
+
 
     @staticmethod
     def get_band_img(folder_name, range, band):

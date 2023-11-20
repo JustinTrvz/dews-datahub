@@ -1,19 +1,19 @@
 import datetime
 import logging
 
-import xmltodict
 import uuid
 from database.firebase import FirebaseDatabase, FirebaseStorage
 from models.satellite_data.images_types import ImageType
-from models.satellite_data.satellite_types import SatelliteType
+from models.satellite_data.satellite_mission import SatelliteMission
 
 from models.satellite_data.utils.file_utils import FileUtils
 from models.satellite_data.statistics.metrics_calculator import MetricsCalculator
-from backend.config import *
+from config import *
 
 """
 Satellite image data object specialized for S2B MSIL2A (Sentinel-2B) satellite image data.
 """
+
 
 class Sentinel2BData:
     # Basic capture information
@@ -46,6 +46,7 @@ class Sentinel2BData:
     PROCESSING_BASELINE = ""
     PRODUCT_DOI = ""
     GENERATION_TIME = ""
+    SATELLITE_MISSION = SatelliteMission.SENTINEL_2B.lower()
 
     # Calculated indexes
     # NDVI
@@ -197,27 +198,12 @@ class Sentinel2BData:
             else:
                 logging.debug(
                     f"Successfully uploaded data and files ot of satellite image data object. id='{self.ID}'")
-                self.createNotification()
+                FirebaseDatabase.createNotification(sid=self)
                 return
         else:
             logging.error(
                 f"Satellite image data object is not valid! error='{valid}', id='{self.ID}'")
             return
-        
-    def createNotification(self):
-        data = {
-           "id": str(uuid.uuid4()),
-           "userId": self.USER_ID,
-           "sidID": self.ID,
-           "category": "Calculation",
-           "message": f"Calculation done for satellite image data '{self.ID}'",
-           "thumbnailStoragePath": self.RGB_IMG_PATH_STORAGE,
-        }
-        ok = FirebaseDatabase.add_to_array(
-            f"notifications/{self.USER_ID}", data)
-        if not ok:
-            logging.error(f"Could not set notification. self.USER_ID='{self.USER_ID}', self.ID='{self.ID}'")
-
 
     @staticmethod
     def init_from_json(json_data):
@@ -234,20 +220,20 @@ class Sentinel2BData:
         try:
             # Create RGB-image
             logging.debug(
-                f"Starting RGB (image generation. id='{self.ID}', satellite_type='{SatelliteType.SENTINEL_2B.lower()}'")
+                f"Starting RGB (image generation. id='{self.ID}', satellite_type='{SatelliteMission.SENTINEL_2B.lower()}'")
             self.create_rgb_img()
             # Calculate indexes
             # NDVI
             logging.debug(
-                f"Starting NDVI image generation. id='{self.ID}', satellite_type='{SatelliteType.SENTINEL_2B.lower()}'")
+                f"Starting NDVI image generation. id='{self.ID}', satellite_type='{SatelliteMission.SENTINEL_2B.lower()}'")
             self.calculate_ndvi()
             # Water
             logging.debug(
-                f"Starting water image generation. id='{self.ID}', satellite_type='{SatelliteType.SENTINEL_2B.lower()}'")
+                f"Starting water image generation. id='{self.ID}', satellite_type='{SatelliteMission.SENTINEL_2B.lower()}'")
             self.calculate_moisture()
         except Exception as e:
             logging.error(
-                f"Failed to generate images. id='{self.ID}', satellite_type='{SatelliteType.SENTINEL_2B.lower()}'")
+                f"Failed to generate images. id='{self.ID}', satellite_type='{SatelliteMission.SENTINEL_2B.lower()}'")
             return -1
 
         return 1
@@ -262,7 +248,7 @@ class Sentinel2BData:
 
         # Write to database
         db_ref = os.path.join(
-            "sid", SatelliteType.SENTINEL_2B.lower(), self.ID)
+            "sid", SatelliteMission.SENTINEL_2B.lower(), self.ID)
         self.DIRECTORY_PATH_STORAGE = db_ref
         self.IMG_SAVE_PATH_STORAGE = os.path.join(db_ref, "images")
 
@@ -291,13 +277,14 @@ class Sentinel2BData:
             local_path = self.MOISTURE_IMG_PATH_LOCAL
 
         directory_path = os.path.join(
-            "sid",  SatelliteType.SENTINEL_2B.lower(), self.ID, "images", img_type)
+            "sid",  self.SATELLITE_MISSION, self.ID, "images", img_type)
         storage_path = FirebaseStorage.upload_file(directory_path, local_path)
         if storage_path == "":
-            logging.error(f"Failed to upload file. directory_path='{directory_path}', local_path='{local_path}'")
+            logging.error(
+                f"Failed to upload file. directory_path='{directory_path}', local_path='{local_path}'")
         else:
             logging.debug(
-            f"Uploaded {img_type} image to storage. self.ID='{self.ID}', directory_path='{directory_path}', {img_type}_img_path_local='{local_path}'")
+                f"Uploaded {img_type} image to storage. self.ID='{self.ID}', directory_path='{directory_path}', {img_type}_img_path_local='{local_path}'")
 
         return storage_path
 
@@ -307,7 +294,7 @@ class Sentinel2BData:
         """
         self.DIRECTORY_PATH_LOCAL = zip_path[zip_path.rfind("/"):]
         logging.debug(
-            f"Directory name has been set. DIRECTORY_NAME='{self.DIRECTORY_PATH_LOCAL}'.") 
+            f"Directory name has been set. DIRECTORY_NAME='{self.DIRECTORY_PATH_LOCAL}'.")
 
     def set_basic_granule_path(self, img_data_path: str):
         split_img_data_path = img_data_path.split("/")
@@ -336,7 +323,7 @@ class Sentinel2BData:
             if self.GRANULE_PATH == "":
                 self.set_basic_granule_path(img_data_path)
 
-            path = FileUtils.generate_path(EXTRACTED_FILES_PATH, SatelliteType.SENTINEL_2B.lower(
+            path = FileUtils.generate_path(EXTRACTED_FILES_PATH, SatelliteMission.SENTINEL_2B.lower(
             ), self.DIRECTORY_PATH_LOCAL, img_data_path + S2B_IMG_FILE_EXTENSION)
             if range_meters in variable_mapping:
                 variable_mapping[range_meters][f"R{range_meters}_{frequency_band}"] = path
@@ -558,7 +545,7 @@ class Sentinel2BData:
                 "city": self.CITY,
                 "postal_code": self.POSTAL_CODE,
                 "creation_time": self.CREATION_TIME.strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
-                "satellite_type": SatelliteType.SENTINEL_2B,
+                "satellite_type": SatelliteMission.SENTINEL_2B.value,
             },
 
             "images": {
