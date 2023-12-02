@@ -1,14 +1,13 @@
 import datetime
 import logging
-
 import uuid
-from database.firebase import FirebaseDatabase, FirebaseStorage
-from models.satellite_data.images_types import ImageType
-from models.satellite_data.satellite_mission import SatelliteMission
 
-from models.satellite_data.utils.file_utils import FileUtils
-from models.satellite_data.statistics.metrics_calculator import MetricsCalculator
-from config import *
+from backend.database.firebase import FirebaseDatabase, FirebaseStorage
+from backend.models.satellite_data.images_types import ImageType
+from backend.models.satellite_data.satellite_mission import SatelliteMission
+from backend.models.satellite_data.utils.file_utils import FileUtils
+from backend.models.satellite_data.statistics.metrics_calculator import MetricsCalculator
+from backend.config import *
 
 """
 Satellite image data object specialized for S2B MSIL2A (Sentinel-2B) satellite image data.
@@ -46,7 +45,7 @@ class Sentinel2BData:
     PROCESSING_BASELINE = ""
     PRODUCT_DOI = ""
     GENERATION_TIME = ""
-    SATELLITE_MISSION = SatelliteMission.SENTINEL_2B.lower()
+    SATELLITE_MISSION = SatelliteMission.SENTINEL_2B.value
 
     # Calculated indexes
     # NDVI
@@ -121,7 +120,7 @@ class Sentinel2BData:
         "R60m_WVP": None,
     }
 
-    def __init__(self, directory_path_local: str, user_id: str = "Unknown", img_save_location: str = "",
+    def __init__(self, directory_path: str, user_id: str = "Unknown", img_save_location: str = "",
                  file_save_location: str = "", area_name: str = "Unknown", country: str = "Unknown",
                  city: str = "Unknown", postal_code: int = 0, generate_imgs: bool = True):
         """
@@ -135,6 +134,7 @@ class Sentinel2BData:
         :param city: City name of the area.
         :param postal_code: Postal code of the area.
         """
+        logging.debug(f"Initalizing Sentinel2BData object. self.ID='{self.ID}'")
         # Basic information
         self.ID = str(uuid.uuid4())  # Creates and sets ID
         self.USER_ID = user_id  # set user/owner ID
@@ -144,14 +144,14 @@ class Sentinel2BData:
         self.CITY = city
         self.POSTAL_CODE = postal_code
         # Directory path
-        self.DIRECTORY_PATH_LOCAL = directory_path_local
+        self.DIRECTORY_PATH_LOCAL = directory_path
         # Other information
         self.METADATA_FILE_NAME = FileUtils.generate_path(
             self.DIRECTORY_PATH_LOCAL, S2B_METADATA_FILE_NAME)
         self.INSPIRE_FILE_NAME = FileUtils.generate_path(
             self.DIRECTORY_PATH_LOCAL, S2B_INSPIRE_FILE_NAME)
         # Set directory name by extraction from zip path
-        self.__set_directory_name(directory_path_local)
+        self.__set_directory_name(directory_path)
 
         # Check if naming convention is met
         if self.DIRECTORY_PATH_LOCAL.count("_") != 6:
@@ -208,7 +208,7 @@ class Sentinel2BData:
     @staticmethod
     def init_from_json(json_data):
         return Sentinel2BData(
-            directory_path_local=json_data["directory_path_local"],
+            directory_path=json_data["directory_path_local"],
             user_id=json_data["user_id"],
             area_name=json_data["area_name"],
             city=json_data["city"],
@@ -240,15 +240,15 @@ class Sentinel2BData:
 
     def upload(self) -> int:
         # Upload files
-        self.RGB_IMG_PATH_STORAGE = self.upload_image(ImageType.RGB)  # RGB
-        self.NDVI_IMG_PATH_STORAGE = self.upload_image(ImageType.NDVI)  # NDVI
+        self.RGB_IMG_PATH_STORAGE = self.upload_image(ImageType.RGB.value)  # RGB
+        self.NDVI_IMG_PATH_STORAGE = self.upload_image(ImageType.NDVI.value)  # NDVI
         self.MOISTURE_IMG_PATH_STORAGE = self.upload_image(
-            ImageType.MOISTURE)  # Moisture index
+            ImageType.MOISTURE.value)  # Moisture index
         logging.debug(f"Upload to storage complete. id='{self.ID}'")
 
         # Write to database
         db_ref = os.path.join(
-            "sid", SatelliteMission.SENTINEL_2B.lower(), self.ID)
+            "sid", SatelliteMission.SENTINEL_2B.value.lower(), self.ID)
         self.DIRECTORY_PATH_STORAGE = db_ref
         self.IMG_SAVE_PATH_STORAGE = os.path.join(db_ref, "images")
 
@@ -256,7 +256,7 @@ class Sentinel2BData:
         ok = FirebaseDatabase.set_entry(db_ref, data_dict)
         if ok <= 0:
             logging.error(
-                f"Failed to set entry for satellte image data object in database. error='{ok}', id='{self.ID}', db_ref='{db_ref}'")
+                f"Failed to set entry for Sentinel2BData object in database. error='{ok}', id='{self.ID}', db_ref='{db_ref}'")
             return -1
 
         logging.debug(
@@ -269,11 +269,11 @@ class Sentinel2BData:
 
         Use ImageTypes' constants as input for `img_type`. For example `upload_image(ImageTypes.NDVI, "test/image.png")`.
         '''
-        if img_type == ImageType.RGB:
+        if img_type == ImageType.RGB.value:
             local_path = self.RGB_IMG_PATH_LOCAL
-        elif img_type == ImageType.NDVI:
+        elif img_type == ImageType.NDVI.value:
             local_path = self.NDVI_IMG_PATH_LOCAL
-        elif img_type == ImageType.MOISTURE:
+        elif img_type == ImageType.MOISTURE.value:
             local_path = self.MOISTURE_IMG_PATH_LOCAL
 
         directory_path = os.path.join(
@@ -323,7 +323,7 @@ class Sentinel2BData:
             if self.GRANULE_PATH == "":
                 self.set_basic_granule_path(img_data_path)
 
-            path = FileUtils.generate_path(EXTRACTED_FILES_PATH, SatelliteMission.SENTINEL_2B.lower(
+            path = FileUtils.generate_path(EXTRACTED_FILES_PATH, SatelliteMission.SENTINEL_2B.value.lower(
             ), self.DIRECTORY_PATH_LOCAL, img_data_path + S2B_IMG_FILE_EXTENSION)
             if range_meters in variable_mapping:
                 variable_mapping[range_meters][f"R{range_meters}_{frequency_band}"] = path
@@ -540,12 +540,12 @@ class Sentinel2BData:
             "basic": {
                 "id": self.ID,
                 "user_id": self.USER_ID,
+                "satellite_mission": SatelliteMission.SENTINEL_2B.value,
                 "area_name": self.AREA_NAME,
                 "country": self.COUNTRY,
                 "city": self.CITY,
                 "postal_code": self.POSTAL_CODE,
                 "creation_time": self.CREATION_TIME.strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
-                "satellite_mission": SatelliteMission.SENTINEL_2B.value,
             },
 
             "images": {

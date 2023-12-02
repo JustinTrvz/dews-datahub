@@ -4,7 +4,7 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 
-from models.satellite_data.utils.dataset_utils import DatasetUtils
+from backend.models.satellite_data.utils.dataset_utils import DatasetUtils
 
 
 class MetricsCalculator:

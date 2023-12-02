@@ -2,14 +2,14 @@ from enum import Enum
 
 
 class Sentinel1AProductType(Enum):
-    UNKNOWN = "Unknown"
-    GRD = "GRD"
-    GRD_COG = "GRD COG"
-    OCN = "OCN"
-    RAW = "RAW"
-    SLC = "SLC"
+    UNKNOWN = "unknown"
+    GRD = "grd"
+    GRD_COG = "grd cog"
+    OCN = "ocn"
+    RAW = "raw"
+    SLC = "slc"
 
 
 class Sentinel2BProductType(Enum):
-    MSI = "MSI"
-    L2A = "L2A"
+    MSI = "msi"
+    L2A = "l2a"

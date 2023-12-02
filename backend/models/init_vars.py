@@ -3,5 +3,5 @@ from enum import Enum
 
 class InitVar(Enum):
     EMPTY = ""
-    UNKNOWN = "Unknown"
+    UNKNOWN = "unknown"
     MINUS_INT = -1

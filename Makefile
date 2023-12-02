@@ -4,6 +4,25 @@ PIP := backend/$(VENV_NAME)/bin/pip
 
 .PHONY: all venv requirements api main clean
 
+docker-build:
+	sudo docker-compose up --build 
+
+docker-up:
+	sudo docker-compose up
+
+docker-upd:
+	sudo docker-compose up -d
+
+docker-down:
+	sudo docker-compose down
+
+init-db:
+	sudo docker-compose exec dews flask init-db
+
+drop-db:
+	sudo docker-compose exec dews flask drop-db
+
+
 # - - - Help text - - -
 help:
 	@echo "Available targets:"

@@ -7,29 +7,28 @@ MAX_RETRIES = 20
 THREAD_TIMEOUT = 180
 
 # Flask API
-FLASK_HOST = "127.0.0.1"
+FLASK_NAME = "dews"
+FLASK_HOST = "0.0.0.0"  # locally
+FLASK_PORT = 5000  # locally
 MAX_CONTENT_LENGTH = 2000 * 1024 * 1024  # 2GB, 2000 MB
 
-# Firebase
-FB_TOKEN_PATH = ROOT_PATH + "/drought-ews-dev.json"
-FB_EMULATOR_URL = "http://127.0.0.1:8080"
-RETRY_LIMIT = 5
-## Database
-DB_URL = "http://127.0.0.1:9000/?ns=drought-ews-dev"
-DB_URL_DEV = "127.0.0.1:9000/?ns=drought-ews-dev"
-## Storage
-STORAGE_URL = "drought-ews-dev.appspot.com"
-STORAGE_URL_DEV = "http://127.0.0.1:9199"
+# Database
+DB_HOST = "172.19.0.3"  # over network
+DB_PORT = 5432  # over network
+DB_NAME = "dews"
+DB_USER = "dews"
+DB_PASSWORD = "dews"
+DB_URL = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 
 # Logger
 LOGGER_FILE_LOCATION = os.path.join(ROOT_PATH, "backend.log")
-LOGGER_FILE_MODE = "w" # 'w': create new log on every run; 'a': append to existing log
+LOGGER_FILE_MODE = "w"  # 'w': create new log on every run; 'a': append to existing log
 LOGGER_FORMAT = "[%(asctime)s] | %(levelname)s - %(module)s.%(funcName)s[%(lineno)d]: %(message)s"
 LOGGER_DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
 LOGGER_LEVEL = "DEBUG"
 
 # Files
-ROOT_FILES_PATH = os.path.join(ROOT_PATH, "tmp", "files") # Adjust this path!
+ROOT_FILES_PATH = os.path.join(ROOT_PATH, "files")
 EXTRACTED_FILES_PATH = os.path.join(ROOT_FILES_PATH, "extracted")
 ZIP_FILES_PATH = os.path.join(ROOT_FILES_PATH, "zip")
 IMAGES_FILES_PATH = os.path.join(ROOT_FILES_PATH, "images")

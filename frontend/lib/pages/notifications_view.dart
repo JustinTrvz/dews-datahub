@@ -1,5 +1,5 @@
 import "package:flutter/material.dart";
-import "package:gui/pages/side_navigation_bar/side_nav_bar_controller.dart";
+import 'package:gui/pages/side_bar/side_bar_controller.dart';
 import "package:gui/utils/firebase_database.dart";
 import "package:gui/utils/firebase_storage.dart";
 

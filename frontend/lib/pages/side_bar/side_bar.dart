@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:gui/pages/side_navigation_bar/side_nav_bar_controller.dart';
+import 'package:gui/pages/side_bar/side_bar_controller.dart';
 
 class SideNavBar extends StatefulWidget {
   const SideNavBar({Key? key}) : super(key: key);

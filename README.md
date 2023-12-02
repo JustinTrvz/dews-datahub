@@ -1,36 +1,30 @@
 # DEWS's DataHub (Drought Early Warning System's DataHub)
 
 # Guide
-This guide shows how to create Firebase project, start the Docker container locally and how to use the web app.
+This guide shows how to start the Docker containers locally and how to use the web app.
 
-## Create the Firebase Project
-1. Visit the [Firebase Console](https://console.firebase.google.com/).
-   
-2. Create a new project called `drought-ews-dev`. \
-<img src="documentation/images/firebase/create-project.png" alt="GUI" width="400"/> \
-ℹ️ **INFO:** Please stay with the exact name `drought-ews-dev`. For demonstration purpose I had to create a new project with another name.
-1. Deactivate Google Analytics and create the project. \
-<img src="documentation/images/firebase/google-analytics.png" alt="GUI" width="400"/> 
+# Start Docker container
+1. Install `Docker` using the [official installation guide](https://docs.docker.com/engine/install/).
+2. Install `Docker Compose` using the [official installation guide](https://docs.docker.com/compose/install/).
+3. *OPTIONAL:* Install `Docker BuildX`.
+     - **Linux:** `apt install docker-buildx`
+     - **MacOS:** `brew install docker-buildx` 
+     - **Other OS:** [Docker BuildX installation guide](https://github.com/docker/buildx#installing).
+     - **INFO:** *If you experience any issues while building the Docker containers please see this step as necessary!*
+4. Build the containers:.
+     - `docker-compose up -d --build`
+     - **INFO:** *In case something went wrong please add the flag `--force-recreate` and try again.*
+5. Initialize the database.
+     - `docker-compose exec dews flask init-db`
+     - **INFO:** *If this is not working, try `docker-compose exec dews flask drop-db` and then `docker-compose exec dews flask init-db`.*
 
-3. Click on `Build` on the left navigation bar and then on `Realtime Database`. \
-<img src="documentation/images/firebase/select-rtdb.png" alt="GUI" width="200"/> \
-A new project shortcut called `Realtime Database` appears below `Project Overview`.
-
-4. Click on the project shortcut `Realtime Database` and create a database. Use the **test mode rules**. \
-<img src="documentation/images/firebase/rtdb-setup-1.png" alt="GUI" width="400"/> \
-<img src="documentation/images/firebase/rtdb-setup-2.png" alt="GUI" width="400"/>
-
-5. Do the same steps 3 and 4 for `Storage` and create a new storage bucket. Use the **test mode rules**. \
-<img src="documentation/images/firebase/storage-setup-1.png" alt="GUI" width="400"/> \
-<img src="documentation/images/firebase/storage-setup-2.png" alt="GUI" width="400"/> 
-
-1. Go to the `Project settings` by clicking the settings wheel next to the `Project Overview` button.
-2. Go to the tab `Service accounts`.
-3. Click on `Generate new private key` on the bottom. \
-<img src="documentation/images/firebase/create-key.png" alt="GUI" width="400"/>
-1. Rename the JSON file to `drought-ews-dev.json` and save it in the `backend/` directory of this project. \
-<img src="documentation/images/firebase/create-key-save.png" alt="GUI" width="400"/> 
-
+# Import data
+1. Copy your local archive into the Docker container's filesystem:
+     - `docker cp <archive_path>/<archive_name>.zip dews:/app/backend/files/zip`
+     - ***Example:** `docker cp S1A_IW_GRDH_1SDV_20231116T053343_20231116T053408_051238_062E4B_84CA.SAFE.zip dews:/app/backend/files/zip/`*
+2. Import your data into the database:
+     - `docker-compose exec dews python backend/cli/dews_cli.py import /app/backend/files/zip/<archive_name>.zip -m <satellite_mission>`
+     - ***Example:** `docker-compose exec dews python /app/backend/cli/dews_cli.py import /app/backend/files/zip/S1A_IW_GRDH_1SDV_20231116T053343_20231116T053408_051238_062E4B_84CA.SAFE.zip -m sentinel-1a`*
 
 ## Start DEWS's DataHub
 1. Install `Docker` using the [official installation guide](https://docs.docker.com/engine/install/).
@@ -40,16 +34,16 @@ A new project shortcut called `Realtime Database` appears below `Project Overvie
     - **MacOS:** `brew install docker-buildx` 
     - *For other operating systems please see the [Docker BuildX installation guide](https://github.com/docker/buildx#installing).*
 4. Download the necessary Firebase Emulators data from [HAW Hamburg's OneDrive](https://hawhamburgedu-my.sharepoint.com/:u:/g/personal/wja999_haw-hamburg_de/ESmPOEhFQ3FIu2bCs3cOwuIB1Cn1hlBHeI-wXqGBrOmONQ?e=uj6Vr7) to this project's `backend/` directory.
-    - ℹ️ **INFO:** Only members of the HAW Hamburg can download this file!
+    - **INFO:** Only members of the HAW Hamburg can download this file!
 5. Start a terminal.
 6. Change directory to the root of the project (_e.g. `cd  ~/Git/drought-ews`_).
 7. Unzip `backend/firebase_data.zip` to `backend/firebase_data`.
     - **Linux:** `unzip backend/firebase_data.zip -d backend/.`
     - **MacOS:** `unzip backend/firebase_data.zip -d backend/.`
 8. Build the Docker containers by executing `sudo docker-compose up --build`.
-    - ℹ️ **INFO:** The building process can take quite a long time. Please be patient!
+    - **INFO:** The building process can take quite a long time. Please be patient!
 9.  If you have already build the Docker containers you can start them by executing `sudo docker-compose up` (_starts in foreground_) or `sudo docker-compose up -d` (_starts in background_).
-    - ℹ️ **INFO:** This command will launch the Python backend, the Firebase Emulator Suite and the Flutter web app using Docker container.
+    - **INFO:** This command will launch the Python backend, the Firebase Emulator Suite and the Flutter web app using Docker container.
 
 ## DataHub Web App
 ### Description
@@ -102,7 +96,7 @@ Please read and follow the guide ["Start DEWS's DataHub"](#start-dewss-datahub) 
 3. If you want to add a new satellite dataset click on `Add new entry` on the bottom of the screen. \
 <img src="documentation/images/webapp/satellite-data-create.png" alt="GUI" width="500"/>
    - Select a ZIP archive file, fill out the form, select the satellite type and click on save. 
-   - ℹ️ **INFO:** The upload and calculation can take a few seconds. Please be patient! 
+   - **INFO:** The upload and calculation can take a few seconds. Please be patient! 
 1. If the backend calculated all the indexes you will see a new entry pop up. In case no entry is shown please press the `F5` key and/or click on the navigation item `Satellite Data` to refresh the page.
 
 

@@ -1,7 +1,7 @@
 import "package:flutter/material.dart";
 import "package:gui/models/user_model.dart";
-import "package:gui/pages/side_navigation_bar/side_nav_bar_controller.dart";
-import 'package:gui/pages/user/sid_details_view.dart';
+import 'package:gui/pages/side_bar/side_bar_controller.dart';
+import 'package:gui/pages/sid/sid_details_view.dart';
 import "package:gui/utils/firebase_database.dart";
 import "package:gui/utils/firebase_storage.dart";
 
@@ -171,7 +171,6 @@ class _SatelliteDataPageState extends State<SatelliteDataPage> {
   }
 
   Future<List<dynamic>> getSidEntries() async {
-    print("-> -> -> -> -> -> -> -> ->");
     List<dynamic> response = await FirebaseDatabaseUtils
         .getSidEntries(); // returns [<error code>, <sid list>]
 
@@ -182,7 +181,6 @@ class _SatelliteDataPageState extends State<SatelliteDataPage> {
     }
     print("Response: $response");
 
-    print("<- <- <- <- <- <- <- <- <-");
     return response;
   }
 

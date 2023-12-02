@@ -5,8 +5,7 @@ from zipfile import ZipFile
 import zipfile
 import xmltodict
 
-
-from config import *
+from backend.config import *
 
 
 class FileUtils:
@@ -77,7 +76,7 @@ class FileUtils:
 
     @staticmethod
     def generate_path(*args):
-        path = "/".join(args)
+        path = "/".join(map(str, args))
         return path.replace("//", "/")
     
     @staticmethod

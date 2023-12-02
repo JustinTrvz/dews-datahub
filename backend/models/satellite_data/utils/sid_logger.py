@@ -1,6 +1,6 @@
 import logging
 
-from config import *
+from backend.config import *
 
 
 class SidLogger:
@@ -13,6 +13,13 @@ class SidLogger:
                             datefmt=LOGGER_DATE_FORMAT,
                             level=LOGGER_LEVEL
                             )
+
+        # Create a FileHandler in append mode
+        file_handler = logging.FileHandler(LOGGER_FILE_LOCATION, mode='a')
+        file_handler.setFormatter(logging.Formatter(LOGGER_FORMAT, datefmt=LOGGER_DATE_FORMAT))
+
+        # Add the FileHandler to the logger
+        logging.getLogger().addHandler(file_handler)
 
         logging.debug(f"Debug='{DEBUG_STATUS}'")
 

@@ -1,36 +1,28 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from models.satellite_data.sentinel_2.sentinel2b_data import Sentinel2BData
-from database.firebase import FirebaseApp
-from config import *
-
 import base64
 import logging
 import os
 
+from backend.models.satellite_data.sentinel_2.sentinel2b_data import Sentinel2BData
+from backend.config import *
+from backend.api.err_codes import DbErrorCodes
+from backend.database.psql_client import PSQLClient as DbClient
+
+
+
+############################################################
+############################################################
+################### DEPRECATED FILE!!#######################
+############################################################
+############################################################
+
 # Init Flask server
-app = Flask(__name__)
+app = Flask(FLASK_NAME)
 CORS(app, resources={r"/sid*": {"origins": "http://127.0.0.1"}})
 app.config['MAX_CONTENT_LENGTH'] = MAX_CONTENT_LENGTH
 
-# Init Firebase app
-database = FirebaseApp()
-
-
-class DbErrorCodes:
-    # Basic error codes
-    NOT_IMPLEMENTED = -10000
-    # Upload error codes
-    NO_FILE_RECEIVED = -10010
-    FILE_UPLOAD_FAILED = -10011
-    WRONG_FILE_FORMAT = -10012
-    SID_CREATION_ERR = -10013
-    # Satellite image data
-    SID_NOT_FOUND = -10020
-    IMAGE_READ_ERR = -10030
-    # User
-    USER_CREATION_ERR = -10040
-    USER_ALREADY_EXISTS = -10041
+database = DbClient()
 
 
 # Util functions
@@ -71,7 +63,7 @@ def create_sid_entry():
     print(request.get_json())
 
     sid = Sentinel2BData(
-        directory_path_local=os.path.join(
+        directory_path=os.path.join(
             ZIP_FILES_PATH, request.form.get("zip_file_name")),
         user_id=request.form.get("owner_id"),
         area_name=request.form.get("area_name"),
@@ -84,7 +76,7 @@ def create_sid_entry():
     ok = database.create_sid(sid_obj=sid)
     if ok <= 0:
         return jsonify(create_err_msg(
-            DbErrorCodes.SID_CREATION_ERR,
+            DbErrorCodes.SD_CREATION_ERR,
             "Could not create a SatelliteImageData object in the database. Please try again!")), 500
 
     # in case everything went well, the ID will be returned
@@ -264,7 +256,7 @@ def get_sid(sid_id):
 
     if sid is None:
         return jsonify(
-            create_err_msg(DbErrorCodes.SID_NOT_FOUND, f"Satellite image data with id '{sid_id}' not found.")), 404
+            create_err_msg(DbErrorCodes.SD_NOT_FOUND, f"Satellite image data with id '{sid_id}' not found.")), 404
 
     return jsonify(sid.to_dict()), 200
 
@@ -286,7 +278,7 @@ def get_ndvi(sid_id):
             logging.error(
                 f"Could not read image. img_path='{img_path}', http_code=500")
             return jsonify(
-                create_err_msg(DbErrorCodes.IMAGE_READ_ERR,
+                create_err_msg(DbErrorCodes.IMG_READ_ERR,
                                f"Could not read image. img_path='{img_path}'")), 500  # TODO: change error code
 
     if ndvi != "" and base64_img != "":

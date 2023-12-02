@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gui/models/user_model.dart';
-import 'package:gui/pages/side_navigation_bar/side_nav_bar_controller.dart';
+import 'package:gui/pages/side_bar/side_bar_controller.dart';
 import 'package:gui/utils/firebase_database.dart';
 
 class ProfilePage extends StatefulWidget {

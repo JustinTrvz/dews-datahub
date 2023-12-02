@@ -3,6 +3,11 @@
 # Ignore Firebase Emulator import data
 firebase_data/
 
+# Python
+venv/
+__pycache__/
+test.py/
+
 # Visual Studio Code
 .vscode
 

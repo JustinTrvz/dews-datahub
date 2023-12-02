@@ -1,8 +1,9 @@
 version: '3'
+
 services:
-  python:
-    image: dews-python:latest
-    container_name: python-container
+  dews:
+    image: dews:latest
+    container_name: dews
     networks:
       dews-network:
         ipv4_address: 172.19.0.2
@@ -10,44 +11,47 @@ services:
       context: .
       dockerfile: docker/backend/Dockerfile.python
     working_dir: /app/backend
-    command: venv/bin/python3 /app/backend/main.py
+    # command: python /app/backend/main.py
+    # command: /bin/sh -c "flask run --host=0.0.0.0 && python main.py"
+    command: flask run --host=0.0.0.0
     volumes:
-      - ./backend/backend.log:/app/backend/backend.log
-      - ./backend/tmp:/app/backend/tmp
+      - ./backend:/app/backend # for development purposes
+      - ./dropzone:/app/dropzone
+      # - ./backend/backend.log:/app/backend/backend.log
+      # - ./backend/files:/app/backend/files
     ports:
       - "5000:5000"
 
-  firebase:
-    image: dews-firebase:latest
-    container_name: firebase-container
+  dews-db:
+    image: postgis/postgis:14-3.3
+    container_name: dews-db
     networks:
       dews-network:
         ipv4_address: 172.19.0.3
-    build:
-      context: .
-      dockerfile: docker/database/Dockerfile.firebase
-    working_dir: /app/backend
-    command: firebase emulators:start --import ./firebase_data
+    environment:
+      POSTGRES_DB: dews
+      POSTGRES_USER: dews
+      POSTGRES_PASSWORD: dews
+      PGDATA: /var/lib/postgresql/data/pgdat
     ports:
-      - "4000:4000"
-      - "5001:5001"
-      - "9000:9000"
-      - "9099:9099"
-      - "9199:9199"
+      - 5432:5432
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data
 
-  flutter:
-    image: dews-flutter:latest
-    container_name: flutter-container
-    networks:
-      dews-network:
-        ipv4_address: 172.19.0.4
-    build:
-      context: .
-      dockerfile: docker/frontend/Dockerfile.flutter
-    working_dir: /app/frontend
-    command: "flutter run -d web-server --web-hostname 0.0.0.0 --web-port 80"
-    ports:
-      - "80:80" 
+  # frontend:
+  #   image: dews-frontend:latest
+  #   container_name: dews-frontend
+  #   networks:
+  #     dews-network:
+  #       ipv4_address: 172.19.0.4
+  #   build:
+  #     context: .
+  #     dockerfile: docker/frontend/Dockerfile.flutter
+  #   working_dir: /app/frontend
+  #   command: "flutter run -d web-server --web-hostname 0.0.0.0 --web-port 80"
+  #   ports:
+  #     - "80:80" 
+
 
 networks:
   dews-network:

@@ -2,50 +2,28 @@ import logging
 import os
 import uuid
 
-import firebase_admin
-from firebase_admin import credentials, db, storage
-from models.satellite_data.satellite_data import SatelliteData
-from models.satellite_data.utils.file_utils import FileUtils
+from backend.models.satellite_data.satellite_data import SatelliteData
+from backend.models.satellite_data.utils.file_utils import FileUtils
 
-from models.user.user import User
-from config import *
+from backend.models.user.user import User
+from backend.config import *
 
 
 class FirebaseApp:
     @staticmethod
-    def init_app() -> firebase_admin.App:
-        try:
-            return firebase_admin.initialize_app(
-                credentials.Certificate(FB_TOKEN_PATH),
-                options={
-                    "databaseURL": DB_URL,
-                    "storageBucket": STORAGE_URL,
-                })
-        except Exception as e:
-            logging.error(
-                f"Firebase app was not initialized. Abort program. Please try again! error='{e}', DB_URL='{DB_URL}', STORAGE_URL='{STORAGE_URL}'")
-            return None
+    def init_app():
+        return
 
     @staticmethod
     def get_reference(path: str):
-        app = firebase_admin.get_app(name='[DEFAULT]')
-        return db.reference(path=f"/{path}", app=app)
-
+        return
     @staticmethod
     def get_bucket():
-        app = firebase_admin.get_app(name='[DEFAULT]')
-        return storage.bucket(app=app)
+        return
 
     @staticmethod
     def clean_up():
-        app = firebase_admin.get_app(name='[DEFAULT]')
-        try:
-            firebase_admin.delete_app(app=app)
-            logging.debug(f"Deleted Firebase app '{app.name}'.")
-        except Exception as e:
-            logging.error(
-                f"Could not delete Firebase app. Maybe the app is not initialized. error='{e}'")
-
+        return
 
 class FirebaseDatabase:
     @staticmethod
