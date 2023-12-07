@@ -1,0 +1,74 @@
+{% load static %}
+
+{% url 'home' as startseite %}
+{% url 'contact' as kontakt %}
+{% url 'about_me' as uebermich %}
+{% url 'products' as leistungen %}
+{% url 'appointments' as kurse %}
+{% url 'gallery' as galerie %}
+
+<nav class="navbar sticky-top navbar-expand-lg navbar-light" style="background-color: #dec6bf">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="/"><img src="{% static 'img/logo.png' %}" width="40%"></a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                style="width:100%"
+                data-bs-target="#navbarSupportedContent"
+                aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item li-custom">
+                    <a class="nav-link text-nowrap {% if request.path == startseite %} active {% endif %} navbar-text" {% if request.path == startseite %} aria-current="page" {% endif %} href="/">Startseite</a>
+                </li>
+
+                <li class="nav-item dropdown li-custom">
+                    <a class="nav-link dropdown-toggle {% if request.path == leistungen %} active {% endif %} navbar-text" {% if request.path == leistungen %} aria-current="page" {% endif %} href="#" id="navbarDropdown" role="button"
+                       data-bs-toggle="dropdown" aria-expanded="false">Leistungen</a>
+                    <ul class="dropdown-menu" aria-labelledby="navbarDropdown" style="background-color: #fcf7eb">
+                        <li><a class="dropdown-item text-muted" href="/leistungen">Alle Leistungen</a></li>
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+                        <li><a class="dropdown-item" href="/leistungen#psychotherapie">Psychotherapie</a></li>
+                        <li><a class="dropdown-item" href="/leistungen#hypnose">Hypnose</a></li>
+                        <li><a class="dropdown-item" href="/leistungen#hypnose">Rauchentwöhnung</a></li>
+                        <li><a class="dropdown-item" href="/leistungen#waldbaden">Waldbaden</a></li>
+                    </ul>
+                </li>
+
+                <li class="nav-item li-custom">
+                    <a class="nav-link text-nowrap {% if request.path == kurse %} active {% endif %} navbar-text" {% if request.path == kurse %} aria-current="page" {% endif %} href="/kurse">Kurse</a>
+                </li>
+
+                <li class="nav-item li-custom">
+                    <a class="nav-link text-nowrap {% if request.path == uebermich %} active {% endif %} navbar-text" {% if request.path == uebermich %} aria-current="page" {% endif %} href="/uebermich">Über mich</a>
+                </li>
+
+                <li class="nav-item li-custom">
+                    <a class="nav-link text-nowrap {% if request.path == galerie %} active {% endif %} navbar-text" {% if request.path == galerie %} aria-current="page" {% endif %} href="/galerie">Galerie</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link text-nowrap {% if request.path == kontakt %} active {% endif %} navbar-text" {% if request.path == kontakt %} aria-current="page" {% endif %} href="/kontakt">Kontakt</a>
+                </li>
+
+                {% if user.is_authenticated %}
+                    <li>
+                        <div class="btn-group admin-buttons" role="group" aria-label="Admin-button-group">
+                            <a href="/zentrale" class="btn btn-outline-secondary">
+                                {% if 'zentrale' in request.build_absolute_uri %}
+                                    <b>Verwaltung</b>
+                                {% else %}
+                                    Verwaltung
+                                {% endif %}
+                            </a>
+                            <a href="/logout" class="btn btn-outline-secondary">Ausloggen</a>
+                        </div>
+                    </li>
+                {% endif %}
+            </ul>
+
+        </div>
+    </div>
+</nav>

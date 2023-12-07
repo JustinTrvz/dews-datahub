@@ -4,30 +4,38 @@ services:
   dews:
     image: dews:latest
     container_name: dews
-    networks:
-      dews-network:
-        ipv4_address: 172.19.0.2
     build:
       context: .
-      dockerfile: docker/backend/Dockerfile.python
-    working_dir: /app/backend
-    # command: python /app/backend/main.py
-    # command: /bin/sh -c "flask run --host=0.0.0.0 && python main.py"
-    command: flask run --host=0.0.0.0
+    working_dir: /app/dews
     volumes:
-      - ./backend:/app/backend # for development purposes
-      - ./dropzone:/app/dropzone
-      # - ./backend/backend.log:/app/backend/backend.log
-      # - ./backend/files:/app/backend/files
+      - ./dews:/app/dews # for development purposes
+      - static:/dews/static
+      - media:/dews/media
+    env_file:
+      - .env
     ports:
-      - "5000:5000"
+      - "8000:8000"
+    expose:
+      - "8000"
+    depends_on:
+      - dews-db
+
+  nginx:
+    container_name: dews-nginx
+    build: ./nginx
+    volumes: 
+      - static:/static
+      # - static:/dews/static
+      - media:/media
+      # - media:/dews/media
+    ports:
+      - "80:80"
+    depends_on:
+      - dews
 
   dews-db:
-    image: postgis/postgis:14-3.3
+    image: postgis/postgis:latest
     container_name: dews-db
-    networks:
-      dews-network:
-        ipv4_address: 172.19.0.3
     environment:
       POSTGRES_DB: dews
       POSTGRES_USER: dews
@@ -38,27 +46,6 @@ services:
     volumes:
       - ./pgdata:/var/lib/postgresql/data
 
-  # frontend:
-  #   image: dews-frontend:latest
-  #   container_name: dews-frontend
-  #   networks:
-  #     dews-network:
-  #       ipv4_address: 172.19.0.4
-  #   build:
-  #     context: .
-  #     dockerfile: docker/frontend/Dockerfile.flutter
-  #   working_dir: /app/frontend
-  #   command: "flutter run -d web-server --web-hostname 0.0.0.0 --web-port 80"
-  #   ports:
-  #     - "80:80" 
-
-
-networks:
-  dews-network:
-    driver: bridge
-    driver_opts:
-      com.docker.network.bridge.name: dews-bridge
-    ipam:
-      driver: default
-      config:
-        - subnet: 172.19.0.0/16
+volumes:
+  static:
+  media:

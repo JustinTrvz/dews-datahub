@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+  <h1>{{ title }}</h1>
+
+  <div style="overflow-y: scroll; max-height: 500px;">
+    <ul>
+      {% for sat_data in sat_data_entries %}
+        <li>
+          <strong>Mission:</strong> {{ sat_data.mission|capfirst }}<br />
+          <strong>Product Type:</strong> {{ sat_data.product_type|upper }}<br />
+          <strong>User:</strong> {{ sat_data.user.username|lower }}<br />
+          {% if sat_data.thumbnail %}
+            <strong>Thumbnail:</strong> <a href="{{ sat_data.thumbnail.url }}">{{ sat_data.thumbnail.url }}</a> 
+            <img src="{{ sat_data.thumbnail.url}}" alt="Thumbnail of satellite data with id '{{ sat_data.id }}'" width="400">
+            
+          {% endif %}
+          <!-- Link to detail view or other actions -->
+          <a href="{% url 'details_view' sat_data.id %}">View Details</a>
+        </li>
+        <hr />
+      {% endfor %}
+    </ul>
+  </div>
+
+  <!-- Add any additional HTML content or scripts here -->
+{% endblock %}

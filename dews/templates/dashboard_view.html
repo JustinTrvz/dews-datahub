@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+  <h1>Dashboard</h1>
+
+  <div>
+    <h2>Statistics:</h2>
+    <p>
+      <strong>Total Satellite Data Objects:</strong> {{ total_sat_data }}
+    </p>
+    <p>
+      <strong>Total Users:</strong> {{ total_users }}
+    </p>
+  </div>
+
+  <div>
+    <h2>Quick Links:</h2>
+    <ul>
+      <li>
+        <a href="{% url 'overview_view' %}">Satellite Data Overview</a>
+      </li>
+    </ul>
+  </div>
+
+  <!-- Add any additional HTML content or scripts here -->
+{% endblock %}

@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+  <h1>{{ title }}</h1>
+
+  <p>
+    <img src="{{ sat_data.thumbnail_path }}"></img>
+  </p>
+  <p>
+    <strong>Mission:</strong> {{ sat_data.mission|capfirst }}
+  </p>
+  <p>
+    <strong>Product Type:</strong> {{ sat_data.product_type|upper }}
+  </p>
+  <p>
+    <strong>User:</strong> {{ sat_data.user.username|lower }}
+  </p>
+  <p>
+    <strong>Metadata:</strong> <a href="{{ sat_data.metadata.url }}"> {{ sat_data.metadata.url }}</a>
+  </p>
+  <p><strong>Images:</strong></p>
+  {% for image_info in sat_data.imageinfo_set.all %}
+    <div class="accordion" id="imageInfoAccordion">
+      <div class="card">
+        <div class="card-header" id="heading{{ image_info.id }}">
+          <h2 class="mb-0"><button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapse{{ image_info.id }}" aria-expanded="true" aria-controls="collapse{{ image_info.id }}">Image Info: {{ image_info.img_type }}</button></h2>
+        </div>
+
+        <div id="collapse{{ image_info.id }}" class="collapse" aria-labelledby="heading{{ image_info.id }}" data-parent="#imageInfoAccordion">
+          <div class="card-body">
+            <p>
+              <strong>Image Type:</strong> {{ image_info.img_type }}
+            </p>
+            <p>
+              <strong>Image:</strong>
+              <img src="{{ image_info.img.url }}" alt="Image '{{ image_info.img_type }}'' from satellite data '{{ sat_data.id }}'">
+            </p>
+            <p>
+              <strong>Archived Image Paths:</strong> {{ image_info.archived_img_paths }}
+            </p>
+            <!-- Add more fields as needed -->
+          </div>
+        </div>
+      </div>
+    </div>
+  {% endfor %}
+  <!-- Add more fields as needed -->
+
+  <!-- Add any additional HTML content or scripts here -->
+{% endblock %}

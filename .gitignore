@@ -4,17 +4,37 @@
 tmp/
 files/
 
-# Backend (Python)
+# Django
+*.log
+*.pot
+*.pyc
+__pycache__
+db.sqlite3
+dews/media/
+django-venv/
 test.py
+secret_key
 
 # Database (PostgreSQL)
 pgdata/
 
 # IDEs
-## Visual Studio Code
-.vscode
 # Jetbrains
 .idea
+
+
+### ------------------------- IDE .gitignore ------------------------ ###
+
+# Jetbrains
+.idea/
+
+# VS Code
+.vscode/* 
+!.vscode/settings.json 
+!.vscode/tasks.json 
+!.vscode/launch.json 
+!.vscode/extensions.json 
+.history
 
 
 ### ------------------------- Python .gitignore ------------------------ ###
