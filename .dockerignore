@@ -1,9 +1,6 @@
 ### ------------------------- Project specific .gitignore ------------------------ ###
 
-# Ignore Firebase Emulator import data
-firebase_data/
-
-# Python
+# Django
 *venv/
 __pycache__/
 test.py/

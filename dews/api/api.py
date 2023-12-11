@@ -64,7 +64,7 @@ def create_sid_entry():
 
     sid = Sentinel2BData(
         directory_path=os.path.join(
-            ZIP_FILES_PATH, request.form.get("zip_file_name")),
+            ARCHIVE_FILES_PATH, request.form.get("zip_file_name")),
         user_id=request.form.get("owner_id"),
         area_name=request.form.get("area_name"),
         country=request.form.get("country"),

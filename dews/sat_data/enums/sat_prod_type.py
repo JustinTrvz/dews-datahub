@@ -1,7 +1,15 @@
 from enum import Enum
 
 
-class Sentinel1AProductType(Enum):
+class SatProdType(Enum):
+    UNKNOWN = "unknown"
+
+    def get_all():
+        """ Returns array containing all values. """
+        return [e.value for e in SatProdType]
+
+
+class Sentinel1AProdType(Enum):
     UNKNOWN = "unknown"
     GRD = "grd"
     GRD_COG = "grd cog"
@@ -12,7 +20,7 @@ class Sentinel1AProductType(Enum):
     @staticmethod
     def get_all():
         """ Returns array containing all values. """
-        return [e.value for e in Sentinel1AProductType]
+        return [e.value for e in Sentinel1AProdType]
 
 
 class Sentinel2BProductType(Enum):

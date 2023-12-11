@@ -8,9 +8,10 @@ services:
       context: .
     working_dir: /app/dews
     volumes:
-      - ./dews:/app/dews # for development purposes
-      - static:/dews/static
-      - media:/dews/media
+      - ./dews/:/app/dews/ # for development purposes
+      - ./dews/django.log:/app/dews/django.log
+      - static:/dews/static # "static" is a Docker volume
+      - media:/dews/media # "media" is a Docker volume
     env_file:
       - .env
     ports:
@@ -24,10 +25,8 @@ services:
     container_name: dews-nginx
     build: ./nginx
     volumes: 
-      - static:/static
-      # - static:/dews/static
-      - media:/media
-      # - media:/dews/media
+      - static:/static # "static" is a Docker volume
+      - media:/media # "media" is a Docker volume
     ports:
       - "80:80"
     depends_on:

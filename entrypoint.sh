@@ -4,7 +4,7 @@
 echo "Create directories..."
 
 satellites="sentinel-1a sentinel-2b"
-directories="extracted images zip"
+directories="extracted images archive"
 
 # Create directories
 for satellite in $satellites; do
@@ -13,9 +13,12 @@ for satellite in $satellites; do
   done
 done
 
-for satellite in $satellites; do
-    mkdir -p "/dews/media/other/meta_data/$satellite"
-done
+mkdir -p "/dews/media/other"
+
+
+# Create empty log
+echo "Create empty Django log file..."
+touch /app/dews/django.log
 
 # Django database migration
 echo "Make migrations..."
@@ -27,10 +30,10 @@ python manage.py migrate --noinput
 echo "Colect static..."
 python manage.py collectstatic --noinput
 
-# Create default admin user
-echo "Create default admin user..."
-python manage.py createadmin dews dews dews@dews.de
+# Create default super user
+echo "Create default super user..."
+python manage.py createsuperuser --noinput
 
 # Start
 echo "Start main app..."
-gunicorn dews.wsgi:application --bind 0.0.0.0:8000
+gunicorn dews.wsgi:application --bind 0.0.0.0:8000 --reload

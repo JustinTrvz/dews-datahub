@@ -6,9 +6,10 @@ import numpy as np
 
 from sat_data.services.utils.dataset_utils import get_dataset
 from sat_data.models import SatData, BandInfo
-from sat_data.enums.bands import SatelliteBand
-from sat_data.enums.image_types import ImageType
+from dews.sat_data.enums.sat_band import SatBand
+from dews.sat_data.enums.idx_img_type import IdxImgType
 
+logger = logging.getLogger("django")
 
 class MetricsCalculator:
     """
@@ -20,7 +21,7 @@ class MetricsCalculator:
         """
         Creates an image with MatPlotLib and saves it to desired save location.
         """
-        logging.debug(
+        logger.info(
             f"Creating plot image. save_location='{save_loc}', cmap='{cmap}', interpolation='{interpolation}'")
         try:
             mpl.use("agg")
@@ -39,10 +40,10 @@ class MetricsCalculator:
                         bbox_inches='tight', pad_inches=0.0)
             plt.close('all')
         except Exception as e:
-            logging.error(f"Failed to save image. save_location='{save_loc}', cmap='{cmap}', interpolation='{interpolation}'")
+            logger.error(f"Failed to save image. save_location='{save_loc}', cmap='{cmap}', interpolation='{interpolation}'")
             return False
 
-        logging.debug(f"Successfully saved image. save_location='{save_loc}', cmap='{cmap}', interpolation='{interpolation}'")
+        logger.info(f"Successfully saved image. save_location='{save_loc}', cmap='{cmap}', interpolation='{interpolation}'")
         return True
 
     @staticmethod
@@ -64,12 +65,12 @@ class MetricsCalculator:
         :param l: L is the canopy background adjustment that addresses non-linear, differential NIR and red radiant transfer through a canopy.
         """
         # Get band info and image save location
-        band_info: BandInfo = sat_data.band_info(
-            SatelliteBand.B02.value,
-            SatelliteBand.B04.value,
-            SatelliteBand.B8A.value
+        band_info: BandInfo = sat_data.get_band_info(
+            SatBand.B02.value,
+            SatBand.B04.value,
+            SatBand.B8A.value
         )
-        save_loc = sat_data.img_save_loc(ImageType.EVI.value)
+        save_loc = sat_data.img_save_loc(IdxImgType.EVI.value)
 
         # Read datasets
         dataset_b02 = get_dataset(band_info.b02_path)  # BLUE
@@ -80,9 +81,9 @@ class MetricsCalculator:
         red_band_b04 = dataset_b04.read(1).astype(float)
         nir_band_b8a = dataset_b8a.read(1).astype(float)
 
-        logging.debug(
+        logger.debug(
             f"Read blue (BLUE), red (RED) and near-infrared (NIR) from dataset for EVI calculation. sat_data_id='{sat_data.id}'")
-        logging.debug(
+        logger.debug(
             f"Using the variables G='{g}', C1='{c1}', C2='{c2}', L='{l}' for EVI calculation. sat_data_id='{sat_data.id}'")
 
         # Calculation
@@ -91,12 +92,12 @@ class MetricsCalculator:
             evi = g * ((nir_band_b8a - red_band_b04) / (nir_band_b8a +
                        c1 * red_band_b04 - c2 * blue_band_b02 + l))
         except RuntimeWarning:
-            logging.warning(
+            logger.warning(
                 f"Invalid value found during division of the enhanced vegetation index (EVI). sat_data_id='{sat_data.id}'")
-            logging.debug(
+            logger.info(
                 f"EVI Calculation will be continued... sat_data_id='{sat_data.id}'")
 
-        logging.debug(f"Calculated EVI. sat_data_id='{sat_data.id}'")
+        logger.info(f"Calculated EVI. sat_data_id='{sat_data.id}'")
 
         # Create and save image
         cmap = "RdYlGn"
@@ -110,10 +111,10 @@ class MetricsCalculator:
             save_loc=save_loc
         )
         if not ok:
-            logging.error(f"Failed to save EVI image. sat_data_id='{sat_data.id}', save_loc='{save_loc}'")
+            logger.error(f"Failed to save EVI image. sat_data_id='{sat_data.id}', save_loc='{save_loc}'")
             return ""
 
-        logging.debug(
+        logger.debug(
             f"Saved EVI image '{save_loc} with cmap '{cmap}'. save_loc='{save_loc}', sat_data_id='{sat_data.id}'")
         return save_loc
 
@@ -127,11 +128,11 @@ class MetricsCalculator:
         :param image_path_08:
         """
         # Get band info and image save location
-        band_info: BandInfo = sat_data.band_info(
-            SatelliteBand.B03.value,
-            SatelliteBand.B08.value,
+        band_info: BandInfo = sat_data.get_band_info(
+            SatBand.B03.value,
+            SatBand.B08.value,
         )
-        save_loc = sat_data.img_save_loc(ImageType.NDWI.value)
+        save_loc = sat_data.img_save_loc(IdxImgType.NDWI.value)
 
         # Read datasets
         dataset_b03 = get_dataset(band_info.b03_path)  # GREEN
@@ -139,7 +140,7 @@ class MetricsCalculator:
 
         vnir_band_b08 = dataset_b08.read(1).astype(float)
         green_band_b03 = dataset_b03.read(1).astype(float)
-        logging.debug(
+        logger.debug(
             f"Read near-infrared (VNIR) and green (GREEN) from dataset. sat_data_id='{sat_data.id}'")
 
         # Calculation
@@ -148,10 +149,10 @@ class MetricsCalculator:
             ndwi = (green_band_b03 - vnir_band_b08) / \
                 (green_band_b03 + vnir_band_b08)
         except RuntimeWarning as e:
-            logging.warning(
+            logger.warning(
                 f"Invalid value found during division of the enhanced vegetation index (EVI). error='{e}', sat_data_id='{sat_data.id}'")
 
-        logging.debug(f"Calculated NDWI. sat_data_id='{sat_data.id}'")
+        logger.info(f"Calculated NDWI. sat_data_id='{sat_data.id}'")
 
         # Create and save image
         cmap = "winter"
@@ -165,10 +166,10 @@ class MetricsCalculator:
             save_loc=save_loc
         )
         if not ok:
-            logging.error(f"Failed to save NDWI image. sat_data_id='{sat_data.id}', save_loc='{save_loc}'")
+            logger.error(f"Failed to save NDWI image. sat_data_id='{sat_data.id}', save_loc='{save_loc}'")
             return ""
 
-        logging.debug(
+        logger.info(
             f"Saved NDWI image '{save_loc} with cmap '{cmap}' under location '{save_loc}'. sat_data_id='{sat_data.id}'")
         return save_loc
 
@@ -191,7 +192,7 @@ class MetricsCalculator:
         # Calculate NIR and RED bands
         vnir_band_08 = dataset_8.read(1).astype(float)
         red_band_04 = dataset_04.read(1).astype(float)
-        logging.debug(
+        logger.debug(
             f"Read near-infrared (VNIR/band 08) and red (RED/band 04) from dataset. sat_data_id='{sat_data.id}'")
 
         # Calculate NDVI
@@ -199,10 +200,10 @@ class MetricsCalculator:
         try:
             ndvi = (vnir_band_08 - red_band_04) / (vnir_band_08 + red_band_04)
         except RuntimeWarning as e:
-            logging.warning(
+            logger.warning(
                 f"Invalid value found during division of the normalized difference vegetation index (NDVI). error='{e}', sat_data_id='{sat_data.id}'")
 
-        logging.debug(f"Calculated NDVI. sat_data_id='{sat_data.id}'")
+        logger.info(f"Calculated NDVI. sat_data_id='{sat_data.id}'")
 
         # Saving/displaying NDVI map
         cmap = "RdYlGn"
@@ -214,7 +215,7 @@ class MetricsCalculator:
             cmap=cmap,
             save_loc=save_location
         )
-        logging.debug(
+        logger.info(
             f"Saved NDVI image '{save_location} with cmap '{cmap}' under location '{save_location}'. sat_data_id='{sat_data.id}'")
         return save_location
 
@@ -236,7 +237,7 @@ class MetricsCalculator:
         # Calculate SWIR and RED bands
         vnir_band_8a = dataset_8a.read(1).astype(float)
         swir_band_11 = dataset_11.read(1).astype(float)
-        logging.debug(
+        logger.debug(
             f"Read visible and near infrared (VNIR/band 8a) and short-wave infrared (SWIR/band 11). id='{sat_data.id}'")
 
         # Calculate moisture index
@@ -245,10 +246,10 @@ class MetricsCalculator:
             moisture_index = (vnir_band_8a - swir_band_11) / \
                 (vnir_band_8a + swir_band_11)
         except RuntimeWarning as e:
-            logging.warning(
+            logger.warning(
                 f"Invalid value found during division of the moisture index. error='{e}', sat_data_id='{sat_data.id}'")
 
-        logging.debug(
+        logger.info(
             f"Calculated moisture index. sat_data_id='{sat_data.id}'")
 
         # Saving/displaying moisture index map
@@ -261,7 +262,7 @@ class MetricsCalculator:
             cmap=cmap,
             save_loc=save_location
         )
-        logging.debug(
+        logger.info(
             f"Saved moisture index image '{save_location} with cmap '{cmap}' under location '{save_location}'. sat_data_id='{sat_data.id}'")
         return save_location
 
@@ -280,7 +281,7 @@ class MetricsCalculator:
 
         green_band_03 = dataset_03.read(1).astype(float)
         swir_band_11 = dataset_11.read(1).astype(float)
-        logging.debug(
+        logger.debug(
             f"Read green (GREEN/band 03) and near-infrared (SWIR/band 11) from dataset. sat_data_id='{sat_data.id}'")
 
         ndsi = [0]
@@ -288,10 +289,10 @@ class MetricsCalculator:
             ndsi = (green_band_03 - swir_band_11) / \
                 (green_band_03 + swir_band_11)
         except RuntimeWarning as e:
-            logging.warning(
+            logger.warning(
                 f"Invalid value found during division of the normalized difference snow index index (NDSI). error='{e}', sat_data_id='{sat_data.id}'")
 
-        logging.debug(f"Calculated NDSI. sat_data_id='{sat_data.id}'")
+        logger.info(f"Calculated NDSI. sat_data_id='{sat_data.id}'")
 
         interpolation = "lanczos"
         datetime_formatted = datetime.datetime.now().strftime(
@@ -303,7 +304,7 @@ class MetricsCalculator:
             save_loc=save_location,
             interpolation=interpolation,
         )
-        logging.debug(
+        logger.info(
             f"Saved NDSI image '{save_location} with interpolation '{interpolation}' under location '{save_location}'. sat_data_id='{sat_data.id}'")
         return save_location
 

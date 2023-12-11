@@ -1,7 +1,7 @@
 from enum import Enum
 
 
-class SatelliteBand(Enum):
+class SatBand(Enum):
     """ Satellite bands like band AOT, 01, 02, 8A, etc. """
     AOT = "aot"
     SCL = "scl"
@@ -24,4 +24,4 @@ class SatelliteBand(Enum):
     @staticmethod
     def get_all():
         """ Returns array containing all values. """
-        return [e.value for e in SatelliteBand]
+        return [e.value for e in SatBand]

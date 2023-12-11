@@ -17,10 +17,11 @@ Including another URLconf
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
-from . import settings
+from .settings import STATIC_URL, STATIC_ROOT, MEDIA_URL, MEDIA_ROOT
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("", include("accounts.urls")),
     path("", include("dashboard.urls")),
-    path("sat_data/", include("sat_data.urls")),
-]+ static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    path("sat_data/", include("sat_data.urls"), name="sat_data_view"),
+]+ static(STATIC_URL, document_root=STATIC_ROOT) + static(MEDIA_URL, document_root=MEDIA_ROOT)

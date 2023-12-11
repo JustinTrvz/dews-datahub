@@ -13,9 +13,11 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 from pathlib import Path
 from os import getenv
 
+# DEWS application"s version
+VERSION = "0.0.1"
+
 # Build paths inside the project like this: BASE_DIR / "subdir".
 BASE_DIR = Path(__file__).resolve().parent.parent
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
@@ -55,31 +57,55 @@ INSTALLED_APPS = [
 ]
 
 # Logging
+if DEBUG:
+    LOGGER_LEVEL_CONSOLE = "DEBUG"
+else:
+    LOGGER_LEVEL_CONSOLE = "INFO"
+LOGGER_LEVEL_FILE = "INFO"
+LOGGER_DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
+LOG_FILE_PATH = BASE_DIR / "django.log"
+
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
+    "formatters": {
+        "verbose": {
+            "format": "[{asctime}] | {levelname} - {module}.{funcName}[{lineno:d}]: {message}",
+            "style": "{",
+        },
+        "simple": {
+            "format": "{levelname}|{module}.{funcName}[{lineno:d}]: {message}",
+            "style": "{",
+        },
+    },
     "handlers": {
         "file": {
-            "level": "DEBUG",
             "class": "logging.FileHandler",
-            "filename": "django.log",
+            "filename": LOG_FILE_PATH,
+            "formatter": "verbose",
         },
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "simple",
+        },
+        "null": {
+            "class": "logging.NullHandler",
+            "formatter": "simple",
+        }
     },
     "loggers": {
         "django": {
-            "handlers": ["file"],
+            "handlers": ["console", "file"],
             "level": "DEBUG",
             "propagate": True,
         },
+        "django.db.backends": {
+            "handlers": ["null"], # deactivates SQL query logs
+            "level": "DEBUG",
+            "propagate": False,
+        }
     },
 }
-
-# Custom Python logger
-LOGGER_FILE_LOCATION = BASE_DIR / "backend.log"
-LOGGER_FILE_MODE = "w"  # 'w': create new log on every run; 'a': append to existing log
-LOGGER_FORMAT = "[%(asctime)s] | %(levelname)s - %(module)s.%(funcName)s[%(lineno)d]: %(message)s"
-LOGGER_DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
-LOGGER_LEVEL = "DEBUG"
 
 # Middleware
 MIDDLEWARE = [
@@ -101,7 +127,8 @@ TEMPLATES = [
         "BACKEND": "django.template.backends.django.DjangoTemplates",
         "DIRS": [BASE_DIR / "templates",
                  BASE_DIR / "templates/base",
-                 BASE_DIR / "templates/sat_data"],
+                 BASE_DIR / "templates/sat_data",
+                 BASE_DIR / "templates/accounts",],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -161,7 +188,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
 
-LANGUAGE_CODE = "en-us" 
+LANGUAGE_CODE = "en-us"
 TIME_ZONE = "UTC"
 USE_I18N = True
 USE_TZ = True
@@ -173,22 +200,24 @@ USE_TZ = True
 STATIC_ROOT = "/dews/static/"
 STATIC_URL = "/dews/static/"
 STATICFILES_DIRS = [
-    BASE_DIR / "static" # dews/static
+    BASE_DIR / "static"  # dews/static
 ]
 
 # Media files (Videos, Images, ...)
+DATA_UPLOAD_MAX_MEMORY_SIZE = 10485760000  # 10 GB
+FILE_UPLOAD_MAX_MEMORY_SIZE = 10485760000  # 10 GB
 MEDIA_ROOT = "/dews/media"
 MEDIA_URL = "/dews/media/"
 
 # File paths
 SAT_DATA_PATH = Path(MEDIA_ROOT) / "sat_data"
 EXTRACTED_FILES_PATH = SAT_DATA_PATH / "extracted"
-ZIP_FILES_PATH = SAT_DATA_PATH / "zip"
+ARCHIVE_FILES_PATH = SAT_DATA_PATH / "archive"
 IMAGES_FILES_PATH = SAT_DATA_PATH / "images"
 
 OTHER_FILES_PATH = Path(MEDIA_ROOT) / "other"
 
-FILES_PATH_LIST = [SAT_DATA_PATH, EXTRACTED_FILES_PATH, ZIP_FILES_PATH,
+FILES_PATH_LIST = [SAT_DATA_PATH, EXTRACTED_FILES_PATH, ARCHIVE_FILES_PATH,
                    IMAGES_FILES_PATH, OTHER_FILES_PATH]
 
 # Default primary key field type
@@ -197,5 +226,5 @@ FILES_PATH_LIST = [SAT_DATA_PATH, EXTRACTED_FILES_PATH, ZIP_FILES_PATH,
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # Login/Logout
-LOGIN_REDIRECT_URL = "/zentrale"
-LOGOUT_REDIRECT_URL = "/"
+LOGIN_REDIRECT_URL = "/"
+LOGOUT_REDIRECT_URL = "/accounts/login/"

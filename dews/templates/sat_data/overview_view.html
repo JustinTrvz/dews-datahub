@@ -1,27 +1,55 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
 {% load static %}
 
-{% block content %}
-  <h1>{{ title }}</h1>
+{% block title %}DEWS DataHub - Overview{% endblock %}
 
-  <div style="overflow-y: scroll; max-height: 500px;">
-    <ul>
-      {% for sat_data in sat_data_entries %}
-        <li>
-          <strong>Mission:</strong> {{ sat_data.mission|capfirst }}<br />
-          <strong>Product Type:</strong> {{ sat_data.product_type|upper }}<br />
-          <strong>User:</strong> {{ sat_data.user.username|lower }}<br />
-          {% if sat_data.thumbnail %}
-            <strong>Thumbnail:</strong> <a href="{{ sat_data.thumbnail.url }}">{{ sat_data.thumbnail.url }}</a> 
-            <img src="{{ sat_data.thumbnail.url}}" alt="Thumbnail of satellite data with id '{{ sat_data.id }}'" width="400">
-            
-          {% endif %}
-          <!-- Link to detail view or other actions -->
-          <a href="{% url 'details_view' sat_data.id %}">View Details</a>
-        </li>
-        <hr />
-      {% endfor %}
-    </ul>
+
+{% block content %}
+  <section class="jumbotron text-center">
+    <div class="container pt-1 pb-1">
+      <h1 class="display-4 font-italic text-center">Satellite Data Overview</h1>
+      <p class="lead text-muted">
+        Shows all satellite data entries that were created.
+      </p>
+    </div>
+  </section>
+  <hr class="light-100" />
+
+  <div style="overflow-y: scroll; max-height: 1000px;">
+    {% if sat_data_entries %}
+      <div class="card-columns">
+        {% for sat_data in sat_data_entries %}
+          <div class="card">
+            <div class="card-body">
+              <h5 class="card-title">{{ sat_data.name }}</h5>
+              <p class="card-text">
+                <strong>ID:</strong> {{ sat_data.id }}<br />
+                <strong>Mission:</strong> {{ sat_data.get_mission_display|capfirst }}<br />
+                <strong>Product Type:</strong> {{ sat_data.product_type|upper }}<br />
+                <strong>User:</strong> {{ sat_data.user.username|lower }}<br />
+                <strong>Creation Time:</strong> {{ sat_data.creation_time }}<br />
+              </p>
+              {% if sat_data.thumbnail %}
+                <p class="card-text">
+                  <a href="{{ sat_data.thumbnail.url }}" target="_blank"><img src="{{ sat_data.thumbnail.url }}" alt="Thumbnail "{{ sat_data.id }}"" class="img-thumbnail" width="250" /></a>
+                </p>
+              {% endif %}
+              <!-- Action buttons -->
+              <a href="{% url "details_view" sat_data.id %}" class="btn btn-warning">Favorize</a>
+              <a href="{% url "details_view" sat_data.id %}" class="btn btn-success">Show Details</a>
+              <a href="{% url "details_view" sat_data.id %}" class="btn btn-outline-info">Edit</a>
+              <a href="{% url "details_view" sat_data.id %}" class="btn btn-outline-danger">Delete</a>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <h2 class="text-center mt-4">No satellite data entries...</h2>
+    {% endif %}
+  </div>
+
+  <div class="row">
+    <a href="{% url "upload_view" %}" class="btn btn-primary">Add new entry</a>
   </div>
 
   <!-- Add any additional HTML content or scripts here -->

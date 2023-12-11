@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+  DEWS DataHub - Create Entry
+{% endblock %}
+
+{% block content %}
+  <section class="jumbotron text-center">
+    <div class="container pt-1 pb-1">
+      <h1 class="display-4 font-italic text-center">Upload an archive</h1>
+      <p class="lead text-muted">
+        Here you can upload an satellite data archive file which you downloaded from <a href="https://dataspace.copernicus.eu/browser/">Dataspace Copernicus</a> or <a href="https://earthexplorer.usgs.gov">EarthExplorer</a>.<br />
+        The mission, band image paths, bound latitudes, etc. will automatically be recognized and you will find these attributes after the upload and processing is done.
+      </p>
+    </div>
+  </section>
+  <hr class="light-100" />
+
+  <!-- Upload form -->
+  <div class="container mt-5">
+    <h2>Upload an archive</h2>
+    <form action="." method="POST" enctype="multipart/form-data">
+      {% csrf_token %}
+      <!-- Archive upload form -->
+      {{ form.as_p }}
+      <!-- Upload button -->
+      <button type="submit" class="btn btn-outline-success">Upload</button>
+
+      <!-- Error message -->
+      {% if error %}
+        <div class="alert alert-danger" role="alert">{{ error }}</div>
+      {% endif %}
+      <!-- Success message -->
+      {% if success %}
+        <div class="alert alert-success" role="alert">{{ success }}</div>
+      {% endif %}
+    </form>
+  </div>
+{% endblock %}
