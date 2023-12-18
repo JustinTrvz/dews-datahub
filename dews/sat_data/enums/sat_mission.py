@@ -21,41 +21,6 @@ class SatMission(Enum):
     def get_all():
         """ Returns array containing all values. """
         return [e.value for e in SatMission]
-
-    @staticmethod
-    def as_dict():
-        """ Used for `choices` in `models.py`."""
-        return {
-            "sentinel-1a": "Sentinel-1A",
-            "sentinel-1b": "Sentinel-1B",
-            "sentinel-2a": "Sentinel-2A",
-            "sentinel-2b": "Sentinel-2B",
-            "sentinel-3a": "Sentinel-3A",
-            "sentinel-3b": "Sentinel-3B",
-            "landsat-1": "Landsat-1",
-            "landsat-2": "Landsat-2",
-            "landsat-3": "Landsat-3",
-            "unknown": "Unknown",
-        }
-
-    @staticmethod
-    def tuple_by_mission(mission: str):
-        """
-        Pass a sub mission and get the mission's tuple.
-
-        For example: `tuple_by_mission("sentinel-1a")` will return `("sentinel", "sentinel-1a")`.
-        """
-        data = SatMission.as_dict()
-
-        for key, value in data.items():
-            if mission.lower() == key.lower():
-                return (key, value)
-
-        return "unknown", mission
-
-    @staticmethod
-    def unknown_tuple():
-        return (SatMission.UNKNOWN.value, SatMission.UNKNOWN.value)
     
     @staticmethod
     def get_mission_by_filename(filename: str):

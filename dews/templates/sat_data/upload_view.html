@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block title %}
-  DEWS DataHub - Create Entry
+  DEWS DataHub - Upload an archive
 {% endblock %}
 
 {% block content %}
@@ -11,7 +11,7 @@
       <h1 class="display-4 font-italic text-center">Upload an archive</h1>
       <p class="lead text-muted">
         Here you can upload an satellite data archive file which you downloaded from <a href="https://dataspace.copernicus.eu/browser/">Dataspace Copernicus</a> or <a href="https://earthexplorer.usgs.gov">EarthExplorer</a>.<br />
-        The mission, band image paths, bound latitudes, etc. will automatically be recognized and you will find these attributes after the upload and processing is done.
+        The mission, band image paths, coordinates, etc. will automatically be recognized and you will find these info after the upload and processing is done.
       </p>
     </div>
   </section>
@@ -19,22 +19,38 @@
 
   <!-- Upload form -->
   <div class="container mt-5">
-    <h2>Upload an archive</h2>
-    <form action="." method="POST" enctype="multipart/form-data">
-      {% csrf_token %}
-      <!-- Archive upload form -->
-      {{ form.as_p }}
-      <!-- Upload button -->
-      <button type="submit" class="btn btn-outline-success">Upload</button>
+    <div class="row">
+      <div class="col-md-4"></div>
 
-      <!-- Error message -->
-      {% if error %}
-        <div class="alert alert-danger" role="alert">{{ error }}</div>
-      {% endif %}
-      <!-- Success message -->
-      {% if success %}
-        <div class="alert alert-success" role="alert">{{ success }}</div>
-      {% endif %}
-    </form>
+      <!-- Headline -->
+      <h2 class="display-6 text-center">Login</h2>
+
+      <!-- Upload form -->
+      <div class="col-md-4">
+        <form action="." method="POST" enctype="multipart/form-data">
+          {% csrf_token %}
+          <!-- Archive upload form -->
+          {{ form.as_p }}
+          <!-- Upload button -->
+          <button type="submit" class="btn btn-outline-success">Upload</button>
+
+          <!-- Error message -->
+          {% if error %}
+            <div class="alert alert-danger" role="alert">{{ error }}</div>
+          {% endif %}
+          <!-- Success message -->
+          {% if success %}
+            <div class="alert alert-success" role="alert">
+              <div class="row">{{ success }}</div>
+              <div class="row">
+                <a href="{% url 'overview_view' %}" class="btn btn-success">Show overview</a>
+              </div>
+            </div>
+          {% endif %}
+        </form>
+      </div>
+
+      <div class="col-md-4"></div>
+    </div>
   </div>
 {% endblock %}

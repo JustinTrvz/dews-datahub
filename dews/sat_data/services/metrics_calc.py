@@ -6,8 +6,8 @@ import numpy as np
 
 from sat_data.services.utils.dataset_utils import get_dataset
 from sat_data.models import SatData, BandInfo
-from dews.sat_data.enums.sat_band import SatBand
-from dews.sat_data.enums.idx_img_type import IdxImgType
+from sat_data.enums.sat_band import SatBand
+from sat_data.enums.idx_img_type import IdxImgType
 
 logger = logging.getLogger("django")
 

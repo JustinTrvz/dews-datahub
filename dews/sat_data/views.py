@@ -4,7 +4,8 @@ import os
 from threading import Thread
 import uuid
 
-from django.http import HttpResponse, HttpResponseBadRequest
+from django.core.serializers import serialize
+from django.http import HttpResponseBadRequest
 from django.shortcuts import redirect, render, get_object_or_404
 
 from sat_data.enums.sat_mission import SatMission
@@ -29,7 +30,15 @@ def details_view(request, sat_data_id):
     context = {
         "version": VERSION,
         "sat_data": sat_data,
+        "sat_data_geojson": None,
     }
+
+    # Create GeoJSON
+    if sat_data.coordinates:
+        context["sat_data_geojson"] = serialize('geojson', [sat_data], geometry_field='leaflet_coordinates', fields=())
+    else:
+        context["sat_data_geojson"] = None
+
     return render(request, "details_view.html", context)
 
 
@@ -38,10 +47,31 @@ def overview_view(request):
         logger.debug(
             f"User '{request.user}' is not authenticated to see overview.")
         return redirect("login_view")
+    
+    # Start with all entries
+    sat_data_entries = SatData.objects.all()
+
+    # Filter by search query if it exists
+    search_query = request.GET.get('search', '')
+    if search_query:
+        sat_data_entries = sat_data_entries.filter(name__icontains=search_query)
+
+    # Filter by mission if it exists
+    mission_query = request.GET.get('mission', '')
+    if mission_query:
+        sat_data_entries = sat_data_entries.filter(mission=mission_query)
+
+    # Filter by product type if it exists
+    prod_type_query = request.GET.get('product_type', '')
+    if prod_type_query:
+        sat_data_entries = sat_data_entries.filter(product_type=prod_type_query)
 
     context = {
         "version": VERSION,
         "sat_data_entries": SatData.objects.all(),
+        "search_query": search_query,
+        "mission_query": mission_query,
+        "prod_type_query": prod_type_query,
     }
     return render(request, "overview_view.html", context)
 
@@ -154,7 +184,7 @@ def __extract_and_create(request, archive_path: str, logger: logging.Logger = No
     # Check if extracted directory exists
     extracted_path = FileUtils.extract_archive(archive_path, mission)
     logger.debug(f"Extracted path='{extracted_path}'")
-    if extracted_path is None:
+    if extracted_path is None or extracted_path == "":
         logger.error(
             f"Extracting archive failed... extracted_path='{extracted_path}'")
         return
@@ -168,29 +198,32 @@ def __extract_and_create(request, archive_path: str, logger: logging.Logger = No
         logger.debug(f"Form is valid. form='{form}'")
         try:
             # Save SatData object to database
-            sat_data: SatData = form.save(commit=False)
+            sat_data: SatData = form.save(commit=False)  
             sat_data.id = uuid.uuid4()
             sat_data.user = request.user
+            logger.debug(f"Created form, added id and user. id='{sat_data.id}'")
+            
+            # Add paths
+            sat_data.archive = remove_media_root(archive_path)
+            logger.debug(f"Added archive file. sat_data.id='{sat_data.id}'")
+            sat_data.extracted_path = remove_media_root(extracted_path)
+            logger.debug(f"Added extracted path. sat_data.id='{sat_data.id}'")
+
             # Add attributes (like mission, product type, band img paths, ...)
-            logger.debug(f"Call AttrAdder. sat_data.id={sat_data.id}")
+            logger.debug(f"Calling AttrAdder. sat_data.id='{sat_data.id}'")
             attr_adder = AttrAdder(sat_data, extracted_path, mission)
             attr_adder.start()
-            # Add paths
-            logger.debug("YES")
-            sat_data.extracted_path = remove_media_root(extracted_path)
-            logger.debug("YESS")
-            sat_data.archive = remove_media_root(archive_path)
-            logger.debug("YESSS")
+
+            # Final save
             sat_data.save()
-            logger.debug("YESSSS")
-            # Save successfull
+            logger.debug(f"Final save. id='{sat_data.id}'")
             logger.info(
-                f"Saved SatData. id='{sat_data.id}', extracted_path='{extracted_path}'")
+                f"Saved SatData with all added attributes. id='{sat_data.id}', extracted_path='{extracted_path}'")
             return
         except Exception as e:
             # Save failed
             logging.error(
-                f"Failed to save SatData object. username='{request.user.username}', extracted_path='{extracted_path}', error='{e}'")
+                f"Failed to create, add attributes and save a SatData object. username='{request.user.username}', extracted_path='{extracted_path}', error='{e}'")
             return
 
         

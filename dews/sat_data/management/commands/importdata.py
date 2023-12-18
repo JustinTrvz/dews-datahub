@@ -6,7 +6,7 @@ from django.contrib.auth.models import User
 
 from sat_data.services.utils.file_utils import FileUtils
 from sat_data.models import SatData, remove_media_root
-from dews.sat_data.services.attr_adder import AttrAdder
+from sat_data.services.attr_adder import AttrAdder
 from sat_data.enums.sat_mission import SatMission
 from dews.settings import EXTRACTED_FILES_PATH, DB_USER
 

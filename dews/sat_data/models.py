@@ -2,7 +2,7 @@ import os
 from threading import Thread
 from django.contrib.auth.models import User
 
-from django.db import models
+from django.contrib.gis.db import models
 import uuid
 import logging
 
@@ -10,26 +10,33 @@ from django.urls import reverse
 from sat_data.enums.sat_mission import SatMission
 from sat_data.enums.sat_prod_type import SatProdType
 
-from utils.model_util import ModelUtil
+from utils.services.model_util import ModelUtil
 from sat_data.enums.sat_band import SatBand
 from dews.settings import IMAGES_FILES_PATH, MEDIA_ROOT, ARCHIVE_FILES_PATH, DB_USER
-from utils.overwrite_storage import OverwriteStorage
+from utils.services.overwrite_storage import OverwriteStorage
+
+
+def band_upload_path(instance, filename):
+    path = remove_media_root(instance.directory_path)
+    return f"{path}/measurement/{filename}"
+
+
+def index_upload_path(instance, filename):
+    path = remove_media_root(IMAGES_FILES_PATH)
+    return f"{path}/{instance.sat_data.mission}/{instance.sat_data.id}/{filename}"
 
 
 def thumbnail_upload_path(instance, filename):
-    # file will be uploaded to MEDIA_ROOT/user_<id>/<filename>
     path = remove_media_root(instance.directory_path)
     return f"{path}/preview/{filename}"
 
 
 def metadata_upload_path(instance, filename):
-    # file will be uploaded to MEDIA_ROOT/user_<id>/<filename>
     path = remove_media_root(instance.directory_path)
     return f"{path}/{filename}"
 
 
 def archive_upload_path(instance, filename):
-    # file will be uploaded to MEDIA_ROOT/user_<id>/<filename>
     path = remove_media_root(ARCHIVE_FILES_PATH)
     return f"{path}/{filename}"
 
@@ -47,6 +54,7 @@ def get_dews_user():
 # Base class for satellite data
 
 
+
 class SatData(models.Model):
 
     # Attributes
@@ -58,7 +66,6 @@ class SatData(models.Model):
                             default="No name",
                             verbose_name="Name")
     mission = models.CharField(max_length=50,
-                               choices=SatMission.as_dict,
                                verbose_name="Mission",
                                default=SatMission.UNKNOWN.value,
                                blank=True)
@@ -75,11 +82,29 @@ class SatData(models.Model):
                                upload_to=archive_upload_path,
                                verbose_name="Archive",
                                storage=OverwriteStorage())
-    metadata = models.FileField(max_length=255,
+    manifest = models.FileField(max_length=255,
                                 null=True,
                                 blank=True,
                                 upload_to=metadata_upload_path,
-                                verbose_name="Metadata",
+                                verbose_name="Manifest",
+                                storage=OverwriteStorage())
+    eop_metadata = models.FileField(max_length=255,
+                                null=True,
+                                blank=True,
+                                upload_to=metadata_upload_path,
+                                verbose_name="EOP Metadata",
+                                storage=OverwriteStorage())
+    xfdu_manifest = models.FileField(max_length=255,
+                                null=True,
+                                blank=True,
+                                upload_to=metadata_upload_path,
+                                verbose_name="Xfdu Manifest",
+                                storage=OverwriteStorage())
+    inspire = models.FileField(max_length=255,
+                                null=True,
+                                blank=True,
+                                upload_to=metadata_upload_path,
+                                verbose_name="Inspire",
                                 storage=OverwriteStorage())
     thumbnail = models.ImageField(max_length=255,
                                   null=True,
@@ -88,10 +113,18 @@ class SatData(models.Model):
                                   verbose_name="Thumbnail",
                                   storage=OverwriteStorage())
     creation_time = models.DateTimeField(auto_now_add=True)
+    coordinates = models.PolygonField(blank=True,
+                                      null=True,
+                                      verbose_name="Polygon Coordinates")
+    leaflet_coordinates = models.PolygonField(blank=True,
+                                      null=True,
+                                      verbose_name="Leaflet Coordinates")
 
     # Relationships
     user = models.ForeignKey(
         User, on_delete=models.SET_NULL, null=True, blank=True, default=get_dews_user)
+    
+    # time_series = models.ForeignKey(TimeSeries, related_name='sat_data', on_delete=models.CASCADE)
 
     # Meta data
     class Meta:
@@ -148,7 +181,7 @@ class SatData(models.Model):
             logging.info(f"Saved SatData object to database. id='{id}'")
 
             # Calculations in background
-            from dews.sat_data.services.attr_adder import AttrAdder
+            from sat_data.services.attr_adder import AttrAdder
             attr_adder = AttrAdder(sat_data)
             calc_thread = Thread(target=lambda: attr_adder.start())
             calc_thread.start()
@@ -206,34 +239,135 @@ class SatData(models.Model):
 
     def __str__(self):
         return str(self.id)
-
-
+    
 class BandInfo(models.Model):
     # Attributes
     range = models.IntegerField(
         choices=[(10, '10'), (20, '20'), (60, '60')],
-        default=10, help_text="One pixel in meter")  # in meter
-    aot_path = models.CharField(max_length=255, blank=True, null=True)
-    scl_path = models.CharField(max_length=255, blank=True, null=True)
-    tci_path = models.CharField(max_length=255, blank=True, null=True)
-    wvp_path = models.CharField(max_length=255, blank=True, null=True)
-    b01_path = models.CharField(max_length=255, blank=True, null=True)
-    b02_path = models.CharField(max_length=255, blank=True, null=True)
-    b03_path = models.CharField(max_length=255, blank=True, null=True)
-    b04_path = models.CharField(max_length=255, blank=True, null=True)
-    b05_path = models.CharField(max_length=255, blank=True, null=True)
-    b06_path = models.CharField(max_length=255, blank=True, null=True)
-    b07_path = models.CharField(max_length=255, blank=True, null=True)
-    b08_path = models.CharField(max_length=255, blank=True, null=True)
-    b8a_path = models.CharField(max_length=255, blank=True, null=True)
-    b09_path = models.CharField(max_length=255, blank=True, null=True)
-    b10_path = models.CharField(max_length=255, blank=True, null=True)
-    b11_path = models.CharField(max_length=255, blank=True, null=True)
-    b12_path = models.CharField(max_length=255, blank=True, null=True)
+        default=10, help_text="One pixel in meter", blank=True)  # in meter
+    aot = models.ImageField(max_length=255,
+                            null=True,
+                            blank=True,
+                            upload_to=band_upload_path,
+                            verbose_name="AOT",
+                            storage=OverwriteStorage(),
+                            default="None")
+    scl = models.ImageField(max_length=255,
+                            null=True,
+                            blank=True,
+                            upload_to=band_upload_path,
+                            verbose_name="SCL",
+                            storage=OverwriteStorage(),
+                            default="None")
+    tci = models.ImageField(max_length=255,
+                            null=True,
+                            blank=True,
+                            upload_to=band_upload_path,
+                            verbose_name="TCI",
+                            storage=OverwriteStorage(),
+                            default="None")
+    wvp = models.ImageField(max_length=255,
+                            null=True,
+                            blank=True,
+                            upload_to=band_upload_path,
+                            verbose_name="WVP",
+                            storage=OverwriteStorage(),
+                            default="None")
+    b01 = models.ImageField(max_length=255,
+                            null=True,
+                            blank=True,
+                            upload_to=band_upload_path,
+                            verbose_name="B01",
+                            storage=OverwriteStorage(),
+                            default="None")
+    b02 = models.ImageField(max_length=255,
+                            null=True,
+                            blank=True,
+                            upload_to=band_upload_path,
+                            verbose_name="B02",
+                            storage=OverwriteStorage(),
+                            default="None")
+    b03 = models.ImageField(max_length=255,
+                            null=True,
+                            blank=True,
+                            upload_to=band_upload_path,
+                            verbose_name="B03",
+                            storage=OverwriteStorage(),
+                            default="None")
+    b04 = models.ImageField(max_length=255,
+                            null=True,
+                            blank=True,
+                            upload_to=band_upload_path,
+                            verbose_name="B04",
+                            storage=OverwriteStorage(),
+                            default="None")
+    b05 = models.ImageField(max_length=255,
+                            null=True,
+                            blank=True,
+                            upload_to=band_upload_path,
+                            verbose_name="B05",
+                            storage=OverwriteStorage(),
+                            default="None")
+    b06 = models.ImageField(max_length=255,
+                            null=True,
+                            blank=True,
+                            upload_to=band_upload_path,
+                            verbose_name="B06",
+                            storage=OverwriteStorage(),
+                            default="None")
+    b07 = models.ImageField(max_length=255,
+                            null=True,
+                            blank=True,
+                            upload_to=band_upload_path,
+                            verbose_name="B0",
+                            storage=OverwriteStorage(),
+                            default="None")
+    b08 = models.ImageField(max_length=255,
+                            null=True,
+                            blank=True,
+                            upload_to=band_upload_path,
+                            verbose_name="B07",
+                            storage=OverwriteStorage(),
+                            default="None")
+    b8a = models.ImageField(max_length=255,
+                            null=True,
+                            blank=True,
+                            upload_to=band_upload_path,
+                            verbose_name="B8A",
+                            storage=OverwriteStorage(),
+                            default="None")
+    b09 = models.ImageField(max_length=255,
+                            null=True,
+                            blank=True,
+                            upload_to=band_upload_path,
+                            verbose_name="B09",
+                            storage=OverwriteStorage(),
+                            default="None")
+    b10 = models.ImageField(max_length=255,
+                            null=True,
+                            blank=True,
+                            upload_to=band_upload_path,
+                            verbose_name="B10",
+                            storage=OverwriteStorage(),
+                            default="None")
+    b11 = models.ImageField(max_length=255,
+                            null=True,
+                            blank=True,
+                            upload_to=band_upload_path,
+                            verbose_name="B11",
+                            storage=OverwriteStorage(),
+                            default="None")
+    b12 = models.ImageField(max_length=255,
+                            null=True,
+                            blank=True,
+                            upload_to=band_upload_path,
+                            verbose_name="B12",
+                            storage=OverwriteStorage(),
+                            default="None")
 
     # Relationships
     sat_data = models.OneToOneField(
-        SatData, on_delete=models.CASCADE, related_name='band_info')
+        SatData, on_delete=models.CASCADE, related_name='band_info', primary_key=True)  # Primary key!
 
     # Meta data
     class Meta:
@@ -244,19 +378,18 @@ class BandInfo(models.Model):
         return ModelUtil.to_dict(self)
 
     def __str__(self):
-        return self.id
+        return f"BandInfo<SatData '{self.sat_data.id}'>"
 
 
 class AreaInfo(models.Model):
     # Attributes
-    country = models.CharField(max_length=255)
-    city = models.CharField(max_length=255)
-    postal_code = models.CharField(max_length=20)
-    capture_time = models.DateTimeField(null=True)
+    country = models.CharField(max_length=255, blank=True, null=True)
+    start_time = models.DateTimeField(blank=True, null=True)
+    stop_time = models.DateTimeField(blank=True, null=True)
 
     # Relationships
     sat_data = models.OneToOneField(
-        SatData, on_delete=models.CASCADE, related_name='area_info')
+        SatData, on_delete=models.CASCADE, related_name='area_info', primary_key=True)  # Primary key!
 
     # Meta data
     class Meta:
@@ -270,10 +403,15 @@ class AreaInfo(models.Model):
         return self.id
 
 
-class ImageInfo(models.Model):
+class IndexInfo(models.Model):
     # Attributes
-    img_type = models.CharField(max_length=20)
-    img_path = models.CharField(max_length=255)
+    idx_type = models.CharField(max_length=20)
+    img = models.ImageField(max_length=255,
+                            null=True,
+                            blank=True,
+                            upload_to=index_upload_path,
+                            verbose_name="Index img",
+                            storage=OverwriteStorage())
     archived_img_paths = models.TextField()
 
     # Relationships
@@ -281,7 +419,7 @@ class ImageInfo(models.Model):
 
     # Meta data
     class Meta:
-        db_table = "image_info"
+        db_table = "index_info"
 
     # Methods
     def to_dict(self):
@@ -290,28 +428,6 @@ class ImageInfo(models.Model):
     def __str__(self):
         return self.id
 
-
-class BoundLatitudes(models.Model):
-    # Attributes
-    north = models.FloatField()
-    east = models.FloatField()
-    south = models.FloatField()
-    west = models.FloatField()
-
-    # Relationships
-    sat_data = models.OneToOneField(
-        SatData, on_delete=models.CASCADE, related_name='bound_latitudes')
-
-    # Meta data
-    class Meta:
-        db_table = "bound_latitudes"
-
-    # Methods
-    def to_dict(self):
-        return ModelUtil.to_dict(self)
-
-    def __str__(self):
-        return self.id
 
 
 class CaptureInfo(models.Model):
@@ -322,31 +438,11 @@ class CaptureInfo(models.Model):
 
     # Relationships
     sat_data = models.OneToOneField(
-        SatData, on_delete=models.CASCADE, related_name='capture_info')
+        SatData, on_delete=models.CASCADE, related_name='capture_info', primary_key=True)  # Primary key!
 
     # Meta data
     class Meta:
         db_table = "capture_info"
-
-    # Methods
-    def to_dict(self):
-        return ModelUtil.to_dict(self)
-
-    def __str__(self):
-        return self.id
-
-
-class Calculation(models.Model):
-    # Attributes
-    status = models.CharField(max_length=50)
-
-    # Relationships
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    sat_data = models.ForeignKey(SatData, on_delete=models.CASCADE)
-
-    # Meta data
-    class Meta:
-        db_table = "calculation"
 
     # Methods
     def to_dict(self):

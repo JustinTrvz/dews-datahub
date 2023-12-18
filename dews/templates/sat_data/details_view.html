@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load custom_filter %}
 
 {% block title %}
   DEWS DataHub - Details '{{ sat_data.name }}'
@@ -7,7 +8,7 @@
 
 {% block content %}
   <div class="container mt-4">
-    <a class="btn btn-outline-success" href="/sat_data/overview/">Back to overview</a>
+    <a class="btn btn-outline-success" href="/sat_data/overview/"><i class="fa-solid fa-arrow-left-long"></i> Back to overview</a>
   </div>
 
   <h1 class="mt-4">{{ title }}</h1>
@@ -17,207 +18,321 @@
       <h2>Details</h2>
     </div>
     <div class="card-body">
-      <p class="card-text">
-        <strong>ID:</strong> {{ sat_data.id }}
-      </p>
-      <p class="card-text">
-        <strong>User:</strong> {{ sat_data.user.username }}
-      </p>
-      <p class="card-text">
-        <strong>Name:</strong> {{ sat_data.name }}
-      </p>
-      <p class="card-text">
-        <strong>Mission:</strong> {{ sat_data.get_mission_display|capfirst }}
-      </p>
-      <p class="card-text">
-        <strong>Product Type:</strong> {{ sat_data.product_type|upper }}
-      </p>
-      <p class="card-text">
-        <strong>Creation Time:</strong> {{ sat_data.creation_time }}
-      </p>
-      <p class="card-text">
-        <strong>Archive Path:</strong> {{ sat_data.archive.url }}
-      </p>
-      <p class="card-text">
-        <strong>Extracted Path:</strong> {{ sat_data.extracted_path.url }}
-      </p>
-      {% if sat_data.thumbnail %}
-        <p class="card-text">
-          <a href="{{ sat_data.thumbnail.url }}" target="_blank"><img src="{{ sat_data.thumbnail.url }}" alt="Thumbnail of satellite data with id '{{ sat_data.id }}'" class="img-thumbnail" width="500" /></a>
-        </p>
-      {% endif %}
-    </div>
-  </div>
-
-  <!-- ImageInfo Details -->
-  <div class="card mt-4">
-    <div class="card-header">
-      <h2>Image Information</h2>
-    </div>
-    <div class="card-body">
-      {% for image_info in sat_data.image_info_set.all %}
-        <div class="card mt-4">
-          <div class="card-header">{{ image_info.img_type|upper }}</div>
-          <div class="card-body">
+      <div class="container">
+        <div class="row justify-content-between">
+          <!-- Attributes -->
+          <div class="col-7">
             <p class="card-text">
-              <strong>Image Path:</strong> {{ image_info.img_path }}
+              <strong>ID:</strong><br />
+              {{ sat_data.id }}
             </p>
             <p class="card-text">
-              <strong>Archived Image Paths:</strong> {{ image_info.archived_img_paths }}
+              <strong>Name:</strong><br />
+              {{ sat_data.name }}
+            </p>
+            <p class="card-text">
+              <strong>User:</strong><br />
+              {{ sat_data.user.username }}
+            </p>
+            <p class="card-text">
+              <strong>Mission:</strong><br />
+              {{ sat_data.mission|capfirst }}
+            </p>
+            <p class="card-text">
+              <strong>Product Type:</strong><br />
+              {{ sat_data.product_type|upper }}
+            </p>
+            <p class="card-text">
+              <strong>Creation Time:</strong><br />
+              {{ sat_data.creation_time }}
+            </p>
+            <p class="card-text">
+              <strong>Archive Path:</strong><br />
+              <ul class="list-group">
+                <li class="list-group-item">
+                  <small id="archivePath">{{ sat_data.archive.url }}</small>
+                  <!-- Copy to clipboard -->
+                  <button onclick="copyToClipboard('archivePath')" class="btn btn-secondary btn-sm"><i class="fa-solid fa-copy"></i></button>
+                  <!-- Download button -->
+                  <a href="{{ sat_data.archive.url }}" download="{{ sat_data.archive.name }}" download class="btn btn-secondary"><i class="fa-solid fa-download"></i></a>
+                </li>
+              </ul>
+            </p>
+            {% if sat_data|get_related:'extracted_path' %}
+              <p class="card-text">
+                <strong>Extracted Path:</strong><br />
+                <ul class="list-group">
+                  <li class="list-group-item">
+                    <small id="extractedPath">/dews/media/{{ sat_data.extracted_path }}</small>
+                    <!-- Copy to clipboard -->
+                    <button onclick="copyToClipboard('extractedPath')" class="btn btn-secondary btn-sm"><i class="fa-solid fa-copy"></i></button>                    
+                  </li>
+                </ul>
+              </p>
+            {% endif %}
+            {% if sat_data|get_related:'manifest' %}
+              <p class="card-text">
+                <strong>Manifest Path:</strong><br />
+                <ul class="list-group">
+                  <li class="list-group-item">
+                    <small id="manifestPath">{{ sat_data.manifest.url }}</small>
+                    <!-- Copy to clipboard -->
+                    <button onclick="copyToClipboard('manifestPath')" class="btn btn-secondary btn-sm">Copy</button>
+                    <!-- Download button -->
+                    <a href="{{ sat_data.manifest.url }}" download="{{ sat_data.manifest.name }}" download class="btn btn-secondary"><i class="fa-solid fa-download"></i></a>
+                  </li>
+                </ul>
+              </p>
+            {% endif %}
+            {% if sat_data|get_related:'eop_metadata' %}
+              <p class="card-text">
+                <strong>EOP Metadata Path:</strong><br />
+                <ul class="list-group">
+                  <li class="list-group-item">
+                    <small id="eopMetadataPath">{{ sat_data.eop_metadata.url }}</small>
+                    <!-- Copy to clipboard -->
+                    <button onclick="copyToClipboard('eopMetadataPath')" class="btn btn-secondary btn-sm">Copy</button>
+                    <!-- Download button -->
+                    <a href="{{ sat_data.eop_metadata.url }}" download="{{ sat_data.eop_metadata.name }}" download class="btn btn-secondary"><i class="fa-solid fa-download"></i></a>
+                  </li>
+                </ul>
+              </p>
+            {% endif %}
+            {% if sat_data|get_related:'xfdu_manifest' %}
+              <p class="card-text">
+                <strong>Xfdu Manifest Path:</strong><br />
+                <ul class="list-group">
+                  <li class="list-group-item">
+                    <small id="xfduManifestPath">{{ sat_data.xfdu_manifest.url }}</small>
+                    <!-- Copy to clipboard -->
+                    <button onclick="copyToClipboard('xfduManifestPath')" class="btn btn-secondary btn-sm">Copy</button>
+                    <!-- Download button -->
+                    <a href="{{ sat_data.xfdu_manifest.url }}" download="{{ sat_data.xfdu_manifest.name }}" download class="btn btn-secondary"><i class="fa-solid fa-download"></i></a>
+                  </li>
+                </ul>
+              </p>
+            {% endif %}
+            {% if sat_data|get_related:'inspire' %}
+              <p class="card-text">
+                <strong>Inspire Path:</strong><br />
+                <ul class="list-group">
+                  <li class="list-group-item">
+                    <small id="inspirePath">{{ sat_data.inspire.url }}</small>
+                    <!-- Copy to clipboard -->
+                    <button onclick="copyToClipboard('inspirePath')" class="btn btn-secondary btn-sm">Copy</button>
+                    <!-- Download button -->
+                    <a href="{{ sat_data.inspire.url }}" download="{{ sat_data.inspire.name }}" download class="btn btn-secondary"><i class="fa-solid fa-download"></i></a>
+                  </li>
+                </ul>
+              </p>
+            {% endif %}
+          </div>
+          <!-- Thumbnail -->
+          <div class="col-5">
+            <p class="card-text">
+              <strong>Thumbnail:</strong><br />
+              {% if sat_data|get_related:'thumbnail' %}
+                <a href="{{ sat_data.thumbnail.url }}" target="_blank"><img src="{{ sat_data.thumbnail.url }}" alt="Thumbnail of satellite data with id '{{ sat_data.id }}'" class="img-thumbnail" width="500" /></a>
+                <!-- Download button -->
+                <a href="{{ sat_data.thumbnail.url }}" download="{{ sat_data.id }}-{{ sat_data.thumbnail.name }}" download class="btn btn-secondary"><i class="fa-solid fa-download"></i></a>
+              {% else %}
+                <i>No thumbnail available.</i>
+              {% endif %}
             </p>
           </div>
         </div>
-      {% endfor %}
+      </div>
+
+      <a href="{{ sat_data.archive.url }}" download="{{ sat_data.archive.name }}" download class="btn btn-primary">Archive <i class="fa-solid fa-download"></i></a>
+      <a href="{% url 'details_view' sat_data.id %}" class="btn btn-outline-info">Edit <i class="fa-solid fa-pen-to-square"></i></a>
+      <a href="{% url 'details_view' sat_data.id %}" class="btn btn-outline-danger">Delete <i class="fa-solid fa-trash"></i></a>
     </div>
   </div>
+
+  <!-- IndexInfo Details -->
+  {% if sat_data|get_related:'index_info_set' %}
+    <div class="card mt-4">
+      <div class="card-header">
+        <h2>Index Info</h2>
+      </div>
+      <div class="card-body">
+        {% for index_info in sat_data.index_info_set.all %}
+          <div class="card mt-4">
+            <div class="card-header">{{ index_info.img_type|upper }}</div>
+            <div class="card-body">
+              <p class="card-text">
+                <strong>Index Type:</strong> {{ index_info.idx_type }}
+              </p>
+              <p class="card-text">
+                <strong>Image:</strong><a href="{{ index_info.img.url }}" target="_blank"><img src="{{ index_info.img.url }}" alt="Index '{{ index_info.img_type|upper }}' of satellite data with id '{{ sat_data.id }}'" class="img-thumbnail" width="500" /></a>
+              </p>
+              <p class="card-text">
+                <strong>Archived Image Paths:</strong> {{ index_info.archived_img_paths }}
+              </p>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
 
   <!-- AreaInfo Details -->
-  <div class="card mt-4">
-    <div class="card-header">
-      <h2>Area Information</h2>
+  {% if sat_data|get_related:'area_info' %}
+    <div class="card mt-4">
+      <div class="card-header">
+        <h2>Area Info</h2>
+      </div>
+      <div class="card-body">
+        <p class="card-text">
+          <strong>Area Name:</strong><br />
+          {{ sat_data.area_info.area_name }}
+        </p>
+        <p class="card-text">
+          <strong>Country:</strong><br />
+          {{ sat_data.area_info.country }}
+        </p>
+        <p class="card-text">
+          <strong>City:</strong><br />
+          {{ sat_data.area_info.city }}
+        </p>
+        <p class="card-text">
+          <strong>Postal Code:</strong><br />
+          {{ sat_data.area_info.postal_code }}
+        </p>
+        <p class="card-text">
+          <strong>Capture Time:</strong><br />
+          {{ sat_data.area_info.capture_time }}
+        </p>
+        <p class="card-text">
+          <strong>Coordinates:</strong><br />
+          {{ sat_data.coordinates }}
+        </p>
+        <p class="card-text">
+          <strong>Map:</strong>
+        </p>
+        <div id="mapid" style="height: 400px;"></div>
+        <!-- Leaflet Map -->
+        {% if sat_data_geojson %}
+          <script>
+          var satDataGeoJSON = {{ sat_data_geojson|safe }};
+          var map = L.map('mapid').setView([52.513721, 12.15057], 5); // Adjust the center and zoom level as needed
+  
+          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 18,
+            attribution: '© OpenStreetMap contributors'
+          }).addTo(map);
+  
+          var geojsonLayer = L.geoJSON(satDataGeoJSON).addTo(map);
+          map.fitBounds(geojsonLayer.getBounds());
+        </script>
+        {% endif %}
+      </div>
     </div>
-    <div class="card-body">
-      <p class="card-text">
-        <strong>Area Name:</strong> {{ sat_data.area_info.area_name }}
-      </p>
-      <p class="card-text">
-        <strong>Country:</strong> {{ sat_data.area_info.country }}
-      </p>
-      <p class="card-text">
-        <strong>City:</strong> {{ sat_data.area_info.city }}
-      </p>
-      <p class="card-text">
-        <strong>Postal Code:</strong> {{ sat_data.area_info.postal_code }}
-      </p>
-      <p class="card-text">
-        <strong>Capture Time:</strong> {{ sat_data.area_info.capture_time }}
-      </p>
-    </div>
-  </div>
-
-  <!-- BoundLatitudes Details -->
-  <div class="card mt-4">
-    <div class="card-header">
-      <h2>Bound Latitudes</h2>
-    </div>
-    <div class="card-body">
-      <p class="card-text">
-        <strong>North:</strong> {{ sat_data.bound_latitudes.north }}
-      </p>
-      <p class="card-text">
-        <strong>East:</strong> {{ sat_data.bound_latitudes.east }}
-      </p>
-      <p class="card-text">
-        <strong>South:</strong> {{ sat_data.bound_latitudes.south }}
-      </p>
-      <p class="card-text">
-        <strong>West:</strong> {{ sat_data.bound_latitudes.west }}
-      </p>
-    </div>
-  </div>
+  {% endif %}
 
   <!-- CaptureInfo Details -->
-  <div class="card mt-4">
-    <div class="card-header">
-      <h2>Capture Information</h2>
-    </div>
-    <div class="card-body">
-      <p class="card-text">
-        <strong>Product Start Time:</strong> {{ sat_data.capture_info.product_start_time }}
-      </p>
-      <p class="card-text">
-        <strong>Product Stop Time:</strong> {{ sat_data.capture_info.product_stop_time }}
-      </p>
-      <p class="card-text">
-        <strong>Product Type:</strong> {{ sat_data.capture_info.product_type }}
-      </p>
-    </div>
-  </div>
-
-  <!-- Calculation Details -->
-  <div class="card mt-4">
-    <div class="card-header">
-      <h2>Calculation Information</h2>
-    </div>
-    <div class="card-body">
-      {% if sat_data.calculation_set %}
-        {% for calculation in sat_data.calculation_set.all %}
-          <p class="card-text">
-            <strong>ID:</strong> {{ calculation.id }}
-            <strong>Executing user:</strong> {{ calculation.user }}
-            <strong>Status:</strong> {{ calculation.status }}
-          </p>
-        {% endfor %}
-      {% else %}
+  {% if sat_data|get_related:'capture_info' %}
+    <div class="card mt-4">
+      <div class="card-header">
+        <h2>Capture Info</h2>
+      </div>
+      <div class="card-body">
         <p class="card-text">
-          <strong>ID:</strong> Unknown
-          <strong>Executing user:</strong> Unknown
-          <strong>Status:</strong> Unknown
+          <strong>Product Start Time:</strong><br />
+          {{ sat_data.capture_info.product_start_time }}
         </p>
-      {% endif %}
+        <p class="card-text">
+          <strong>Product Stop Time:</strong><br />
+          {{ sat_data.capture_info.product_stop_time }}
+        </p>
+        <p class="card-text">
+          <strong>Product Type:</strong><br />
+          {{ sat_data.capture_info.product_type }}
+        </p>
+      </div>
     </div>
-  </div>
+  {% endif %}
 
   <!-- BandInfo Details -->
-  <div class="card mt-4">
-    <div class="card-header">
-      <h2>Band Information</h2>
+  {% if sat_data|get_related:'band_info' %}
+    <div class="card mt-4">
+      <div class="card-header">
+        <h2>Band Info</h2>
+      </div>
+      <div class="card-body">
+        <p class="card-text">
+          <strong>Range:</strong><br />
+          {{ sat_data.band_info.range }}
+        </p>
+        <p class="card-text">
+          <strong>AOT:</strong><br />
+          {{ sat_data.band_info.aot }}
+        </p>
+        <p class="card-text">
+          <strong>SCL:</strong><br />
+          {{ sat_data.band_info.scl }}
+        </p>
+        <p class="card-text">
+          <strong>TCI:</strong><br />
+          {{ sat_data.band_info.tci }}
+        </p>
+        <p class="card-text">
+          <strong>WVP:</strong><br />
+          {{ sat_data.band_info.wvp }}
+        </p>
+        <p class="card-text">
+          <strong>B01:</strong><br />
+          {{ sat_data.band_info.b01 }}
+        </p>
+        <p class="card-text">
+          <strong>B02:</strong><br />
+          {{ sat_data.band_info.b02 }}
+        </p>
+        <p class="card-text">
+          <strong>B03:</strong><br />
+          {{ sat_data.band_info.b03 }}
+        </p>
+        <p class="card-text">
+          <strong>B04:</strong><br />
+          {{ sat_data.band_info.b04 }}
+        </p>
+        <p class="card-text">
+          <strong>B05:</strong><br />
+          {{ sat_data.band_info.b05 }}
+        </p>
+        <p class="card-text">
+          <strong>B06:</strong><br />
+          {{ sat_data.band_info.b06 }}
+        </p>
+        <p class="card-text">
+          <strong>B07:</strong><br />
+          {{ sat_data.band_info.b07 }}
+        </p>
+        <p class="card-text">
+          <strong>B08:</strong><br />
+          {{ sat_data.band_info.b08 }}
+        </p>
+        <p class="card-text">
+          <strong>B8A:</strong><br />
+          {{ sat_data.band_info.b8a }}
+        </p>
+        <p class="card-text">
+          <strong>B09:</strong><br />
+          {{ sat_data.band_info.b09 }}
+        </p>
+        <p class="card-text">
+          <strong>B10:</strong><br />
+          {{ sat_data.band_info.b10 }}
+        </p>
+        <p class="card-text">
+          <strong>B11:</strong><br />
+          {{ sat_data.band_info.b11 }}
+        </p>
+        <p class="card-text">
+          <strong>B12:</strong><br />
+          {{ sat_data.band_info.b12 }}
+        </p>
+      </div>
     </div>
-    <div class="card-body">
-      <p class="card-text">
-        <strong>Range:</strong> {{ sat_data.band_info.range }}
-      </p>
-      <p class="card-text">
-        <strong>AOT:</strong> {{ sat_data.band_info.aot_path }}
-      </p>
-      <p class="card-text">
-        <strong>SCL:</strong> {{ sat_data.band_info.scl_path }}
-      </p>
-      <p class="card-text">
-        <strong>TCI:</strong> {{ sat_data.band_info.tci_path }}
-      </p>
-      <p class="card-text">
-        <strong>WVP:</strong> {{ sat_data.band_info.wvp_path }}
-      </p>
-      <p class="card-text">
-        <strong>B01:</strong> {{ sat_data.band_info.b01_path }}
-      </p>
-      <p class="card-text">
-        <strong>B02:</strong> {{ sat_data.band_info.b02_path }}
-      </p>
-      <p class="card-text">
-        <strong>B03:</strong> {{ sat_data.band_info.b03_path }}
-      </p>
-      <p class="card-text">
-        <strong>B04:</strong> {{ sat_data.band_info.b04_path }}
-      </p>
-      <p class="card-text">
-        <strong>B05:</strong> {{ sat_data.band_info.b05_path }}
-      </p>
-      <p class="card-text">
-        <strong>B06:</strong> {{ sat_data.band_info.b06_path }}
-      </p>
-      <p class="card-text">
-        <strong>B07:</strong> {{ sat_data.band_info.b07_path }}
-      </p>
-      <p class="card-text">
-        <strong>B08:</strong> {{ sat_data.band_info.b08_path }}
-      </p>
-      <p class="card-text">
-        <strong>B8A:</strong> {{ sat_data.band_info.b8a_path }}
-      </p>
-      <p class="card-text">
-        <strong>B09:</strong> {{ sat_data.band_info.b09_path }}
-      </p>
-      <p class="card-text">
-        <strong>B10:</strong> {{ sat_data.band_info.b10_path }}
-      </p>
-      <p class="card-text">
-        <strong>B11:</strong> {{ sat_data.band_info.b11_path }}
-      </p>
-      <p class="card-text">
-        <strong>B12:</strong> {{ sat_data.band_info.b12_path }}
-      </p>
-    </div>
-  </div>
+  {% endif %}
 {% endblock %}

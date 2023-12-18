@@ -13,6 +13,7 @@ def login_view(request):
 
     context = {
         "version": VERSION,
+        "error": None,
     }
 
     # Authenticate user on POST request
@@ -22,13 +23,13 @@ def login_view(request):
         remember_me = request.POST.get("remember_me")
 
         user = authenticate(request, username=username, password=password)
-        logger.debug(f"User '{request.user.username}' is authenticated.")
+        logger.debug(f"User '{username}' is authenticated.")
         if not user is None:
             login(request, user)
-            logger.debug(f"User '{request.user.username}' has logged in.")
+            logger.debug(f"User '{username}' has logged in.")
             return redirect("dashboard_view")
         else:
-            logger.debug(f"User '{request.user.username}' entered invalid username or password!")
+            logger.debug(f"User '{username}' entered invalid username or password!")
             context["error"] = "Invalid username or password!"
 
 
