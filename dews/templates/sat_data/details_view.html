@@ -65,7 +65,7 @@
                   <li class="list-group-item">
                     <small id="extractedPath">/dews/media/{{ sat_data.extracted_path }}</small>
                     <!-- Copy to clipboard -->
-                    <button onclick="copyToClipboard('extractedPath')" class="btn btn-secondary btn-sm"><i class="fa-solid fa-copy"></i></button>                    
+                    <button onclick="copyToClipboard('extractedPath')" class="btn btn-secondary btn-sm"><i class="fa-solid fa-copy"></i></button>
                   </li>
                 </ul>
               </p>
@@ -132,7 +132,7 @@
             <p class="card-text">
               <strong>Thumbnail:</strong><br />
               {% if sat_data|get_related:'thumbnail' %}
-                <a href="{{ sat_data.thumbnail.url }}" target="_blank"><img src="{{ sat_data.thumbnail.url }}" alt="Thumbnail of satellite data with id '{{ sat_data.id }}'" class="img-thumbnail" width="500" /></a>
+                <a href="{{ sat_data.thumbnail.url }}" target="_blank"><img src="{{ sat_data.thumbnail.url }}" alt="Thumbnail of satellite data with id '{{ sat_data.id }}'" class="img-thumbnail" style="width:auto;height:300px;object-fit: contain;" /></a>
                 <!-- Download button -->
                 <a href="{{ sat_data.thumbnail.url }}" download="{{ sat_data.id }}-{{ sat_data.thumbnail.name }}" download class="btn btn-secondary"><i class="fa-solid fa-download"></i></a>
               {% else %}
@@ -164,7 +164,14 @@
                 <strong>Index Type:</strong> {{ index_info.idx_type }}
               </p>
               <p class="card-text">
-                <strong>Image:</strong><a href="{{ index_info.img.url }}" target="_blank"><img src="{{ index_info.img.url }}" alt="Index '{{ index_info.img_type|upper }}' of satellite data with id '{{ sat_data.id }}'" class="img-thumbnail" width="500" /></a>
+                <div class="col">
+                  <div class="row">
+                    <strong>Image:</strong>
+                  </div>
+                  <div class="row">
+                    <a href="{{ index_info.img.url }}" target="_blank"><img src="{{ index_info.img.url }}" alt="Index '{{ index_info.img_type|upper }}' of satellite data with id '{{ sat_data.id }}'" class="img-thumbnail" style="width:auto;height:300px;object-fit: contain;" /></a>
+                  </div>
+                </div>
               </p>
               <p class="card-text">
                 <strong>Archived Image Paths:</strong> {{ index_info.archived_img_paths }}
@@ -260,78 +267,243 @@
         <h2>Band Info</h2>
       </div>
       <div class="card-body">
-        <p class="card-text">
-          <strong>Range:</strong><br />
-          {{ sat_data.band_info.range }}
-        </p>
-        <p class="card-text">
-          <strong>AOT:</strong><br />
-          {{ sat_data.band_info.aot }}
-        </p>
-        <p class="card-text">
-          <strong>SCL:</strong><br />
-          {{ sat_data.band_info.scl }}
-        </p>
-        <p class="card-text">
-          <strong>TCI:</strong><br />
-          {{ sat_data.band_info.tci }}
-        </p>
-        <p class="card-text">
-          <strong>WVP:</strong><br />
-          {{ sat_data.band_info.wvp }}
-        </p>
-        <p class="card-text">
-          <strong>B01:</strong><br />
-          {{ sat_data.band_info.b01 }}
-        </p>
-        <p class="card-text">
-          <strong>B02:</strong><br />
-          {{ sat_data.band_info.b02 }}
-        </p>
-        <p class="card-text">
-          <strong>B03:</strong><br />
-          {{ sat_data.band_info.b03 }}
-        </p>
-        <p class="card-text">
-          <strong>B04:</strong><br />
-          {{ sat_data.band_info.b04 }}
-        </p>
-        <p class="card-text">
-          <strong>B05:</strong><br />
-          {{ sat_data.band_info.b05 }}
-        </p>
-        <p class="card-text">
-          <strong>B06:</strong><br />
-          {{ sat_data.band_info.b06 }}
-        </p>
-        <p class="card-text">
-          <strong>B07:</strong><br />
-          {{ sat_data.band_info.b07 }}
-        </p>
-        <p class="card-text">
-          <strong>B08:</strong><br />
-          {{ sat_data.band_info.b08 }}
-        </p>
-        <p class="card-text">
-          <strong>B8A:</strong><br />
-          {{ sat_data.band_info.b8a }}
-        </p>
-        <p class="card-text">
-          <strong>B09:</strong><br />
-          {{ sat_data.band_info.b09 }}
-        </p>
-        <p class="card-text">
-          <strong>B10:</strong><br />
-          {{ sat_data.band_info.b10 }}
-        </p>
-        <p class="card-text">
-          <strong>B11:</strong><br />
-          {{ sat_data.band_info.b11 }}
-        </p>
-        <p class="card-text">
-          <strong>B12:</strong><br />
-          {{ sat_data.band_info.b12 }}
-        </p>
+        <!-- Range -->
+        {% if sat_data.band_info.range != 'None' %}
+          <p class="card-text">
+            <strong>Range:</strong><br />
+            <ul class="list-group">
+              <li class="list-group-item">
+                <small>{{ sat_data.band_info.range }} Meter per Pixel</small>
+              </li>
+            </ul>
+          </p>
+        {% endif %}
+
+        <!-- AOT -->
+        {% if sat_data.band_info.aot != 'None' %}
+          <p class="card-text">
+            <strong>AOT:</strong><br />
+            <ul class="list-group">
+              <li class="list-group-item">
+                <small id="aotPath">/dews/media/{{ sat_data.band_info.aot }}</small>
+                <!-- Copy to clipboard -->
+                <button onclick="copyToClipboard('aotPath')" class="btn btn-secondary btn-sm"><i class="fa-solid fa-copy"></i></button>
+                <!-- Download button -->
+                <a href="{{ sat_data.band_info.aot.url }}" download="{{ sat_data.band_info.aot.name }}" class="btn btn-secondary"><i class="fa-solid fa-download"></i></a>
+              </li>
+            </ul>
+          </p>
+        {% endif %}
+
+        <!-- Repeat for each band -->
+
+        <!-- SCL -->
+        {% if sat_data.band_info.scl != 'None' %}
+          <p class="card-text">
+            <strong>SCL:</strong><br />
+            <ul class="list-group">
+              <li class="list-group-item">
+                <small id="sclPath">/dews/media/{{ sat_data.band_info.scl }}</small>
+                <!-- Copy to clipboard -->
+                <button onclick="copyToClipboard('sclPath')" class="btn btn-secondary btn-sm"><i class="fa-solid fa-copy"></i></button>
+                <!-- Download button -->
+                <a href="{{ sat_data.band_info.scl.url }}" download="{{ sat_data.band_info.scl.name }}" class="btn btn-secondary"><i class="fa-solid fa-download"></i></a>
+              </li>
+            </ul>
+          </p>
+        {% endif %}
+
+        <!-- TCI -->
+        {% if sat_data.band_info.tci != 'None' %}
+          <p class="card-text">
+            <strong>TCI:</strong><br />
+            <ul class="list-group">
+              <li class="list-group-item">
+                <small id="tciPath">/dews/media/{{ sat_data.band_info.tci }}</small>
+                <!-- Copy to clipboard -->
+                <button onclick="copyToClipboard('tciPath')" class="btn btn-secondary btn-sm"><i class="fa-solid fa-copy"></i></button>
+                <!-- Download button -->
+                <a href="{{ sat_data.band_info.tci.url }}" download="{{ sat_data.band_info.tci.name }}" class="btn btn-secondary"><i class="fa-solid fa-download"></i></a>
+              </li>
+            </ul>
+          </p>
+        {% endif %}
+
+        <!-- WVP -->
+        {% if sat_data.band_info.wvp != 'None' %}
+          <p class="card-text">
+            <strong>WVP:</strong><br />
+            <ul class="list-group">
+              <li class="list-group-item">
+                <small id="wvpPath">/dews/media/{{ sat_data.band_info.wvp }}</small>
+                <!-- Copy to clipboard -->
+                <button onclick="copyToClipboard('wvpPath')" class="btn btn-secondary btn-sm"><i class="fa-solid fa-copy"></i></button>
+                <!-- Download button -->
+                <a href="{{ sat_data.band_info.wvp.url }}" download="{{ sat_data.band_info.wvp.name }}" class="btn btn-secondary"><i class="fa-solid fa-download"></i></a>
+              </li>
+            </ul>
+          </p>
+        {% endif %}
+
+        <!-- B01 -->
+        {% if sat_data.band_info.b01 != 'None' %}
+          <p class="card-text">
+            <strong>B01:</strong><br />
+            <ul class="list-group">
+              <li class="list-group-item">
+                <small id="b01Path">/dews/media/{{ sat_data.band_info.b01 }}</small>
+                <!-- Copy to clipboard -->
+                <button onclick="copyToClipboard('b01Path')" class="btn btn-secondary btn-sm"><i class="fa-solid fa-copy"></i></button>
+                <!-- Download button -->
+                <a href="{{ sat_data.band_info.b01.url }}" download="{{ sat_data.band_info.b01.name }}" class="btn btn-secondary"><i class="fa-solid fa-download"></i></a>
+              </li>
+            </ul>
+          </p>
+        {% endif %}
+
+        <!-- B02 -->
+        {% if sat_data.band_info.b02 != 'None' %}
+          <p class="card-text">
+            <strong>B02:</strong><br />
+            <ul class="list-group">
+              <li class="list-group-item">
+                <small id="b02Path">/dews/media/{{ sat_data.band_info.b02 }}</small>
+                <!-- Copy to clipboard -->
+                <button onclick="copyToClipboard('b02Path')" class="btn btn-secondary btn-sm"><i class="fa-solid fa-copy"></i></button>
+                <!-- Download button -->
+                <a href="{{ sat_data.band_info.b02.url }}" download="{{ sat_data.band_info.b02.name }}" class="btn btn-secondary"><i class="fa-solid fa-download"></i></a>
+              </li>
+            </ul>
+          </p>
+        {% endif %}
+
+        <!-- B03 -->
+        {% if sat_data.band_info.b03 != 'None' %}
+          <p class="card-text">
+            <strong>B03:</strong><br />
+            <ul class="list-group">
+              <li class="list-group-item">
+                <small id="b03Path">/dews/media/{{ sat_data.band_info.b03 }}</small>
+                <!-- Copy to clipboard -->
+                <button onclick="copyToClipboard('b03Path')" class="btn btn-secondary btn-sm"><i class="fa-solid fa-copy"></i></button>
+                <!-- Download button -->
+                <a href="{{ sat_data.band_info.b03.url }}" download="{{ sat_data.band_info.b03.name }}" class="btn btn-secondary"><i class="fa-solid fa-download"></i></a>
+              </li>
+            </ul>
+          </p>
+        {% endif %}
+
+        <!-- B04 -->
+        {% if sat_data.band_info.b04 != 'None' %}
+          <p class="card-text">
+            <strong>B04:</strong><br />
+            <ul class="list-group">
+              <li class="list-group-item">
+                <small id="b04Path">/dews/media/{{ sat_data.band_info.b04 }}</small>
+                <!-- Copy to clipboard -->
+                <button onclick="copyToClipboard('b04Path')" class="btn btn-secondary btn-sm"><i class="fa-solid fa-copy"></i></button>
+                <!-- Download button -->
+                <a href="{{ sat_data.band_info.b04.url }}" download="{{ sat_data.band_info.b04.name }}" class="btn btn-secondary"><i class="fa-solid fa-download"></i></a>
+              </li>
+            </ul>
+          </p>
+        {% endif %}
+
+        <!-- B05 -->
+        {% if sat_data.band_info.b05 != 'None' %}
+          <p class="card-text">
+            <strong>B05:</strong><br />
+            <ul class="list-group">
+              <li class="list-group-item">
+                <small id="b05Path">/dews/media/{{ sat_data.band_info.b05 }}</small>
+                <!-- Copy to clipboard -->
+                <button onclick="copyToClipboard('b05Path')" class="btn btn-secondary btn-sm"><i class="fa-solid fa-copy"></i></button>
+                <!-- Download button -->
+                <a href="{{ sat_data.band_info.b05.url }}" download="{{ sat_data.band_info.b05.name }}" class="btn btn-secondary"><i class="fa-solid fa-download"></i></a>
+              </li>
+            </ul>
+          </p>
+        {% endif %}
+
+        <!-- B06 -->
+        {% if sat_data.band_info.b06 != 'None' %}
+          <p class="card-text">
+            <strong>B06:</strong><br />
+            <ul class="list-group">
+              <li class="list-group-item">
+                <small id="b03Path">/dews/media/{{ sat_data.band_info.b06 }}</small>
+                <!-- Copy to clipboard -->
+                <button onclick="copyToClipboard('b06Path')" class="btn btn-secondary btn-sm"><i class="fa-solid fa-copy"></i></button>
+                <!-- Download button -->
+                <a href="{{ sat_data.band_info.b06.url }}" download="{{ sat_data.band_info.b06.name }}" class="btn btn-secondary"><i class="fa-solid fa-download"></i></a>
+              </li>
+            </ul>
+          </p>
+        {% endif %}
+
+        <!-- B07 -->
+        {% if sat_data.band_info.b07 != 'None' %}
+          <p class="card-text">
+            <strong>B07:</strong><br />
+            <ul class="list-group">
+              <li class="list-group-item">
+                <small id="b07Path">/dews/media/{{ sat_data.band_info.b07 }}</small>
+                <!-- Copy to clipboard -->
+                <button onclick="copyToClipboard('b07Path')" class="btn btn-secondary btn-sm"><i class="fa-solid fa-copy"></i></button>
+                <!-- Download button -->
+                <a href="{{ sat_data.band_info.b07.url }}" download="{{ sat_data.band_info.b07.name }}" class="btn btn-secondary"><i class="fa-solid fa-download"></i></a>
+              </li>
+            </ul>
+          </p>
+        {% endif %}
+
+        <!-- B8A -->
+        {% if sat_data.band_info.b8a != 'None' %}
+          <p class="card-text">
+            <strong>B8A:</strong><br />
+            <ul class="list-group">
+              <li class="list-group-item">
+                <small id="b8aPath">/dews/media/{{ sat_data.band_info.b8a }}</small>
+                <!-- Copy to clipboard -->
+                <button onclick="copyToClipboard('b8aPath')" class="btn btn-secondary btn-sm"><i class="fa-solid fa-copy"></i></button>
+                <!-- Download button -->
+                <a href="{{ sat_data.band_info.b8a.url }}" download="{{ sat_data.band_info.b8a.name }}" class="btn btn-secondary"><i class="fa-solid fa-download"></i></a>
+              </li>
+            </ul>
+          </p>
+        {% endif %}
+
+        <!-- B11 -->
+        {% if sat_data.band_info.b11 != 'None' %}
+          <p class="card-text">
+            <strong>B11:</strong><br />
+            <ul class="list-group">
+              <li class="list-group-item">
+                <small id="b11Path">/dews/media/{{ sat_data.band_info.b11 }}</small>
+                <!-- Copy to clipboard -->
+                <button onclick="copyToClipboard('b11Path')" class="btn btn-secondary btn-sm"><i class="fa-solid fa-copy"></i></button>
+                <!-- Download button -->
+                <a href="{{ sat_data.band_info.b11.url }}" download="{{ sat_data.band_info.b11.name }}" class="btn btn-secondary"><i class="fa-solid fa-download"></i></a>
+              </li>
+            </ul>
+          </p>
+        {% endif %}
+
+        <!-- B12 -->
+        {% if sat_data.band_info.b12 != 'None' %}
+          <p class="card-text">
+            <strong>B12:</strong><br />
+            <ul class="list-group">
+              <li class="list-group-item">
+                <small id="archivePath">/dews/media/{{ sat_data.band_info.b12.url }}</small>
+                <!-- Copy to clipboard -->
+                <button onclick="copyToClipboard('band12Path')" class="btn btn-secondary btn-sm"><i class="fa-solid fa-copy"></i></button>
+                <!-- Download button -->
+                <a href="{{ sat_data.band_info.b12.url }}" download="{{ sat_data.band_info.b12.name }}" download class="btn btn-secondary"><i class="fa-solid fa-download"></i></a>
+              </li>
+            </ul>
+          </p>
+        {% endif %}
       </div>
     </div>
   {% endif %}

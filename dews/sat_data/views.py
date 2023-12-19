@@ -10,7 +10,7 @@ from django.shortcuts import redirect, render, get_object_or_404
 
 from sat_data.enums.sat_mission import SatMission
 from sat_data.services.utils.file_utils import FileUtils
-from sat_data.models import SatData, remove_media_root
+from sat_data.models import SatData, TimeSeries, remove_media_root
 from sat_data.forms import SatDataForm
 from sat_data.services.attr_adder import AttrAdder
 from dews.settings import VERSION, ARCHIVE_FILES_PATH
@@ -50,46 +50,39 @@ def overview_view(request):
     
     # Start with all entries
     sat_data_entries = SatData.objects.all()
+    time_series_entries = TimeSeries.objects.all()
 
     # Filter by search query if it exists
     search_query = request.GET.get('search', '')
     if search_query:
         sat_data_entries = sat_data_entries.filter(name__icontains=search_query)
+        time_series_entries = time_series_entries.filter(name__icontains=search_query)
 
     # Filter by mission if it exists
     mission_query = request.GET.get('mission', '')
     if mission_query:
         sat_data_entries = sat_data_entries.filter(mission=mission_query)
+        time_series_entries = time_series_entries.filter(mission=mission_query)
 
     # Filter by product type if it exists
     prod_type_query = request.GET.get('product_type', '')
     if prod_type_query:
         sat_data_entries = sat_data_entries.filter(product_type=prod_type_query)
+        time_series_entries = time_series_entries.filter(product_type=prod_type_query)
+
+    logger.debug(f"Search query: '{search_query}', Mission query: '{mission_query}', Product type query: '{prod_type_query}'")
 
     context = {
         "version": VERSION,
-        "sat_data_entries": SatData.objects.all(),
+        "sat_data_entries": sat_data_entries,
+        "sat_data_entries_count": sat_data_entries.count(),
+        "time_series_entries": time_series_entries,
+        "time_series_entries_count": time_series_entries.count(),
         "search_query": search_query,
         "mission_query": mission_query,
         "prod_type_query": prod_type_query,
     }
     return render(request, "overview_view.html", context)
-
-
-# def upload_view(request, error=None):
-#     if not request.user.is_authenticated:
-#         return redirect("login_view")
-
-
-#     form = SatDataForm(request.POST or None, request.FILES or None)
-#     logger.debug(f"Uploaded files: {request.FILES}")
-
-#     context = {
-#         "version": VERSION,
-#         "error": error,
-#         "form": form
-#     }
-#     return render(request, "upload_view.html", context)
 
 
 def upload_view(request):
@@ -115,15 +108,10 @@ def upload_view(request):
 
     # POST request -> create SatData obj
     if request.method == "POST":
-        name = request.POST.get("name", "")
         archive = request.FILES.get("archive")
 
         # Check user input
-        if not name and not archive:
-            return HttpResponseBadRequest("Name and archive file are required.")
-        elif not name:
-            return HttpResponseBadRequest("Name is required.")
-        elif not archive:
+        if not archive:
             return HttpResponseBadRequest("Archive file is required.")
 
         # Write archive to file system
@@ -139,22 +127,18 @@ def upload_view(request):
                     f"Done writing archive to file system. archive_path='{archive_path}'")
             except Exception as e:
                 logger.error(
-                    f"Failed to write archive to file system. name='{name}', archive_path='{archive_path}', error='{e}'")
+                    f"Failed to write archive to file system. archive_path='{archive_path}', error='{e}'")
         else:
             # Archive already exists
             logger.info(f"Archive already exists. archive_path='{archive_path}'")
 
         # Extract and create SatData obj in background
-        logger.debug(f"Create background task.")
-        logger.info(
-            f"Extract and create SatData obj. name='{name}', archive.name='{archive.name}', username='{request.user.username}', archive_path='{archive_path}'")
         try:
-            # Start background task
-            thread = Thread(target=__extract_and_create,
-                            args=(request, str(archive_path), logger))
-            thread.start()
-            logger.debug(
-                f"Started 'extract_and_create' background task. username='{request.user.username}', archive_path='{archive_path}'")
+            ok = create_sat_data(request, archive_path)
+            if ok:
+                pass
+            else:
+                raise Exception(f"Failed to create SatData object. ok='{ok}'")
         except Exception as e:
             # Background task failed
             logger.error(
@@ -175,6 +159,18 @@ def upload_view(request):
     # GET request -> view and form
     logger.debug("Render 'upload_view.html'.")
     return render(request, "upload_view.html", context)
+
+
+def create_sat_data(request, archive_path) -> bool:
+    logger.debug(f"Create background task.")
+    logger.info(f"Extract and create SatData obj. username='{request.user.username}', archive_path='{archive_path}'")
+    # Start background task
+    thread = Thread(target=__extract_and_create,
+                    args=(request, str(archive_path), logger))
+    thread.start()
+    logger.debug(
+        f"Started 'extract_and_create' background task. username='{request.user.username}', archive_path='{archive_path}'")
+    return True
 
 
 def __extract_and_create(request, archive_path: str, logger: logging.Logger = None):
@@ -213,8 +209,10 @@ def __extract_and_create(request, archive_path: str, logger: logging.Logger = No
             logger.debug(f"Calling AttrAdder. sat_data.id='{sat_data.id}'")
             attr_adder = AttrAdder(sat_data, extracted_path, mission)
             attr_adder.start()
+            logger.debug(f"AttrAdder done. sat_data.id='{sat_data.id}'")
 
             # Final save
+            logger.debug(f"Before final save. sat_data.id='{sat_data.id}'")
             sat_data.save()
             logger.debug(f"Final save. id='{sat_data.id}'")
             logger.info(
@@ -225,5 +223,10 @@ def __extract_and_create(request, archive_path: str, logger: logging.Logger = No
             logging.error(
                 f"Failed to create, add attributes and save a SatData object. username='{request.user.username}', extracted_path='{extracted_path}', error='{e}'")
             return
+    else:
+        # Form is not valid
+        logger.error(
+            f"Form is not valid. username='{request.user.username}', extracted_path='{extracted_path}', form='{form}'")
+        return
 
         

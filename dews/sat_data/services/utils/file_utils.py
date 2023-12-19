@@ -54,22 +54,31 @@ class FileUtils:
         return path.replace("//", "/")
 
     @staticmethod
-    def xml_to_dict(metadata_path: str) -> dict:
+    def xml_to_dict(xml_path: str) -> dict:
         """
-        Reads XML file which contains metadata about satellite images and returns a dictionary with all parsed information.
+        Reads XML file and transforms it into a dictionary.
         """
-        metadata_file = open(metadata_path, "r")
-        metadata_dict = xmltodict.parse(metadata_file.read())
-        metadata_file.close()
-
-        if metadata_dict is False:
+        try:
+            logger.debug(f"Opening xml file. xml_path='{xml_path}'")
+            xml_file = open(xml_path, "r")
+        except Exception as e:
             logger.error(
-                f"Could not read metadata file. metadata_path='{metadata_path}'")
+                f"Failed to read xml file. xml_path='{xml_path}', error='{e}'")
+            return False
+        
+        logger.debug(f"Parsing xml file. xml_path='{xml_path}'")
+        xml_dict = xmltodict.parse(xml_file.read())
+        logger.debug(f"Closing xml file. xml_path='{xml_path}'")
+        xml_file.close()
+
+        if xml_dict is False:
+            logger.error(
+                f"Failed to read xml file. xml_path='{xml_path}'")
         else:
             logger.debug(
-                f"Reading metadata file has been read successfully. metadata_path='{metadata_path}'")
+                f"Successfully read xml file. xml_path='{xml_path}'")
 
-        return metadata_dict
+        return xml_dict
 
     @staticmethod
     def get_dict_value_by_key(dictionary, searched_key):
@@ -85,3 +94,4 @@ class FileUtils:
                 result = FileUtils.get_dict_value_by_key(item, searched_key)
                 if result is not None:
                     return result
+        return None

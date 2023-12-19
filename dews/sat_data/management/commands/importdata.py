@@ -1,14 +1,14 @@
+from io import BytesIO
 import os
-import zipfile
-from threading import Thread
 from django.core.management.base import BaseCommand, CommandError
 from django.contrib.auth.models import User
+from django.core.files.uploadedfile import InMemoryUploadedFile
+from django.http import HttpRequest, QueryDict
+from django.middleware.csrf import get_token
 
-from sat_data.services.utils.file_utils import FileUtils
-from sat_data.models import SatData, remove_media_root
-from sat_data.services.attr_adder import AttrAdder
+from dews.settings import DB_USER
 from sat_data.enums.sat_mission import SatMission
-from dews.settings import EXTRACTED_FILES_PATH, DB_USER
+from sat_data.views import create_sat_data
 
 
 class Command(BaseCommand):
@@ -22,44 +22,43 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         source_path: str = options.get("source_path")
         mission: str = options.get("mission")
+        # Check mission
+        if not mission:
+            mission = SatMission.get_mission_by_filename(source_path)
 
         # Check if archive exists
         if not os.path.exists(source_path):
             raise CommandError(
                 f"Archive does not exist. source_path='{source_path}'")
 
-        # Check mission
-        if not mission:
-            mission = SatMission.get_mission_by_filename(source_path)
-
-        try:
-            # Extract archive
-            extracted_path = self.extract_archive(source_path, mission)
-            # Create satellite data
-            sat_data = SatData.create(source_path, mission, extracted_path)
-            if sat_data is None:
-                raise CommandError(
-                    f"Failed to create SatData object. source_path='{source_path}', mission='{mission}'")
-        except Exception as e:
+        # Create SatData object
+        with open(source_path, "rb") as f:
+            content = f.read()
+        # Create request object
+        request = HttpRequest()
+        request.user = User.objects.get(username=DB_USER)
+        request.method = "POST"
+        request.path = "/sat_data/upload/" # TODO: check if ptional?!
+        request.POST = QueryDict("", mutable=True)
+        request.POST.update({
+            "csrfmiddlewaretoken": get_token(request),
+            "name": f"{os.path.basename(source_path)}",
+        })
+        archive = InMemoryUploadedFile(
+            file=BytesIO(content),
+            field_name='archive',
+            name=os.path.basename(source_path),
+            content_type='application/zip',
+            size=len(content),
+            charset=None
+        )        
+        request.FILES["archive"] = archive
+        ok = create_sat_data(request, source_path)
+        if not ok:
             raise CommandError(
-                f"Failed to extract archive. source_path='{source_path}', error='{e}'")
+                f"Failed to create SatData object. source_path='{source_path}'")
 
         self.stdout.write(
             self.style.SUCCESS(
-                f"Successfully imported archive. extracted_path='{extracted_path}', source_path='{source_path}'")
+                f"Successfully imported archive. source_path='{source_path}'")
         )
-
-    def extract_archive(self, source_path: str, mission: str):
-        extracted_path = FileUtils.extract_archive(source_path, mission)
-
-        # Check return value for error
-        if extracted_path is None:
-            raise CommandError(
-                f"Failed to extract files from archive. source_path='{source_path}', extracted_path='{extracted_path}', mission='{mission}', error='{e}'")
-
-        # Check if extracted dir exists
-        if os.path.exists(extracted_path):
-            return extracted_path
-        else:
-            raise CommandError(
-                f"Directory at '{extracted_path}' does not exist.")

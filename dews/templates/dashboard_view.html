@@ -19,10 +19,10 @@
         <h2>Statistics:</h2>
         <ul class="list-group">
           <li class="list-group-item">
-            <strong>Total Sat Data Entries:</strong> {{ total_sat_data }}
+            <i class="fa-solid fa-satellite-dish"></i> <strong>Total Sat Data Entries:</strong> {{ total_sat_data }}
           </li>
           <li class="list-group-item">
-            <strong>Total Users:</strong> {{ total_users }}
+            <i class="fa-solid fa-user"></i> <strong>Total Users:</strong> {{ total_users }}
           </li>
         </ul>
       </div>
@@ -30,8 +30,10 @@
         <h2>Quick Links:</h2>
         <ul class="list-group">
           <li class="list-group-item">
-            <a href="{% url 'overview_view' %}">Satellite Data Overview</a>
+            <a href="{% url 'overview_view' %}"><i class="fa-solid fa-table-columns"></i> Satellite Data Overview</a>
           </li>
+          <li class="list-group-item">
+            <a href="{% url 'upload_view' %}"><i class="fa-solid fa-upload"></i> Upload Satellite Data</a>
         </ul>
       </div>
     </div>

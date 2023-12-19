@@ -102,7 +102,8 @@ LOGGING = {
             "propagate": True,
         },
         "django.db.backends": {
-            "handlers": ["null"], # deactivates SQL query logs
+            # "handlers": ["null"], # deactivates SQL query logs
+            "handlers": ["console"], # deactivates SQL query logs
             "level": "DEBUG",
             "propagate": False,
         }

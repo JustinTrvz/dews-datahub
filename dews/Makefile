@@ -1,4 +1,4 @@
-makemigrations:
+migrations:
 	python manage.py makemigrations
 
 migrate:

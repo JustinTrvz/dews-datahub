@@ -51,12 +51,8 @@ def remove_media_root(path):
 def get_dews_user():
     return User.objects.get_or_create(username=DB_USER)
 
-# Base class for satellite data
 
-
-
-class SatData(models.Model):
-
+class TimeSeries(models.Model):
     # Attributes
     id = models.UUIDField(primary_key=True,
                           default=uuid.uuid4,
@@ -65,6 +61,40 @@ class SatData(models.Model):
     name = models.CharField(max_length=100,
                             default="No name",
                             verbose_name="Name")
+    mission = models.CharField(max_length=50,
+                               verbose_name="Mission",
+                               default=SatMission.UNKNOWN.value,
+                               blank=True)
+    thumbnail = models.ImageField(max_length=255,
+                                  null=True,
+                                  blank=True,
+                                  upload_to=f"time_series/{mission}/{id}/thumbnail",
+                                  verbose_name="Thumbnail",
+                                  storage=OverwriteStorage())
+    coordinates = models.PolygonField(blank=True,
+                                      null=True,
+                                      verbose_name="Polygon Coordinates")
+    leaflet_coordinates = models.PolygonField(blank=True,
+                                              null=True,
+                                              verbose_name="Leaflet Coordinates")
+    product_type = models.CharField(max_length=50,
+                                    verbose_name="Product Type",
+                                    default=SatProdType.UNKNOWN.value,
+                                    blank=True)
+    creation_time = models.DateTimeField(auto_now_add=True)
+
+
+# Base class for satellite data
+class SatData(models.Model):
+
+    # Attributes
+    id = models.UUIDField(primary_key=True,
+                          default=uuid.uuid4,
+                          editable=False,
+                          verbose_name="ID")
+    name = models.CharField(max_length=255,
+                            default="No name",
+                            blank=True)
     mission = models.CharField(max_length=50,
                                verbose_name="Mission",
                                default=SatMission.UNKNOWN.value,
@@ -89,23 +119,23 @@ class SatData(models.Model):
                                 verbose_name="Manifest",
                                 storage=OverwriteStorage())
     eop_metadata = models.FileField(max_length=255,
-                                null=True,
-                                blank=True,
-                                upload_to=metadata_upload_path,
-                                verbose_name="EOP Metadata",
-                                storage=OverwriteStorage())
+                                    null=True,
+                                    blank=True,
+                                    upload_to=metadata_upload_path,
+                                    verbose_name="EOP Metadata",
+                                    storage=OverwriteStorage())
     xfdu_manifest = models.FileField(max_length=255,
-                                null=True,
-                                blank=True,
-                                upload_to=metadata_upload_path,
-                                verbose_name="Xfdu Manifest",
-                                storage=OverwriteStorage())
+                                     null=True,
+                                     blank=True,
+                                     upload_to=metadata_upload_path,
+                                     verbose_name="Xfdu Manifest",
+                                     storage=OverwriteStorage())
     inspire = models.FileField(max_length=255,
-                                null=True,
-                                blank=True,
-                                upload_to=metadata_upload_path,
-                                verbose_name="Inspire",
-                                storage=OverwriteStorage())
+                               null=True,
+                               blank=True,
+                               upload_to=metadata_upload_path,
+                               verbose_name="Inspire",
+                               storage=OverwriteStorage())
     thumbnail = models.ImageField(max_length=255,
                                   null=True,
                                   blank=True,
@@ -117,14 +147,15 @@ class SatData(models.Model):
                                       null=True,
                                       verbose_name="Polygon Coordinates")
     leaflet_coordinates = models.PolygonField(blank=True,
-                                      null=True,
-                                      verbose_name="Leaflet Coordinates")
+                                              null=True,
+                                              verbose_name="Leaflet Coordinates")
 
     # Relationships
     user = models.ForeignKey(
         User, on_delete=models.SET_NULL, null=True, blank=True, default=get_dews_user)
-    
-    # time_series = models.ForeignKey(TimeSeries, related_name='sat_data', on_delete=models.CASCADE)
+
+    time_series = models.ForeignKey(TimeSeries, on_delete=models.CASCADE,
+                                    related_name='sat_data', null=True, blank=True)
 
     # Meta data
     class Meta:
@@ -161,13 +192,13 @@ class SatData(models.Model):
             # Add mission and instrument specific attributes
             if mission == SatMission.SENTINEL_1A.value:
                 # Sentinel-1A
-                # Metadata
-                metadata_path = os.path.join(
+                # Manifest
+                manifest_path = os.path.join(
                     remove_media_root(extracted_path), "manifest.safe")
-                sat_data.metadata = metadata_path
+                sat_data.manifest = manifest_path
                 # .../manifest.safe
                 logging.info(
-                    f"Added metadata path. metadata_path='{metadata_path}'")
+                    f"Added metadata path. manifest_path='{manifest_path}'")
                 # Thumbnail
                 thumbnail_path = os.path.join(remove_media_root(
                     extracted_path), "preview", "thumbnail.png")
@@ -239,7 +270,8 @@ class SatData(models.Model):
 
     def __str__(self):
         return str(self.id)
-    
+
+
 class BandInfo(models.Model):
     # Attributes
     range = models.IntegerField(
@@ -427,7 +459,6 @@ class IndexInfo(models.Model):
 
     def __str__(self):
         return self.id
-
 
 
 class CaptureInfo(models.Model):

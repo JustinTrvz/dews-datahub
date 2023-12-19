@@ -10,7 +10,7 @@ from sat_data.services.path_finder import PathFinder
 from sat_data.services.utils.file_utils import FileUtils
 from sat_data.enums.sat_mission import SatMission
 from sat_data.enums.sat_prod_type import S2BProdType, S3AProdType, S3BProdType
-from sat_data.models import AreaInfo, BandInfo, SatData, remove_media_root
+from sat_data.models import AreaInfo, BandInfo, SatData, TimeSeries, remove_media_root
 from sat_data.enums.sat_prod_type import S1AProdType
 
 
@@ -21,6 +21,7 @@ class AttrAdder():
     sat_data: SatData = None
     id = None
     mission: str = ""
+    product_type: str = ""
     extracted_path: str = ""
     metadata_dict = {}
     img_supported_prod_types = [
@@ -58,6 +59,7 @@ class AttrAdder():
         # Set prod type and mission
         self.set_product_type()
         self.set_mission()
+        self.set_name()
         logger.debug(f"Set product type and mission. sat_data.id='{self.id}'")
 
         # Get path dictionary
@@ -85,12 +87,48 @@ class AttrAdder():
         # Set other info
         self.set_coordinates()
         self.set_capture_info()
+        self.set_time_series()
+
         logger.debug(
-            f"Set coordinates and capture info. sat_data.id='{self.id}'")
+            f"Set coordinates, capture info and time series. sat_data.id='{self.id}'")
 
         # Save operation is executed in views
         logger.debug(f"AttrAdder done! sat_data.id='{self.id}'")
         return
+    
+    def set_name(self):
+        logger.debug(f"Setting name... sat_data.id='{self.id}'")
+        self.sat_data.name = os.path.basename(self.sat_data.archive.url).replace(".zip", "")
+        logger.debug(f"Set name. sat_data.id='{self.id}', name='{self.sat_data.name}'")
+
+    def set_time_series(self):
+        logger.debug(f"Setting time series... sat_data.id='{self.id}'")
+        # Check if time series with this mission, product type and coordinates already exists
+        logger.debug("Checking if time series already exists...")
+        time_series = TimeSeries.objects.filter(
+            mission=self.sat_data.mission,
+            product_type=self.sat_data.product_type,
+            coordinates=self.sat_data.coordinates,
+        ).first()
+
+        if time_series:
+            # Use existing TimeSeries object as attribute
+            logger.debug(
+                f"Found TimeSeries object. sat_data.id='{self.id}', time_series='{time_series}'")
+            self.sat_data.time_series = time_series
+        else:
+            # Create new TimeSeries object
+            logger.debug(
+                f"Create new TimeSeries object. sat_data.id='{self.id}'")
+            time_series = TimeSeries(
+                mission=self.sat_data.mission,
+                product_type=self.sat_data.product_type,
+                thumbnail=self.sat_data.thumbnail,
+                coordinates=self.sat_data.coordinates,
+                leaflet_coordinates=self.sat_data.leaflet_coordinates,
+            )
+            time_series.save()  # must be saved to db before assignment
+            self.sat_data.time_series = time_series
 
     def set_capture_info(self):
         """ Sets capture info attribte in SatData object."""
@@ -121,6 +159,8 @@ class AttrAdder():
             f"Converting start and stop time to datetime... sat_data.id='{self.id}'")
         start_time_dt = datetime.strptime(start_time, "%Y-%m-%dT%H:%M:%S.%f")
         stop_time_dt = datetime.strptime(stop_time, "%Y-%m-%dT%H:%M:%S.%f")
+        logger.debug(
+            f"Start and stop time as datetime. sat_data.id='{self.id}', start_time='{start_time_dt}', stop_time='{stop_time_dt}'")
 
         # Get country using Nominatim
         logger.debug(
@@ -135,7 +175,7 @@ class AttrAdder():
                 f"Found country. sat_data.id='{self.id}', country='{location.raw['address']['country']}'")
             country = location.raw['address']['country']
         else:
-            logger.debug(f"Could not find country. sat_data.id='{self.id}'")
+            logger.debug(f"Could not find country. sat_data.id='{self.id}', polygon='{polygon}', centroid='{centroid}', location='{location}'")
             country = "Unknown"
 
         # Save SatData object
@@ -161,13 +201,16 @@ class AttrAdder():
         """ Sets coordinates attribte in SatData object."""
         logger.debug(f"Setting polygon coordinates... sat_data.id='{self.id}'")
         sat_data = self.sat_data
-        if self.mission == SatMission.SENTINEL_1A.value:
+
+        if self.product_type in PathFinder.has_manifest_prod_types:
+            # Get coordinates from 'manifest.safe' file
             logger.debug(
                 f"Identified '{self.mission}' SatData object. id='{sat_data.id}'")
-            self.metadata_dict = FileUtils.xml_to_dict(sat_data.metadata.url)
+            self.metadata_dict = FileUtils.xml_to_dict(sat_data.manifest.url)
             coordinates = FileUtils.get_dict_value_by_key(
                 self.metadata_dict, "gml:coordinates").lower()
             coordinate_pairs = coordinates.split()
+            
             # Convert to a tuple of floats (latitude, longitude)
             coordinate_tuples = [tuple(map(float, pair.split(',')))
                                  for pair in coordinate_pairs]
@@ -175,6 +218,7 @@ class AttrAdder():
                 coordinate_tuples.append(coordinate_tuples[0])
             logger.debug(
                 f"coordinate_tuples='{coordinate_tuples}', sat_data.id='{self.id}'")
+            
             # Polygon needs four points
             if len(coordinate_tuples) <= 3:
                 logger.warn(
@@ -182,12 +226,15 @@ class AttrAdder():
                 return
             # Set coordinates
             sat_data.coordinates = Polygon(coordinate_tuples)
+
             # Leaflet needs the reverse order of the coordinates
             reverse_tuples = [(b, a) for a, b in coordinate_tuples]
             sat_data.leaflet_coordinates = Polygon(reverse_tuples)
             logger.debug(
                 f"Set Polygon coordinates to SatData object. sat_data.id='{self.id}', coordinates='{coordinates}'")
-        return
+        else:
+            # No coordinates available
+            logger.debug(f"No coordinates available. sat_data.id='{self.id}'")
 
     def set_img_paths(self):
         """ Sets band image paths in SatData object."""
@@ -337,6 +384,7 @@ class AttrAdder():
                 logger.debug(
                     f"Extracted '{self.mission}' SatData object's product type '{product_type}'.")
                 sat_data.product_type = product_type
+                self.product_type = product_type
                 logger.info(
                     f"Set product type. id='{sat_data.id}', product_type='{product_type}'")
             else:
@@ -347,15 +395,18 @@ class AttrAdder():
         # Method 2: Identify product type by metadata
         logger.debug(
             f"Identifying {self.mission}'s product type by metadata... id='{sat_data.id}'")
-        product_type = self.product_type_by_metadata(self.extracted_path, sat_data)
-        logger.debug(S1AProdType.get_all() + S3AProdType.get_all() + S3BProdType.get_all())
-        if product_type in S1AProdType.get_all() or product_type in S3AProdType.get_all() or product_type in S3BProdType.get_all() :
+        product_type = self.product_type_by_metadata(
+            self.extracted_path, sat_data)
+        logger.debug(S1AProdType.get_all() +
+                     S3AProdType.get_all() + S3BProdType.get_all())
+        if product_type in S1AProdType.get_all() or product_type in S3AProdType.get_all() or product_type in S3BProdType.get_all():
             logger.debug(
                 f"Identified '{self.mission}' SatData object. id='{sat_data.id}'")
             # Sentinel-1A or Sentinel-3A
             logger.debug(
                 f"Extracted '{self.mission}' SatData object's product type '{product_type}'.")
             sat_data.product_type = product_type
+            self.product_type = product_type
             logger.info(
                 f"Set product type. id='{sat_data.id}', product_type='{product_type}'")
         else:
@@ -394,19 +445,20 @@ class AttrAdder():
         """
         # Set keyword to search for in metadata
         if self.mission == SatMission.SENTINEL_1A.value:
-            # Sentinel-1A with 'manifest.xml'
-            keyword = "s1sarl1:productType"
+            # Sentinel-1A with 'manifest.safe'
+            # s1sarl1: <GRD, GRD-COG, SLC>, s1sarl2: <OCN>
+            keywords = ["s1sarl1:productType", "s1sarl2:productType"]
             # must set this path manually, as the "manifest" attribute is set later
-            metadata_path = f"{extracted_path}/manifest.xml"
+            metadata_path = f"{extracted_path}/manifest.safe"
             logger.debug(
-                f"Using keyword and metadata path for Sentinel-1A. keyword='{keyword}', metadata_path='{metadata_path}'")
+                f"Using keyword and metadata path for Sentinel-1A. keywords='{keywords}', metadata_path='{metadata_path}'")
         elif self.mission == SatMission.SENTINEL_3A.value or self.mission == SatMission.SENTINEL_3B.value:
-            # Sentinel-3A with 'xfdumanifest.xml
-            keyword = "sentinel3:productType"
+            # Sentinel-3A with 'xfdumanifest.xml'
+            keywords = ["sentinel3:productType"]
             # must set this path manually, as the "xfdu_manifest" attribute is set later
             metadata_path = f"{extracted_path}/xfdumanifest.xml"
             logger.debug(
-                f"Using keyword and metadata path for Sentinel-3A. keyword='{keyword}', metadata_path='{metadata_path}'")
+                f"Using keyword and metadata path for Sentinel-3A. keywords='{keywords}', metadata_path='{metadata_path}'")
         else:
             logger.info(
                 f"SatData object has no product type or mission/product type is not supported yet. id='{sat_data.id}', mission='{self.mission}'")
@@ -414,9 +466,19 @@ class AttrAdder():
         logger.debug(
             f"Extracting product type from metadata... sat_data.id='{self.id}'")
         metadata_dict = FileUtils.xml_to_dict(metadata_path)
-        product_type = FileUtils.get_dict_value_by_key(metadata_dict, keyword)
+        
+        # Search for product type value in metadata
+        for keyword in keywords:
+            product_type = FileUtils.get_dict_value_by_key(metadata_dict, keyword)
+            if product_type:
+                break
+    
         logger.debug(f"Returned product type: '{product_type}'")
-        return product_type.lower()
+        if product_type:
+            return product_type.lower()
+        else:
+            # every product type has the "unknown" value, so does not matter which one to use
+            return S1AProdType.UNKNOWN.value 
 
     def __update_attr(self, model, attr_name: str, value: any):
         try:

@@ -1,111 +1,215 @@
 {% extends "base.html" %}
 {% load static %}
-
-
 {% block title %}DEWS DataHub - Overview{% endblock %}
-
 {% block content %}
-  <section class="jumbotron text-center">
-    <div class="container pt-1 pb-1">
-      <h1 class="display-4 font-italic text-center">Satellite Data Overview</h1>
+<section class="jumbotron text-center">
+   <div class="container pt-1 pb-1">
+      <h1 class="display-4 font-italic text-center">Data Overview</h1>
       <p class="lead text-muted">
-        Shows all satellite data entries that were created.
+         Shows all data entries that were created.
       </p>
-    </div>
-  </section>
-  <hr class="light-100" />
+   </div>
+</section>
+<hr class="light-100" />
 
-  <!-- Add Button -->
-  <div class="row" style="padding: 10px;">
-    <a href="{% url 'upload_view' %}" class="btn btn-primary">Add new entry</a>
-  </div>
+<!-- Add Button -->
+<div class="row" style="padding: 10px;">
+   <a href="{% url 'upload_view' %}" class="btn btn-outline-primary">Add new entry <i class="fa-solid fa-plus"></i></a>
+</div>
 
-<!-- Search bar and filter -->
-<form method="GET" action="{% url 'overview_view' %}">
-  <div class="form-group">
-    <label for="nameInput">Name</label>
-    <input type="text" class="form-control" name="search" id="nameInput" placeholder="Search by name" value="{{ request.GET.search }}">
-  </div>
-  <div class="form-group">
-    <label for="missionControl">Mission</label>
-    <select class="form-control" name="mission" id="missionControl">
-      <option value="" {% if not request.GET.mission %}selected{% endif %}>All</option>
-      <option value="sentinel-1a" {% if request.GET.mission == 'sentinel-1a' %}selected{% endif %}>Sentinel-1A</option>
-      <option value="sentinel-1b" {% if request.GET.mission == 'sentinel-1b' %}selected{% endif %}>Sentinel-1B</option>
-      <option value="sentinel-2a" {% if request.GET.mission == 'sentinel-2a' %}selected{% endif %}>Sentinel-2A</option>
-      <option value="sentinel-2b" {% if request.GET.mission == 'sentinel-2b' %}selected{% endif %}>Sentinel-2B</option>
-      <option value="sentinel-3a" {% if request.GET.mission == 'sentinel-3a' %}selected{% endif %}>Sentinel-3A</option>
-      <option value="sentinel-3b" {% if request.GET.mission == 'sentinel-3b' %}selected{% endif %}>Sentinel-3B</option>
-      <option value="sentinel-5p" {% if request.GET.mission == 'sentinel-5p' %}selected{% endif %}>Sentinel-5P</option>
-      <option value="landsat-1" {% if request.GET.mission == 'landsat-1' %}selected{% endif %}>Landsat-1</option>
-      <option value="landsat-2" {% if request.GET.mission == 'landsat-1' %}selected{% endif %}>Landsat-2</option>
-      <option value="landsat-3" {% if request.GET.mission == 'landsat-1' %}selected{% endif %}>Landsat-3</option>
-      <option value="unknown" {% if request.GET.mission == 'unknown' %}selected{% endif %}>Unknown Mission</option>
-    </select>
-  </div>
-  <div class="form-group">
-    <label for="productTypeControl">Product Type</label>
-    <select class="form-control" name="product_type" id="productTypeControl">
-      <option value="" {% if not request.GET.product_type %}selected{% endif %}>All</option>
-      <option value="grd" {% if request.GET.product_type == 'grd' %}selected{% endif %}>GRD</option>
-      <option value="grd-cog" {% if request.GET.product_type == 'grd-cog' %}selected{% endif %}>GRD-COG</option>
-      <option value="ocn" {% if request.GET.product_type == 'ocn' %}selected{% endif %}>OCN</option>
-      <option value="raw" {% if request.GET.product_type == 'raw' %}selected{% endif %}>RAW</option>
-      <option value="slc" {% if request.GET.product_type == 'slc' %}selected{% endif %}>SLC</option>
-      <option value="unknown" {% if request.GET.product_type == 'unknown' %}selected{% endif %}>Unknown Product Type</option>
-    </select>
-  </div>
-  <button type="submit" class="btn btn-primary">Search <i class="fa-solid fa-magnifying-glass"></i></button>
-</form>
+<!-- Tabs -->
+<ul class="nav nav-tabs" id="overviewTabs" role="tablist">
+  <li class="nav-item" role="presentation">
+    <button class="nav-link active" id="satellite-tab" data-bs-toggle="tab" data-bs-target="#satellite" type="button" role="tab" aria-controls="satellite" aria-selected="true">SatData ({{ sat_data_entries_count }}) </button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="time-series-tab" data-bs-toggle="tab" data-bs-target="#time-series" type="button" role="tab" aria-controls="time-series" aria-selected="false">TimeSeries ({{ time_series_entries_count }})</button>
+  </li>
+</ul>
 
-  <!-- Show entries -->
-  <div style="overflow-y: scroll; max-height: 1000px;">
-    {% if sat_data_entries %}
-      <div class="card-columns">
-        {% for sat_data in sat_data_entries %}
-          <!-- Display satellite data entry -->
-          <a href="{% url 'details_view' sat_data.id %}" style="text-decoration: none; color: inherit;">
-            <div class="card">
-              <div class="card-body">
-                <h3 class="card-title"><i class="fa-solid fa-satellite"></i> {{ sat_data.name }}</h3>
-                <p class="card-text">
-                  <div class="container">
-                    <div class="row">
-                      <!-- Attributes -->
-                      <div class="col">
-                        <strong>ID:</strong> {{ sat_data.id }}<br />
-                        <strong>Mission:</strong> {{ sat_data.mission|capfirst }}<br />
-                        <strong>Product Type:</strong> {{ sat_data.product_type|upper }}<br />
-                        <strong>User:</strong> {{ sat_data.user.username|lower }}<br />
-                        <strong>Creation Time:</strong> {{ sat_data.creation_time }}<br />
-                      </div>
-                      <!-- Thumbnail -->
-                      <div class="col">
-                        {% if sat_data.thumbnail %}
-                          <p class="card-text">
-                            <img src="{{ sat_data.thumbnail.url }}" alt="Thumbnail {{ sat_data.id }}" class="img-thumbnail" width="300" />
-                          </p>
-                        {% endif %}
-                      </div>
+<!-- Tab content -->
+<div class="tab-content" id="overviewTabsContent">
+
+  <!-- SatData: Tab content-->
+   <div class="tab-pane fade show active" id="satellite" role="tabpanel" aria-labelledby="satellite-tab">
+      <!-- SatData: Search bar and filter -->
+      <form method="GET" action="{% url 'overview_view' %}">
+         <div class="form-group">
+            <label for="nameInput">Name</label>
+            <input type="text" class="form-control" name="search" id="nameInput" placeholder="Search SatData by name" value="{{ search_query }}">
+         </div>
+         <div class="form-group">
+            <label for="missionControl">Mission</label>
+            <select class="form-control" name="mission" id="missionControl">
+            <option value="" {% if not mission_query %}selected{% endif %}>All</option>
+            <option value="sentinel-1a" {% if mission_query == 'sentinel-1a' %}selected{% endif %}>Sentinel-1A</option>
+            <option value="sentinel-1b" {% if mission_query == 'sentinel-1b' %}selected{% endif %}>Sentinel-1B</option>
+            <option value="sentinel-2a" {% if mission_query == 'sentinel-2a' %}selected{% endif %}>Sentinel-2A</option>
+            <option value="sentinel-2b" {% if mission_query == 'sentinel-2b' %}selected{% endif %}>Sentinel-2B</option>
+            <option value="sentinel-3a" {% if mission_query == 'sentinel-3a' %}selected{% endif %}>Sentinel-3A</option>
+            <option value="sentinel-3b" {% if mission_query == 'sentinel-3b' %}selected{% endif %}>Sentinel-3B</option>
+            <option value="sentinel-5p" {% if mission_query == 'sentinel-5p' %}selected{% endif %}>Sentinel-5P</option>
+            <option value="landsat-1" {% if mission_query == 'landsat-1' %}selected{% endif %}>Landsat-1</option>
+            <option value="landsat-2" {% if mission_query == 'landsat-1' %}selected{% endif %}>Landsat-2</option>
+            <option value="landsat-3" {% if mission_query == 'landsat-1' %}selected{% endif %}>Landsat-3</option>
+            <option value="unknown" {% if mission_query == 'unknown' %}selected{% endif %}>Unknown Mission</option>
+            </select>
+         </div>
+         <div class="form-group">
+            <label for="productTypeControl">Product Type</label>
+            <select class="form-control" name="product_type" id="productTypeControl">
+            <option value="" {% if not prod_type_query %}selected{% endif %}>All</option>
+            <option value="grd" {% if prod_type_query == 'grd' %}selected{% endif %}>GRD</option>
+            <option value="grd-cog" {% if prod_type_query == 'grd-cog' %}selected{% endif %}>GRD-COG</option>
+            <option value="ocn" {% if prod_type_query == 'ocn' %}selected{% endif %}>OCN</option>
+            <option value="raw" {% if prod_type_query == 'raw' %}selected{% endif %}>RAW</option>
+            <option value="slc" {% if prod_type_query == 'slc' %}selected{% endif %}>SLC</option>
+            <option value="unknown" {% if prod_type_query == 'unknown' %}selected{% endif %}>Unknown Product Type</option>
+            </select>
+         </div>
+         <button type="submit" class="btn btn-primary">Search SatData<i class="fa-solid fa-magnifying-glass"></i></button>
+      </form>
+
+      <!-- SatData: Show entries -->
+<div style="overflow-y: scroll; max-height: 1000px;">
+  {% if sat_data_entries %}
+  <div class="card-columns">
+     {% for sat_data in sat_data_entries %}
+     <!-- Display satellite data entry -->
+     <a href="{% url 'details_view' sat_data.id %}" style="text-decoration: none; color: inherit;">
+        <div class="card">
+           <div class="card-body">
+              <h4 class="card-title"><i class="fa-solid fa-satellite"></i> SatData: '{{ sat_data.name }}'</h4>
+              <p class="card-text">
+              <div class="container">
+                 <div class="row">
+                    <!-- Attributes -->
+                    <div class="col">
+                       <strong>ID:</strong> {{ sat_data.id }}<br />
+                       <strong>Mission:</strong> {{ sat_data.mission|capfirst }}<br />
+                       <strong>Product Type:</strong> {{ sat_data.product_type|upper }}<br />
+                       <strong>User:</strong> {{ sat_data.user.username|lower }}<br />
+                       <strong>Creation Time:</strong> {{ sat_data.creation_time }}<br />
                     </div>
+                    <!-- Thumbnail -->
+                    <div class="col-md-6">
+                     {% if sat_data.thumbnail %}
+                     <p class="card-text">
+                        <img src="{{ sat_data.thumbnail.url }}" alt="Thumbnail {{ sat_data.id }}" class="img-thumbnail" style="width:auto;height:300px;object-fit: contain;" />
+                     </p>
+                     {% endif %}
                   </div>
-                </p>
-                <!-- Action buttons -->
-                <a href="{% url 'details_view' sat_data.id %}" class="btn btn-success"><i class="fa-solid fa-circle-info"></i></a>
-                <a href="{% url 'details_view' sat_data.id %}" class="btn btn-outline-info"><i class="fa-solid fa-pen-to-square"></i></a>
-                <a href="{% url 'details_view' sat_data.id %}" class="btn btn-outline-danger"><i class="fa-solid fa-trash"></i></a>
+                 </div>
               </div>
-            </div>
-          </a>
-        {% endfor %}
-      </div>
-    {% else %}
-      <h2 class="text-center mt-4">No satellite data entries...</h2>
-    {% endif %}
+              </p>
+              <!-- Action buttons -->
+     <a href="{% url 'details_view' sat_data.id %}" class="btn btn-success"><i class="fa-solid fa-circle-info"></i></a>
+     <a href="{% url 'details_view' sat_data.id %}" class="btn btn-outline-info"><i class="fa-solid fa-pen-to-square"></i></a>
+     <a href="{% url 'details_view' sat_data.id %}" class="btn btn-outline-danger"><i class="fa-solid fa-trash"></i></a>
+     </div>
+     </div>
+     </a>
+     {% endfor %}
   </div>
+  {% else %}
+  <!-- No SatData objects available-->
+  <h2 class="text-center mt-4">No SatData entries... <i class="fa-solid fa-face-sad-tear"></i></h2>
+  {% endif %}
+</div>
 
-  <!-- Add Button -->
-  <div class="row" style="padding: 10px;">
-    <a href="{% url 'upload_view' %}" class="btn btn-primary">Add new entry</a>
+   </div>
+
+   <!-- TimeSeries: Tab content -->
+   <div class="tab-pane fade" id="time-series" role="tabpanel" aria-labelledby="time-series-tab">
+      <!-- TimeSeries: Search bar and filter -->
+      <form method="GET" action="{% url 'overview_view' %}">
+         <div class="form-group">
+            <label for="nameInput">Name</label>
+            <input type="text" class="form-control" name="search" id="nameInput" placeholder="Search TimeSeries by name" value="{{ search_query }}">
+         </div>
+         <div class="form-group">
+            <label for="missionControl">Mission</label>
+            <select class="form-control" name="mission" id="missionControl">
+            <option value="" {% if not mission_query %}selected{% endif %}>All</option>
+            <option value="sentinel-1a" {% if mission_query == 'sentinel-1a' %}selected{% endif %}>Sentinel-1A</option>
+            <option value="sentinel-1b" {% if mission_query == 'sentinel-1b' %}selected{% endif %}>Sentinel-1B</option>
+            <option value="sentinel-2a" {% if mission_query == 'sentinel-2a' %}selected{% endif %}>Sentinel-2A</option>
+            <option value="sentinel-2b" {% if mission_query == 'sentinel-2b' %}selected{% endif %}>Sentinel-2B</option>
+            <option value="sentinel-3a" {% if mission_query == 'sentinel-3a' %}selected{% endif %}>Sentinel-3A</option>
+            <option value="sentinel-3b" {% if mission_query == 'sentinel-3b' %}selected{% endif %}>Sentinel-3B</option>
+            <option value="sentinel-5p" {% if mission_query == 'sentinel-5p' %}selected{% endif %}>Sentinel-5P</option>
+            <option value="landsat-1" {% if mission_query == 'landsat-1' %}selected{% endif %}>Landsat-1</option>
+            <option value="landsat-2" {% if mission_query == 'landsat-1' %}selected{% endif %}>Landsat-2</option>
+            <option value="landsat-3" {% if mission_query == 'landsat-1' %}selected{% endif %}>Landsat-3</option>
+            <option value="unknown" {% if mission_query == 'unknown' %}selected{% endif %}>Unknown Mission</option>
+            </select>
+         </div>
+         <div class="form-group">
+            <label for="productTypeControl">Product Type</label>
+            <select class="form-control" name="product_type" id="productTypeControl">
+            <option value="" {% if not prod_type_query %}selected{% endif %}>All</option>
+            <option value="grd" {% if prod_type_query == 'grd' %}selected{% endif %}>GRD</option>
+            <option value="grd-cog" {% if prod_type_query == 'grd-cog' %}selected{% endif %}>GRD-COG</option>
+            <option value="ocn" {% if prod_type_query == 'ocn' %}selected{% endif %}>OCN</option>
+            <option value="raw" {% if prod_type_query == 'raw' %}selected{% endif %}>RAW</option>
+            <option value="slc" {% if prod_type_query == 'slc' %}selected{% endif %}>SLC</option>
+            <option value="unknown" {% if prod_type_query == 'unknown' %}selected{% endif %}>Unknown Product Type</option>
+            </select>
+         </div>
+         <button type="submit" class="btn btn-primary">Search <i class="fa-solid fa-magnifying-glass"></i></button>
+      </form>
+
+      <!-- TimeSeries: Show entries -->
+<div style="overflow-y: scroll; max-height: 1000px;">
+  {% if time_series_entries %}
+  <div class="card-columns">
+     {% for time_series in time_series_entries %}
+     <!-- Display satellite data entry -->
+     <a href="{% url 'details_view' time_series.id %}" style="text-decoration: none; color: inherit;">
+        <div class="card">
+           <div class="card-body">
+              <h4 class="card-title"><i class="fa-solid fa-images"></i> TimeSeries: '{{ time_series.name }}'</h4>
+              <p class="card-text">
+              <div class="container">
+                 <div class="row">
+                    <!-- Attributes -->
+                    <div class="col-md-6">
+                       <strong>ID:</strong> {{ time_series.id }}<br />
+                       <strong>Mission:</strong> {{ time_series.mission|capfirst }}<br />
+                       <strong>Product Type:</strong> {{ time_series.product_type|upper }}<br />
+                       <strong>Creation Time:</strong> {{ time_series.creation_time }}<br />
+                    </div>
+                    <!-- Thumbnail -->
+                    <div class="col-md-6">
+                       {% if time_series.thumbnail %}
+                       <p class="card-text">
+                          <img src="{{ time_series.thumbnail.url }}" alt="Thumbnail {{ time_series.id }}" class="img-thumbnail" style="width:auto;height:300px;object-fit: contain;" />
+                       </p>
+                       {% endif %}
+                    </div>
+                 </div>
+              </div>
+              </p>
+              <!-- Action buttons -->
+     <a href="{% url 'details_view' time_series.id %}" class="btn btn-success"><i class="fa-solid fa-circle-info"></i></a>
+     <a href="{% url 'details_view' time_series.id %}" class="btn btn-outline-info"><i class="fa-solid fa-pen-to-square"></i></a>
+     <a href="{% url 'details_view' time_series.id %}" class="btn btn-outline-danger"><i class="fa-solid fa-trash"></i></a>
+     </div>
+     </div>
+     </a>
+     {% endfor %}
   </div>
+  {% else %}
+  <!-- No TimeSeries entries available -->
+  <h2 class="text-center mt-4">No TimeSeries entries... <i class="fa-solid fa-face-sad-tear"></i></h2>
+  {% endif %}
+</div>
+
+   </div>
+</div>
+
+<!-- Add Button -->
+<div class="row" style="padding: 10px;">
+   <a href="{% url 'upload_view' %}" class="btn btn-outline-primary">Add new entry <i class="fa-solid fa-plus"></i></a>
+</div>
 {% endblock %}

@@ -209,8 +209,14 @@ class PathFinder():
         if self.product_type == S2BProdType.MSIL1C.value:
             # Custom quick look
             logger.debug(f"Product type '{self.product_type}' has custom quick look image file.")
-            archive_name_without_safe = os.path.basename(self.extracted_path).replace(".SAFE", "")
-            thumbnail_path = f"{archive_name_without_safe}-ql.jpg"
+            archive_name_without_end = os.path.basename(self.extracted_path).split('.')[0]
+            thumbnail_path = f"{archive_name_without_end}-ql.jpg"
+        if self.product_type == S1AProdType.OCN.value:
+            # "quick-look-lw-___.png"
+            # owi and rvl available, will use owi
+            logger.debug(f"Product type '{self.product_type}' has custom quick look image file.")
+            archive_name_without_end = os.path.basename(self.extracted_path).split('.')[0]
+            thumbnail_path = f"preview/quick-look-l2-owi.png"
         elif self.product_type in self.has_quick_look_img_prod_types:
             # 'quick-look' image
             logger.debug(f"Product type '{self.product_type}' has 'quick-look.png' image file.")
