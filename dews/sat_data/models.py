@@ -52,7 +52,7 @@ def get_dews_user():
     return User.objects.get_or_create(username=DB_USER)
 
 
-class TimeSeries(models.Model):
+class TimeTravel(models.Model):
     # Attributes
     id = models.UUIDField(primary_key=True,
                           default=uuid.uuid4,
@@ -68,7 +68,7 @@ class TimeSeries(models.Model):
     thumbnail = models.ImageField(max_length=255,
                                   null=True,
                                   blank=True,
-                                  upload_to=f"time_series/{mission}/{id}/thumbnail",
+                                  upload_to=f"time_travel/{mission}/{id}/thumbnail",
                                   verbose_name="Thumbnail",
                                   storage=OverwriteStorage())
     coordinates = models.PolygonField(blank=True,
@@ -154,7 +154,7 @@ class SatData(models.Model):
     user = models.ForeignKey(
         User, on_delete=models.SET_NULL, null=True, blank=True, default=get_dews_user)
 
-    time_series = models.ForeignKey(TimeSeries, on_delete=models.CASCADE,
+    time_travels = models.ForeignKey(TimeTravel, on_delete=models.CASCADE,
                                     related_name='sat_data', null=True, blank=True)
 
     # Meta data
@@ -163,7 +163,7 @@ class SatData(models.Model):
         ordering = ["-creation_time"]  # descending order
 
     def get_absolute_url(self):
-        return reverse("sat_data:details_view", kwargs={"sat_data_id": self.id})
+        return reverse("sat_data:sat_data_details_view", kwargs={"sat_data_id": self.id})
 
     # Methods
     @staticmethod

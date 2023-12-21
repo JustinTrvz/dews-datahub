@@ -144,8 +144,8 @@
       </div>
 
       <a href="{{ sat_data.archive.url }}" download="{{ sat_data.archive.name }}" download class="btn btn-primary">Archive <i class="fa-solid fa-download"></i></a>
-      <a href="{% url 'details_view' sat_data.id %}" class="btn btn-outline-info">Edit <i class="fa-solid fa-pen-to-square"></i></a>
-      <a href="{% url 'details_view' sat_data.id %}" class="btn btn-outline-danger">Delete <i class="fa-solid fa-trash"></i></a>
+      <a href="{% url 'sat_data_details_view' sat_data.id %}" class="btn btn-outline-info">Edit <i class="fa-solid fa-pen-to-square"></i></a>
+      <a href="{% url 'sat_data_details_view' sat_data.id %}" class="btn btn-outline-danger">Delete <i class="fa-solid fa-trash"></i></a>
     </div>
   </div>
 

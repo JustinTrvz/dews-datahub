@@ -10,7 +10,7 @@ from sat_data.services.path_finder import PathFinder
 from sat_data.services.utils.file_utils import FileUtils
 from sat_data.enums.sat_mission import SatMission
 from sat_data.enums.sat_prod_type import S2BProdType, S3AProdType, S3BProdType
-from sat_data.models import AreaInfo, BandInfo, SatData, TimeSeries, remove_media_root
+from sat_data.models import AreaInfo, BandInfo, SatData, TimeTravel, remove_media_root
 from sat_data.enums.sat_prod_type import S1AProdType
 
 
@@ -105,7 +105,7 @@ class AttrAdder():
         logger.debug(f"Setting time series... sat_data.id='{self.id}'")
         # Check if time series with this mission, product type and coordinates already exists
         logger.debug("Checking if time series already exists...")
-        time_series = TimeSeries.objects.filter(
+        time_series = TimeTravel.objects.filter(
             mission=self.sat_data.mission,
             product_type=self.sat_data.product_type,
             coordinates=self.sat_data.coordinates,
@@ -115,12 +115,12 @@ class AttrAdder():
             # Use existing TimeSeries object as attribute
             logger.debug(
                 f"Found TimeSeries object. sat_data.id='{self.id}', time_series='{time_series}'")
-            self.sat_data.time_series = time_series
+            self.sat_data.time_travels = time_series
         else:
             # Create new TimeSeries object
             logger.debug(
                 f"Create new TimeSeries object. sat_data.id='{self.id}'")
-            time_series = TimeSeries(
+            time_series = TimeTravel(
                 mission=self.sat_data.mission,
                 product_type=self.sat_data.product_type,
                 thumbnail=self.sat_data.thumbnail,
@@ -128,7 +128,7 @@ class AttrAdder():
                 leaflet_coordinates=self.sat_data.leaflet_coordinates,
             )
             time_series.save()  # must be saved to db before assignment
-            self.sat_data.time_series = time_series
+            self.sat_data.time_travels = time_series
 
     def set_capture_info(self):
         """ Sets capture info attribte in SatData object."""

@@ -14,7 +14,7 @@
 
 <!-- Add Button -->
 <div class="row" style="padding: 10px;">
-   <a href="{% url 'upload_view' %}" class="btn btn-outline-primary">Add new entry <i class="fa-solid fa-plus"></i></a>
+   <a href="{% url 'sat_data_upload_view' %}" class="btn btn-outline-primary">Add new entry <i class="fa-solid fa-plus"></i></a>
 </div>
 
 <!-- Tabs -->
@@ -23,7 +23,7 @@
     <button class="nav-link active" id="satellite-tab" data-bs-toggle="tab" data-bs-target="#satellite" type="button" role="tab" aria-controls="satellite" aria-selected="true">SatData ({{ sat_data_entries_count }}) </button>
   </li>
   <li class="nav-item" role="presentation">
-    <button class="nav-link" id="time-series-tab" data-bs-toggle="tab" data-bs-target="#time-series" type="button" role="tab" aria-controls="time-series" aria-selected="false">TimeSeries ({{ time_series_entries_count }})</button>
+    <button class="nav-link" id="time-travel-tab" data-bs-toggle="tab" data-bs-target="#time-travel" type="button" role="tab" aria-controls="time-travel" aria-selected="false">TimeTravel ({{ time_travel_entries_count }})</button>
   </li>
 </ul>
 
@@ -76,7 +76,7 @@
   <div class="card-columns">
      {% for sat_data in sat_data_entries %}
      <!-- Display satellite data entry -->
-     <a href="{% url 'details_view' sat_data.id %}" style="text-decoration: none; color: inherit;">
+     <a href="{% url 'sat_data_details_view' sat_data.id %}" style="text-decoration: none; color: inherit;">
         <div class="card">
            <div class="card-body">
               <h4 class="card-title"><i class="fa-solid fa-satellite"></i> SatData: '{{ sat_data.name }}'</h4>
@@ -103,9 +103,9 @@
               </div>
               </p>
               <!-- Action buttons -->
-     <a href="{% url 'details_view' sat_data.id %}" class="btn btn-success"><i class="fa-solid fa-circle-info"></i></a>
-     <a href="{% url 'details_view' sat_data.id %}" class="btn btn-outline-info"><i class="fa-solid fa-pen-to-square"></i></a>
-     <a href="{% url 'details_view' sat_data.id %}" class="btn btn-outline-danger"><i class="fa-solid fa-trash"></i></a>
+     <a href="{% url 'sat_data_details_view' sat_data.id %}" class="btn btn-success"><i class="fa-solid fa-circle-info"></i></a>
+     <a href="{% url 'sat_data_details_view' sat_data.id %}" class="btn btn-outline-info"><i class="fa-solid fa-pen-to-square"></i></a>
+     <a href="{% url 'sat_data_details_view' sat_data.id %}" class="btn btn-outline-danger"><i class="fa-solid fa-trash"></i></a>
      </div>
      </div>
      </a>
@@ -119,13 +119,13 @@
 
    </div>
 
-   <!-- TimeSeries: Tab content -->
-   <div class="tab-pane fade" id="time-series" role="tabpanel" aria-labelledby="time-series-tab">
-      <!-- TimeSeries: Search bar and filter -->
+   <!-- TimeTravel: Tab content -->
+   <div class="tab-pane fade" id="time-travel" role="tabpanel" aria-labelledby="time-travel-tab">
+      <!-- TimeTravel: Search bar and filter -->
       <form method="GET" action="{% url 'overview_view' %}">
          <div class="form-group">
             <label for="nameInput">Name</label>
-            <input type="text" class="form-control" name="search" id="nameInput" placeholder="Search TimeSeries by name" value="{{ search_query }}">
+            <input type="text" class="form-control" name="search" id="nameInput" placeholder="Search TimeTravel by name" value="{{ search_query }}">
          </div>
          <div class="form-group">
             <label for="missionControl">Mission</label>
@@ -159,31 +159,31 @@
          <button type="submit" class="btn btn-primary">Search <i class="fa-solid fa-magnifying-glass"></i></button>
       </form>
 
-      <!-- TimeSeries: Show entries -->
+      <!-- TimeTravel: Show entries -->
 <div style="overflow-y: scroll; max-height: 1000px;">
-  {% if time_series_entries %}
+  {% if time_travel_entries %}
   <div class="card-columns">
-     {% for time_series in time_series_entries %}
+     {% for time_travel in time_travel_entries %}
      <!-- Display satellite data entry -->
-     <a href="{% url 'details_view' time_series.id %}" style="text-decoration: none; color: inherit;">
+     <a href="{% url 'time_travel_details_view' time_travel.id %}" style="text-decoration: none; color: inherit;">
         <div class="card">
            <div class="card-body">
-              <h4 class="card-title"><i class="fa-solid fa-images"></i> TimeSeries: '{{ time_series.name }}'</h4>
+              <h4 class="card-title"><i class="fa-solid fa-images"></i> TimeTravel: '{{ time_travel.name }}'</h4>
               <p class="card-text">
               <div class="container">
                  <div class="row">
                     <!-- Attributes -->
                     <div class="col-md-6">
-                       <strong>ID:</strong> {{ time_series.id }}<br />
-                       <strong>Mission:</strong> {{ time_series.mission|capfirst }}<br />
-                       <strong>Product Type:</strong> {{ time_series.product_type|upper }}<br />
-                       <strong>Creation Time:</strong> {{ time_series.creation_time }}<br />
+                       <strong>ID:</strong> {{ time_travel.id }}<br />
+                       <strong>Mission:</strong> {{ time_travel.mission|capfirst }}<br />
+                       <strong>Product Type:</strong> {{ time_travel.product_type|upper }}<br />
+                       <strong>Creation Time:</strong> {{ time_travel.creation_time }}<br />
                     </div>
                     <!-- Thumbnail -->
                     <div class="col-md-6">
-                       {% if time_series.thumbnail %}
+                       {% if time_travel.thumbnail %}
                        <p class="card-text">
-                          <img src="{{ time_series.thumbnail.url }}" alt="Thumbnail {{ time_series.id }}" class="img-thumbnail" style="width:auto;height:300px;object-fit: contain;" />
+                          <img src="{{ time_travel.thumbnail.url }}" alt="Thumbnail {{ time_travel.id }}" class="img-thumbnail" style="width:auto;height:300px;object-fit: contain;" />
                        </p>
                        {% endif %}
                     </div>
@@ -191,17 +191,17 @@
               </div>
               </p>
               <!-- Action buttons -->
-     <a href="{% url 'details_view' time_series.id %}" class="btn btn-success"><i class="fa-solid fa-circle-info"></i></a>
-     <a href="{% url 'details_view' time_series.id %}" class="btn btn-outline-info"><i class="fa-solid fa-pen-to-square"></i></a>
-     <a href="{% url 'details_view' time_series.id %}" class="btn btn-outline-danger"><i class="fa-solid fa-trash"></i></a>
+     <a href="{% url 'time_travel_details_view' time_travel.id %}" class="btn btn-success"><i class="fa-solid fa-circle-info"></i></a>
+     <a href="{% url 'time_travel_details_view' time_travel.id %}" class="btn btn-outline-info"><i class="fa-solid fa-pen-to-square"></i></a>
+     <a href="{% url 'time_travel_details_view' time_travel.id %}" class="btn btn-outline-danger"><i class="fa-solid fa-trash"></i></a>
      </div>
      </div>
      </a>
      {% endfor %}
   </div>
   {% else %}
-  <!-- No TimeSeries entries available -->
-  <h2 class="text-center mt-4">No TimeSeries entries... <i class="fa-solid fa-face-sad-tear"></i></h2>
+  <!-- No TimeTravel entries available -->
+  <h2 class="text-center mt-4">No TimeTravel entries... <i class="fa-solid fa-face-sad-tear"></i></h2>
   {% endif %}
 </div>
 
@@ -210,6 +210,6 @@
 
 <!-- Add Button -->
 <div class="row" style="padding: 10px;">
-   <a href="{% url 'upload_view' %}" class="btn btn-outline-primary">Add new entry <i class="fa-solid fa-plus"></i></a>
+   <a href="{% url 'sat_data_upload_view' %}" class="btn btn-outline-primary">Add new entry <i class="fa-solid fa-plus"></i></a>
 </div>
 {% endblock %}
