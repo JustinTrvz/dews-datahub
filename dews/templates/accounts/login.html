@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+  <div style="margin-top: 30px;">
+    <!-- Sign in -->
+    <div class="row">
+      <h3 class="display-6 text-center">Login</h3>
+
+      <div class="col-md-4"></div>
+      <div class="col-md-4 align-self-center">
+        <form method="POST">
+          {% csrf_token %}
+          <div>
+            <label>Username</label>
+            <input type="text" name="username" placeholder="Username" />
+          </div>
+          <div>
+            <label>Password</label>
+            <input type="password" name="password" placeholder="Password" />
+          </div>
+          <button type="submit" class="btn btn-success">Login</button>
+        </form>
+      </div>
+    </div>
+    <div class="col-md-4"></div>
+
+    {% if error %}
+      <div class="alert alert-danger" role="alert">{{ error }}</div>
+    {% endif %}
+
+    <!-- Sign up -->
+    <div class="row">
+      <h3 class="display-6 text-center">Register</h3>
+      <div class="col-md-4"></div>
+      <div class="col-md-4 align-self-center">
+        <p>No account? Create one!</p>
+        <a href="{% url 'register_view' %}" class="btn btn-outline-success">Register here</a>
+        <p class="mt-5 mb-3 text-muted">&copy; 2023-{% now 'Y' %}</p>
+      </div>
+      <div class="col-md-4"></div>
+    </div>
+  </div>
+{% endblock %}

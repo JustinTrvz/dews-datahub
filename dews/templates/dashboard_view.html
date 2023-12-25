@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}DEWS DataHub - Dashboard{% endblock %}
+
+
+{% block content %}
+  <section class="jumbotron text-center">
+    <div class="container pt-1 pb-1">
+      <h1 class="display-4 font-italic text-center">Dashboard</h1>
+      <p class="lead text-muted">Statistics about the DEWS-DataHub.</p>
+    </div>
+  </section>
+  <hr class="light-100" />
+
+  <div class="container">
+    <div class="row">
+      <div class="col-md-6">
+        <h2>Statistics:</h2>
+        <ul class="list-group">
+          <li class="list-group-item">
+            <i class="fa-solid fa-satellite-dish"></i> <strong>Total Sat Data Entries:</strong> {{ total_sat_data }}
+          </li>
+          <li class="list-group-item">
+            <i class="fa-solid fa-user"></i> <strong>Total Users:</strong> {{ total_users }}
+          </li>
+        </ul>
+      </div>
+      <div class="col-md-6">
+        <h2>Quick Links:</h2>
+        <ul class="list-group">
+          <li class="list-group-item">
+            <a href="{% url 'overview_view' %}"><i class="fa-solid fa-table-columns"></i> Satellite Data Overview</a>
+          </li>
+          <li class="list-group-item">
+            <a href="{% url 'sat_data_upload_view' %}"><i class="fa-solid fa-upload"></i> Upload Satellite Data</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add any additional HTML content or scripts here -->
+{% endblock %}

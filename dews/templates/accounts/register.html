@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}DEWS DataHub - Sign Up{% endblock %}
+
+{% block content %}
+  <form method="post" action="{% url 'register_view' %}">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Sign up</button>
+  </form>
+{% endblock %}

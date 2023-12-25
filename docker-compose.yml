@@ -1,60 +1,74 @@
 version: '3'
+
 services:
-  python:
-    image: dews-python:latest
-    container_name: python-container
-    networks:
-      dews-network:
-        ipv4_address: 172.19.0.2
+  dews:
+    image: dews:latest
+    container_name: dews
     build:
       context: .
-      dockerfile: docker/backend/Dockerfile.python
-    working_dir: /app/backend
-    command: venv/bin/python3 /app/backend/main.py
+    working_dir: /app/dews
     volumes:
-      - ./backend/backend.log:/app/backend/backend.log
-      - ./backend/tmp:/app/backend/tmp
+      - ./dews/:/app/dews/ # for development purposes
+      - ./dews/django.log:/app/dews/django.log
+      - static:/dews/static # "static" is a Docker volume
+      - media:/dews/media # "media" is a Docker volume
+    env_file:
+      - .env
     ports:
-      - "5000:5000"
+      - "8000:8000"
+    expose:
+      - "8000"
+    depends_on:
+      - dews-db
 
-  firebase:
-    image: dews-firebase:latest
-    container_name: firebase-container
-    networks:
-      dews-network:
-        ipv4_address: 172.19.0.3
-    build:
-      context: .
-      dockerfile: docker/database/Dockerfile.firebase
-    working_dir: /app/backend
-    command: firebase emulators:start --import ./firebase_data
+  nginx:
+    container_name: dews-nginx
+    build: ./nginx
+    volumes: 
+      - static:/static # "static" is a Docker volume
+      - media:/media # "media" is a Docker volume
     ports:
-      - "4000:4000"
-      - "5001:5001"
-      - "9000:9000"
-      - "9099:9099"
-      - "9199:9199"
+      - "80:80"
+    depends_on:
+      - dews
 
-  flutter:
-    image: dews-flutter:latest
-    container_name: flutter-container
-    networks:
-      dews-network:
-        ipv4_address: 172.19.0.4
-    build:
-      context: .
-      dockerfile: docker/frontend/Dockerfile.flutter
-    working_dir: /app/frontend
-    command: "flutter run -d web-server --web-hostname 0.0.0.0 --web-port 80"
+  dews-db:
+    image: postgis/postgis:latest
+    container_name: dews-db
+    environment:
+      POSTGRES_DB: dews
+      POSTGRES_USER: dews
+      POSTGRES_PASSWORD: dews
+      PGDATA: /var/lib/postgresql/data/pgdat
     ports:
-      - "80:80" 
+      - 5432:5432
+    volumes:
+      - ./db.sql:/docker-entrypoint-initdb.d/db.sql
+      - ./pgdata:/var/lib/postgresql/data
 
-networks:
-  dews-network:
-    driver: bridge
-    driver_opts:
-      com.docker.network.bridge.name: dews-bridge
-    ipam:
-      driver: default
-      config:
-        - subnet: 172.19.0.0/16
+  # dews-db:
+  #   build:
+  #     context: ./postgis
+  #   environment:
+  #     POSTGRES_DB: dews
+  #     POSTGRES_USER: dews
+  #     POSTGRES_PASSWORD: dews
+  #   ports:
+  #     - "5432:5432"
+  #   volumes:
+  #     - ./db.sql:/docker-entrypoint-initdb.d/db.sql
+  #     - ./pgdata:/var/lib/postgresql/data
+
+  dews-db-gui:
+    image: dpage/pgadmin4:latest
+    environment:
+      PGADMIN_DEFAULT_EMAIL: dews@dews.de
+      PGADMIN_DEFAULT_PASSWORD: dews
+    ports:
+      - 5050:80
+    depends_on:
+      - dews-db
+
+volumes:
+  static:
+  media:
