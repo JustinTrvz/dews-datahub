@@ -70,6 +70,7 @@ S3A_OL_1_EFR...
 - EOP Metadata:
 - Img Metadata:
 - Thumbnail quicklook.jpg
+- .nc files
 
 ### OLCI - LV.1-ERR
 S3A_OL_1_ERR...
@@ -78,6 +79,7 @@ S3A_OL_1_ERR...
 - EOP Metadata:
 - Img Metadata:
 - Thumbnail quicklook.jpg
+- .nc files
 
 ### OLCI - LV.1-LFR
 S3A_OL_2_LFR...
@@ -86,6 +88,7 @@ S3A_OL_2_LFR...
 - EOP Metadata:
 - Img Metadata:
 - Thumbnail quicklook.jpg
+- .nc files
 
 ### OLCI - LV.1-LRR
 S3A_OL_2_LRR...
@@ -94,6 +97,7 @@ S3A_OL_2_LRR...
 - EOP Metadata:
 - Img Metadata:
 - Thumbnail quicklook.jpg
+- .nc files
 
 ### OLCI - LV.1-WFR
 S3A_OL_2_WFR...
@@ -102,6 +106,7 @@ S3A_OL_2_WFR...
 - EOP Metadata:
 - Img Metadata:
 - Thumbnail browse.jpg
+- .nc files
 
 ### OLCI - LV.1-WRR
 S3A_OL_2_WRR...
@@ -110,6 +115,7 @@ S3A_OL_2_WRR...
 - EOP Metadata:
 - Img Metadata:
 - Thumbnail browse.jpg
+- .nc files
 
 ## SLSTR
 ### SLSTR - LV.1-RBT
@@ -119,6 +125,7 @@ S3A_SL_1_RBT...
 - EOP Metadata:
 - Img Metadata:
 - Thumbnail quicklook.jpg
+- .nc files
 
 ### SLSTR - LV.2-AOD
 S3A_SL_2_AOD...
@@ -127,6 +134,7 @@ S3A_SL_2_AOD...
 - EOP Metadata: EOPMetadata.xml
 - Img Metadata:
 - Thumbnail browse.jpg
+- .nc files
 
 ### SLSTR - LV.2-FRP
 S3A_SL_2_FRP...
@@ -135,6 +143,7 @@ S3A_SL_2_FRP...
 - EOP Metadata: EOPMetadata.xml
 - Img Metadata: quicklook.jpg
 - Thumbnail browse.jpg
+- .nc files
 
 ### SLSTR - LV.2-LST
 S3A_SL_2_LST...
@@ -143,6 +152,7 @@ S3A_SL_2_LST...
 - EOP Metadata:
 - Img Metadata:
 - Thumbnail quicklook.jpg
+- .nc files
 
 ### SLSTR - LV.2-WST
 S3A_SL_2_WST...
@@ -151,7 +161,7 @@ S3A_SL_2_WST...
 - EOP Metadata: EOPMetadata.xml
 - Img Metadata:
 - Thumbnail browse.jpg
-
+- .nc files
 
 ## SRAL
 ### SRAL - LV.1-LAN
@@ -186,6 +196,7 @@ S3A_SY_2_SYN...
 - EOP Metadata:
 - Img Metadata:
 - Thumbnail quicklook.jpg
+- .nc files
 
 ### SYNERGY - LV.2-SY-V10
 S3A_SY_2_V10...
@@ -194,6 +205,7 @@ S3A_SY_2_V10...
 - EOP Metadata:
 - Img Metadata:
 - Thumbnail quicklook.jpg
+- .nc files
 
 ### SYNERGY - LV.2-SY-VGP
 S3A_SY_2_VGP...
@@ -202,6 +214,7 @@ S3A_SY_2_VGP...
 - EOP Metadata:
 - Img Metadata:
 - Thumbnail
+- .nc files
 
 # Sentinel-3B
 ## AOD

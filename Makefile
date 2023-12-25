@@ -51,8 +51,12 @@ docker-rm-images:
 	sudo docker rmi -f $(docker images -aq)
 	@echo "Removed all Docker images."
 
-docker-rm-all: docker-rm-container docker-rm-images
-	@echo "Removed all Docker container and images."
+docker-rm-cache:
+	docker buildx prune -f
+	@echo "Removed all Docker cache."
+
+docker-rm-all: docker-rm-container docker-rm-images docker-rm-cache
+	@echo "Removed all Docker container, images and cache."
 
 
 init-db:

@@ -1,5 +1,18 @@
 #!/bin/sh
 
+PG_HOST="dews-db"
+PG_PORT="5432"
+PG_DB="dews"
+PG_USER="dews"
+PG_PW="dews"
+# Wait for PostgreSQL to become available
+echo "Waiting for PostgreSQL to become available..."
+while ! PGPASSWORD="$PG_PW" psql -h "$PG_HOST" -U "$PG_USER" -p "$PG_PORT" -d "$PG_DB" -c 'SELECT 1' > /dev/null 2>&1
+do
+    echo "PostgreSQL is unavailable - sleeping"
+    sleep 1
+done
+
 # Create directory paths
 echo "Create directories..."
 

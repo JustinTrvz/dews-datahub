@@ -31,8 +31,10 @@ class SatMission(Enum):
         if "S1A" in file_basename:
             return SatMission.SENTINEL_1A.value
         if "S1B" in file_basename:
-            return SatMission.SENTINEL_1A.value
+            return SatMission.SENTINEL_1B.value
         elif "S2A" in file_basename:
+            return SatMission.SENTINEL_2A.value
+        elif "S2B" in file_basename:
             return SatMission.SENTINEL_2B.value
         elif "S3A" in file_basename:
             return SatMission.SENTINEL_3A.value

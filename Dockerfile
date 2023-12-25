@@ -1,8 +1,13 @@
 # Base image that includes Python and GDAL
 FROM ghcr.io/osgeo/gdal:ubuntu-small-3.8.0
 
+ENV DEBIAN_FRONTEND noninteractive
+
 # Install OS packages
-RUN apt update && apt install -y \
+RUN apt update && apt install -y --no-install-recommends \
+    libpq-dev \
+    gcc \
+    build-essential \
     python3 \
     python3-pip \
     python3-dev \
@@ -12,9 +17,12 @@ RUN apt update && apt install -y \
     libpq-dev \
     rsync \
     wget \
+    postgis \
     postgresql-client \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
+
+ENV DEBIAN_FRONTEND teletype
 
 # Set working directory
 RUN mkdir -p /app

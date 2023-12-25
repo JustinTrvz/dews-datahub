@@ -79,7 +79,9 @@
      <a href="{% url 'sat_data_details_view' sat_data.id %}" style="text-decoration: none; color: inherit;">
         <div class="card">
            <div class="card-body">
-              <h4 class="card-title"><i class="fa-solid fa-satellite"></i> SatData: '{{ sat_data.name }}'</h4>
+              <h4 class="card-title"><i class="fa-solid fa-satellite"></i> SatData: '{{ sat_data.name }}' {% if sat_data.processing_done %}{% include "check-circle.svg" %}{% else %}<div class="spinner-border" role="status">
+               <span class="sr-only">In progress...</span>
+             </div>{% endif %}</h4>
               <p class="card-text">
               <div class="container">
                  <div class="row">
@@ -89,7 +91,7 @@
                        <strong>Mission:</strong> {{ sat_data.mission|capfirst }}<br />
                        <strong>Product Type:</strong> {{ sat_data.product_type|upper }}<br />
                        <strong>User:</strong> {{ sat_data.user.username|lower }}<br />
-                       <strong>Creation Time:</strong> {{ sat_data.creation_time }}<br />
+                       <strong>Creation Time:</strong> {{ sat_data.creation_time }}<br />                       
                     </div>
                     <!-- Thumbnail -->
                     <div class="col-md-6">

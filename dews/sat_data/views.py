@@ -54,6 +54,7 @@ def sat_data_details_view(request, sat_data_id):
         "version": VERSION,
         "sat_data": sat_data,
         "sat_data_geojson": None,
+        "title": sat_data.name,
     }
 
     # Create GeoJSON
@@ -229,9 +230,10 @@ def __extract_and_create(request, archive_path: str, logger: logging.Logger = No
             logger.debug(f"Added extracted path. sat_data.id='{sat_data.id}'")
 
             # Add attributes (like mission, product type, band img paths, ...)
-            logger.debug(f"Calling AttrAdder. sat_data.id='{sat_data.id}'")
+            logger.debug(f"Calling AttrAdder. sat_data.id='{sat_data.id}', extracted_path='{extracted_path}', mission='{mission}'")
             attr_adder = AttrAdder(sat_data, extracted_path, mission)
             attr_adder.start()
+            sat_data.processing_done = True
             logger.debug(f"AttrAdder done. sat_data.id='{sat_data.id}'")
 
             # Final save
@@ -243,7 +245,7 @@ def __extract_and_create(request, archive_path: str, logger: logging.Logger = No
             return
         except Exception as e:
             # Save failed
-            logging.error(
+            logger.error(
                 f"Failed to create, add attributes and save a SatData object. username='{request.user.username}', extracted_path='{extracted_path}', error='{e}'")
             return
     else:

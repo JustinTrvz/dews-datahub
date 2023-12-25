@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
+from pathlib import Path
 from os import getenv
 
 # DEWS application"s version
@@ -130,7 +131,9 @@ TEMPLATES = [
         "DIRS": [BASE_DIR / "templates",
                  BASE_DIR / "templates/base",
                  BASE_DIR / "templates/sat_data",
-                 BASE_DIR / "templates/accounts",],
+                 BASE_DIR / "templates/accounts",
+                 BASE_DIR / "templates/svg",
+                 ],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -229,4 +232,4 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # Login/Logout
 LOGIN_REDIRECT_URL = "/"
-LOGOUT_REDIRECT_URL = "/accounts/login/"
+LOGOUT_REDIRECT_URL = "/"

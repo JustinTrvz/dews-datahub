@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from sat_data.services.utils.dataset_utils import get_dataset
-from sat_data.models import SatData, BandInfo
+from sat_data.models import SatData, Band
 from sat_data.enums.sat_band import SatBand
 from sat_data.enums.idx_img_type import IdxImgType
 
@@ -65,7 +65,7 @@ class MetricsCalculator:
         :param l: L is the canopy background adjustment that addresses non-linear, differential NIR and red radiant transfer through a canopy.
         """
         # Get band info and image save location
-        band_info: BandInfo = sat_data.get_band_info(
+        band_info: Band = sat_data.get_band(
             SatBand.B02.value,
             SatBand.B04.value,
             SatBand.B8A.value
@@ -128,7 +128,7 @@ class MetricsCalculator:
         :param image_path_08:
         """
         # Get band info and image save location
-        band_info: BandInfo = sat_data.get_band_info(
+        band_info: Band = sat_data.get_band(
             SatBand.B03.value,
             SatBand.B08.value,
         )

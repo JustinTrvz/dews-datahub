@@ -2,7 +2,7 @@ import os
 import logging
 
 from sat_data.enums.sat_mission import SatMission
-from sat_data.enums.sat_prod_type import S1AProdType, S2BProdType, S3AProdType, S3BProdType
+from sat_data.enums.sat_prod_type import S1AProdType, S2AProdType, S2BProdType, S3AProdType, S3BProdType
 from sat_data.models import remove_media_root
 
 
@@ -17,7 +17,7 @@ class PathFinder():
     inspire_path = ""
     xfdu_manifest_path = ""
     eop_metadata_path = ""
-    img_metadata_path = ""
+    mtd_path = ""
     thumbnail_path = ""
 
     # Manifest
@@ -29,8 +29,8 @@ class PathFinder():
         S1AProdType.RAW.value,        
         S1AProdType.SLC.value,
         # Sentinel-2B
-        S2BProdType.MSIL1C.value,
-        S2BProdType.MSIL2A.value,
+        S2BProdType.S2MSI1C.value,
+        S2BProdType.S2MSI2A.value,
         # Sentinel-3A
         S3AProdType.OL_2_WFR.value,
         S3AProdType.OL_2_WRR.value,
@@ -42,8 +42,8 @@ class PathFinder():
     # Inspire
     has_inspire_prod_types = [
         # Sentinel-2B
-        S2BProdType.MSIL1C.value,
-        S2BProdType.MSIL2A.value,
+        S2BProdType.S2MSI1C.value,
+        S2BProdType.S2MSI2A.value,
     ]
 
     # Xfdu Manifest
@@ -79,8 +79,8 @@ class PathFinder():
     # Image Metadata
     has_img_metadata_prod_types = [
         # Sentinel-2B
-        S2BProdType.MSIL1C.value,
-        S2BProdType.MSIL2A.value,
+        S2BProdType.S2MSI1C.value,
+        S2BProdType.S2MSI2A.value,
     ]
 
     # Thumbnail
@@ -134,7 +134,7 @@ class PathFinder():
         self.__set_xfdu_manifest_path()
         self.__set_inspire_path()
         self.__set_eop_metadata_path()
-        self.__set_img_metadata_path()
+        self.__set_mtd_path()
         self.__set_thumbnail_path()
 
         # Create path dict
@@ -192,21 +192,24 @@ class PathFinder():
         # Set eop metadata path
         self.eop_metadata_path = remove_media_root(f"{self.extracted_path}/{eop_metadata_path}")
 
-    def __set_img_metadata_path(self):
+    def __set_mtd_path(self):
         """ Sets image metadata path in a dictionary."""
         if self.product_type in self.has_img_metadata_prod_types:
             logger.debug(f"Product type '{self.product_type}' has image metadata xml file.")
-            img_metadata_path = f"MTD_{self.product_type.upper()}.xml"
+            if self.product_type == S2AProdType.S2MSI1C.value or self.product_type == S2BProdType.S2MSI1C.value:
+                img_metadata_path = "MTD_MSIL1C.xml"
+            else:
+                img_metadata_path = "MTD_MSIL2A.xml"
         else:
             logger.debug(f"Product type '{self.product_type}' has no image metadata xml file.")
             return
 
         # Set img metadata path
-        self.img_metadata_path = remove_media_root(f"{self.extracted_path}/{img_metadata_path}")
+        self.mtd_path = remove_media_root(f"{self.extracted_path}/{img_metadata_path}")
 
     def __set_thumbnail_path(self):
         """ Sets thumbnail path in a dictionary."""
-        if self.product_type == S2BProdType.MSIL1C.value:
+        if self.product_type == S2BProdType.S2MSI1C.value:
             # Custom quick look
             logger.debug(f"Product type '{self.product_type}' has custom quick look image file.")
             archive_name_without_end = os.path.basename(self.extracted_path).split('.')[0]
@@ -247,6 +250,6 @@ class PathFinder():
             "inspire": self.inspire_path,
             "xfdu_manifest": self.xfdu_manifest_path,
             "eop_metadata": self.eop_metadata_path,
-            "img_metadata": self.img_metadata_path,
+            "mtd": self.mtd_path,
             "thumbnail": self.thumbnail_path,
         }

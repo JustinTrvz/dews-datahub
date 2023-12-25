@@ -30,11 +30,20 @@ class S1BProdType(Enum):
         """ Returns array containing all values. """
         return [e.value for e in S1BProdType]
 
+class S2AProdType(Enum):
+    UNKNOWN = "unknown"
+    S2MSI1C = "s2msi1c"
+    S2MSI2A = "s2msi2a"
+
+    @staticmethod
+    def get_all():
+        """ Returns array containing all values. """
+        return [e.value for e in S2AProdType]
 
 class S2BProdType(Enum):
     UNKNOWN = "unknown"
-    MSIL1C = "msil1c"
-    MSIL2A = "msil2a"
+    S2MSI1C = "s2msi1c"
+    S2MSI2A = "s2msi2a"
 
     @staticmethod
     def get_all():
