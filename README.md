@@ -120,41 +120,48 @@ A PostGIS Admin container `dews-db-gui` is started parallel to have an overview 
 | Sentinel-1A    | C-SAR      | Level-0 RAW     | `S1A_IW_RAW_0SDV_(...).SAFE.zip`      | ✅              |                                                                                    |
 |                |            | Level-1 SLC     | `S1A_IW_SLC__1SDV_(...).SAFE.zip`     | ✅              |                                                                                    |
 |                |            | Level-1 GRD     | `S1A_S1A_IW_GRDH_1SDV_(...).SAFE.zip` | ✅              |                                                                                    |
-|                |            | Level-1 GRD COG | `S1A_IW_GRDH_1SDV_(...).SAFE.zip`     | ✅              | `.dat` files                                                                        |
+|                |            | Level-1 GRD COG | `S1A_IW_GRDH_1SDV_(...).SAFE.zip`     | ✅              | `.dat` files                                                                       |
 |                |            | Level-2 OCN     | `S1A_IW_OCN_2SDV_(...).SAFE.zip`      | ✅              | `.nc` files                                                                        |
 | Sentinel-1B    |            |                 | ❓                                     | ❌              | No data found at [Dataspace Copernicus](https://dataspace.copernicus.eu/browser/). |
 
 | Satellite Type | Instrument | Data Level | Archive Naming Convention   | Support Status | Additional Info |
 | -------------- | ---------- | ---------- | --------------------------- | -------------- | --------------- |
-| Sentinel-2     | MSI L1C    |            | `S2B_MSIL1C_(...).SAFE.zip` | ✅              |                 |
+| Sentinel-2A    | MSI L1C    |            | `S2A_MSIL1C_(...).SAFE.zip` | ✅              |                 |
+|                | MSI L2A    |            | `S2A_MSIL2A_(...).SAFE.zip` | ✅              |                 |
+| Sentinel-2B    | MSI L1C    |            | `S2B_MSIL1C_(...).SAFE.zip` | ✅              |                 |
 |                | MSI L2A    |            | `S2B_MSIL2A_(...).SAFE.zip` | ✅              |                 |
 
-| Satellite Type | Instrument | Data Level     | Archive Naming Convention        | Support Status | Additional Info                                                                    |
-| -------------- | ---------- | -------------- | -------------------------------- | -------------- | ---------------------------------------------------------------------------------- |
-| Sentinel-3     | OLCI       | Level-1 EFR    | `S3A_OL_1_EFR____(...).SEN3.zip` | ✅              | `.nc` files                                                                        |
-|                |            | Level-1 ERR    | `S3A_OL_1_ERR____(...).SEN3.zip` | ✅              | `.nc` files                                                                        |
-|                |            | Level-2 LFR    | `S3A_OL_2_LFR____(...).SEN3.zip` | ✅              | `.nc` files                                                                        |
-|                |            | Level-2 LRR    | `S3A_OL_2_LRR____(...).SEN3.zip` | ✅              | `.nc` files                                                                        |
-|                |            | Level-2 WFR    | `S3A_OL_2_WFR____(...).SEN3.zip` | ✅              | `.nc` files                                                                        |
-|                |            | Level-2 WRR    | `S3A_OL_2_WRR____(...).SEN3.zip` | ✅              | `.nc` files                                                                        |
-|                | SRAL       | Level-1 SRA    | ❓                                | ❌              | No data found at [Dataspace Copernicus](https://dataspace.copernicus.eu/browser/). |
-|                |            | Level-1 SRA_A  | ❓                                | ❌              | No data found at [Dataspace Copernicus](https://dataspace.copernicus.eu/browser/). |
-|                |            | Level-1 SRA_BS | ❓                                | ❌              | No data found at [Dataspace Copernicus](https://dataspace.copernicus.eu/browser/). |
-|                |            | Level-2 LAN    | ❓                                | ❌              | No data found at [Dataspace Copernicus](https://dataspace.copernicus.eu/browser/). |
-|                |            | Level-2 WAT    | ❓                                | ❌              | No data found at [Dataspace Copernicus](https://dataspace.copernicus.eu/browser/). |
-|                |            | Level-2 LAN_HY | ❓                                | ❌              | No data found at [Dataspace Copernicus](https://dataspace.copernicus.eu/browser/). |
-|                |            | Level-2 LAN_SI | ❓                                | ❌              | No data found at [Dataspace Copernicus](https://dataspace.copernicus.eu/browser/). |
-|                |            | Level-2 LAN_LI | ❓                                | ❌              | No data found at [Dataspace Copernicus](https://dataspace.copernicus.eu/browser/). |
-|                | SLSTR      | Level-1 RBT    | `S3A_SL_1_RBT____(...).SEN3.zip` | ✅              | `.nc` files                                                                        |
-|                |            | Level-2 AOD    | `S3A_SL_2_AOD____(...).SEN3.zip` | ✅              | `.nc` files                                                                        |
-|                |            | Level-2 FRP    | `S3A_SL_2_FRP____(...).SEN3.zip` | ✅              | `.nc` files                                                                        |
-|                |            | Level-2 LST    | `S3A_SL_2_LST____(...).SEN3.zip` | ✅              | `.nc` files                                                                        |
-|                |            | Level-2 WST    | `S3A_SL_2_WST____(...).SEN3.zip` | ✅              | `.nc` files                                                                        |
-|                | SYNERGY    | Level-2 SY_AOD | `S3B_SY_2_AOD____(...).SEN3.zip` | ✅              | `.nc` files                                                                        |
-|                |            | Level-2 SY_SYN | `S3B_SY_2_SYN____(...).SEN3.zip` | ✅              | `.nc` files                                                                        |
-|                |            | Level-2 SY_V10 | `S3B_SY_2_V10____(...).SEN3.zip` | ✅              | `.nc` files                                                                        |
-|                |            | Level-2 SY_VG1 | `S3B_SY_2_VG1____(...).SEN3.zip` | ✅              | `.nc` files                                                                        |
-|                |            | Level-2 SY_VGP | `S3B_SY_2_VGP____(...).SEN3.zip` | ✅              | `.nc` files                                                                        |
+| Satellite Type | Instrument | Data Level     | Archive Naming Convention           | Support Status | Additional Info                                                                    |
+| -------------- | ---------- | -------------- | ----------------------------------- | -------------- | ---------------------------------------------------------------------------------- |
+| Sentinel-3A    | OLCI       | Level-1 EFR    | `S3A_OL_1_EFR____(...).SEN3.zip`    | ✅              | `.nc` files                                                                        |
+|                |            | Level-1 ERR    | `S3A_OL_1_ERR____(...).SEN3.zip`    | ✅              | `.nc` files                                                                        |
+|                |            | Level-2 LFR    | `S3A_OL_2_LFR____(...).SEN3.zip`    | ✅              | `.nc` files                                                                        |
+|                |            | Level-2 LRR    | `S3A_OL_2_LRR____(...).SEN3.zip`    | ✅              | `.nc` files                                                                        |
+|                |            | Level-2 WFR    | `S3A_OL_2_WFR____(...).SEN3.zip`    | ✅              | `.nc` files                                                                        |
+|                |            | Level-2 WRR    | `S3A_OL_2_WRR____(...).SEN3.zip`    | ✅              | `.nc` files                                                                        |
+|                | SRAL       | Level-1 SRA    | ❓                                   | ❌              | No data found at [Dataspace Copernicus](https://dataspace.copernicus.eu/browser/). |
+|                |            | Level-1 SRA_A  | ❓                                   | ❌              | No data found at [Dataspace Copernicus](https://dataspace.copernicus.eu/browser/). |
+|                |            | Level-1 SRA_BS | ❓                                   | ❌              | No data found at [Dataspace Copernicus](https://dataspace.copernicus.eu/browser/). |
+|                |            | Level-2 LAN    | ❓                                   | ❌              | No data found at [Dataspace Copernicus](https://dataspace.copernicus.eu/browser/). |
+|                |            | Level-2 WAT    | ❓                                   | ❌              | No data found at [Dataspace Copernicus](https://dataspace.copernicus.eu/browser/). |
+|                |            | Level-2 LAN_HY | ❓                                   | ❌              | No data found at [Dataspace Copernicus](https://dataspace.copernicus.eu/browser/). |
+|                |            | Level-2 LAN_SI | ❓                                   | ❌              | No data found at [Dataspace Copernicus](https://dataspace.copernicus.eu/browser/). |
+|                |            | Level-2 LAN_LI | ❓                                   | ❌              | No data found at [Dataspace Copernicus](https://dataspace.copernicus.eu/browser/). |
+|                | SLSTR      | Level-1 RBT    | `S3A_SL_1_RBT____(...).SEN3.zip`    | ✅              | `.nc` files                                                                        |
+|                |            | Level-2 AOD    | `S3A_SL_2_AOD____(...).SEN3.zip`    | ✅              | `.nc` files                                                                        |
+|                |            | Level-2 FRP    | `S3A_SL_2_FRP____(...).SEN3.zip`    | ✅              | `.nc` files                                                                        |
+|                |            | Level-2 LST    | `S3A_SL_2_LST____(...).SEN3.zip`    | ✅              | `.nc` files                                                                        |
+|                |            | Level-2 WST    | `S3A_SL_2_WST____(...).SEN3.zip`    | ✅              | `.nc` files                                                                        |
+|                | SYNERGY    | Level-2 SY_SYN | `S3A_SY_2_SYN____(...).SEN3.zip`    | ✅              | `.nc` files                                                                        |
+|                |            | Level-2 SY_V10 | `S3A_SY_2_V10____(...).SEN3.zip`    | ✅              | `.nc` files                                                                        |
+|                |            | Level-2 SY_VGP | `S3A_SY_2_VGP____(...).SEN3.zip`    | ✅              | `.nc` files                                                                        |
+| Sentinel-3B    | AOD        |                | `S3B_SY_2_AOD____(...).SEN3.zip`    | ✅              | `.nc` files                                                                        |
+|                | AUX        |                | `S3B_SR___ROE_AX____(...).SEN3.zip` | ✅              | `.nc` files                                                                        |
+|                | OLCI       |                | `S3B_OL_1_ERR____(...).SEN3.zip`    | ✅              | `.nc` files                                                                        |
+|                | SLSTR      |                | `S3B_SL_2_LST____(...).SEN3.zip`    | ✅              | `.nc` files                                                                        |
+|                | SYNERGY    | Level-2-SY-VG1 | `S3B_SY_2_VG1____(...).SEN3.zip`    | ✅              | `.nc` files                                                                        |
+|                |            | Level-2-SY-VGP | `S3B_SY_2_VGP____(...).SEN3.zip`    | ✅              | `.nc` files                                                                        |
+
 
 | Satellite Type | Instrument | Data Level | Archive Naming Convention | Support Status | Additional Info                                                                                        |
 | -------------- | ---------- | ---------- | ------------------------- | -------------- | ------------------------------------------------------------------------------------------------------ |
