@@ -175,10 +175,10 @@ A PostGIS Admin container `dews-db-gui` is started parallel to have an overview 
 5. Draw an area around the area of your interest.
 6. Select the tab `Search` on the left side panel.
 7. Select the satellite mission and the product type of your desire.
-  - *e.g Sentinel-2 -> MSI -> L2A*
+    - *e.g Sentinel-2 -> MSI -> L2A*
 8. It is recommended to recude the cloud coverage to maximum 10%.
 9. Choose the time range of your desire.
-  - *e.g. 2023-11-01 - 2023-11-08*
+    - *e.g. 2023-11-01 - 2023-11-08*
 10. Click on search.
 11. Hover over an entry and a green area is shown on the map which the hovered dataset will represent.
 12. Select the entry of your desire and download it using the download button in the bottom right corner of the entry.
