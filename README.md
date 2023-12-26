@@ -46,7 +46,7 @@ Please be patient! The process cannot be sped up since the official PostGIS scri
 
 ## DataHub Web App
 ### Description
-On the [datahub's upload page]([http](http://0.0.0.0/sat_data/upload/)) you can upload official satellite dataset archives that were downloaded from a [supported satellite data source](#supported-satellite-data-sources) (*e.g. Dataspace Copernicus*)
+On the [datahub's upload page]([http](http://0.0.0.0/sat_data/upload/)) you can upload official satellite dataset archives that were downloaded from a [supported satellite data source](#supported-satellite-data-sources) (*e.g. Dataspace Copernicus*).
 
 After you have downloaded a satellite dataset you can upload the ZIP archive and let the system process the data.
 
@@ -61,8 +61,6 @@ So far the system shows the following data:
      - *e.g. `/dews/media/sat_data/extracted/<mission>/<archive_name>`*
    - Metadata files `manifest.safe`, `MTD_*.xml`, `INSPIRE.xml` and/or `xfdumanifest.xml`
    - Thumbnail image (*if available*)
-   - Indicies and index images
-     - *e.g. NDVI, EVI, ...*
    - Band table names in PostGIS database
      - *e.g. `3ed72523-fa4c-447b-b5db-19020d17a7ce_b02_r10m`*
 
@@ -84,7 +82,7 @@ A PostGIS Admin container `dews-db-gui` is started parallel to have an overview 
 1. Visit the [SatData overview tab](http://0.0.0.0/sat_data/overview/).
 2. Select an entry whose bands/raster you want to import.
 3. Scroll down to `Band Tables`.
-4. Choose the table containing the raster you want to import.
+4. Copy the table name containing the raster you want to import.
     - *e.g. `3ed72523-fa4c-447b-b5db-19020d17a7ce_b02_r10m`* 
 6. Open QGIS.
 7. Select `Layer` > `Add Layer` > `Add Raster Layer`.
@@ -93,7 +91,7 @@ A PostGIS Admin container `dews-db-gui` is started parallel to have an overview 
     - **Database:** `dews`
     - **User:** `dews`
     - **Password:** `dews`  
-10. You can use the `Search options` option in the bottom or search manually.   
+10. You can use the `Search options` option in the bottom and copy the copied table name or search the table manually.   
     - **HINT:** All tables are located in the `public` schema!
 
 ## Satellite images
@@ -170,16 +168,17 @@ A PostGIS Admin container `dews-db-gui` is started parallel to have an overview 
 
 ## Download satellite datasets manually
 ### Dataspace Copernicus
-For a video tutorial see this [YouTube video](https://www.youtube.com/watch?v=sMax7wkUrlI).
 1. Open [Dataspace Copernicus](https://dataspace.copernicus.eu/browser/).
-2. Login with your account or register first.
-3. Select the selection tool on the right side.
-4. Select your desired area on the map.
-5. Click on the top left on the burger menu to open the advanced search.
-6. Fill out the "Sensing Period" (_e.g. 2023/07/01 - 2023/07/10_).
-7. Leave "Ingestion Period" empty!
-8. Select "Mission: Sentinel-2".
-9. Select "Satellite Platform" with value "S2B_*".
-10. Fill out "Cloud Cover" with the value "[0 TO 9.4]".
-11. Click on the magnifier button.
-12. Download any product that you want by clicking the download button.
+2. Log into your account.
+3. Zoom to the area of your interest.
+4. Selec the pentagon on the right side and then the rectangle or the pencil.
+5. Draw an area around the area of your interest.
+6. Select the tab `Search` on the left side panel.
+7. Select the satellite mission and the product type of your desire.
+  - *e.g Sentinel-2 -> MSI -> L2A*
+8. It is recommended to recude the cloud coverage to maximum 10%.
+9. Choose the time range of your desire.
+  - *e.g. 2023-11-01 - 2023-11-08*
+10. Click on search.
+11. Hover over an entry and a green area is shown on the map which the hovered dataset will represent.
+12. Select the entry of your desire and download it using the download button in the bottom right corner of the entry.
