@@ -157,8 +157,8 @@ A PostGIS Admin container `dews-db-gui` is started parallel to have an overview 
 |                |            | Level-2 SY_VGP | `S3A_SY_2_VGP____(...).SEN3.zip`    | ✅              | `.nc` files                                                                        |
 | Sentinel-3B    | AOD        |                | `S3B_SY_2_AOD____(...).SEN3.zip`    | ✅              | `.nc` files                                                                        |
 |                | AUX        |                | `S3B_SR___ROE_AX____(...).SEN3.zip` | ✅              | `.nc` files                                                                        |
-|                | OLCI       |                | `S3B_OL_1_ERR____(...).SEN3.zip`    | ✅              | `.nc` files                                                                        |
-|                | SLSTR      |                | `S3B_SL_2_LST____(...).SEN3.zip`    | ✅              | `.nc` files                                                                        |
+|                | OLCI       | Level-1 ERR    | `S3B_OL_1_ERR____(...).SEN3.zip`    | ✅              | `.nc` files                                                                        |
+|                | SLSTR      | Level-2 LST    | `S3B_SL_2_LST____(...).SEN3.zip`    | ✅              | `.nc` files                                                                        |
 |                | SYNERGY    | Level-2-SY-VG1 | `S3B_SY_2_VG1____(...).SEN3.zip`    | ✅              | `.nc` files                                                                        |
 |                |            | Level-2-SY-VGP | `S3B_SY_2_VGP____(...).SEN3.zip`    | ✅              | `.nc` files                                                                        |
 
