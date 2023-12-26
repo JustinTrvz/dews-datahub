@@ -22,6 +22,22 @@ This guide shows how to start the Docker containers locally, how to use the web 
 7. If you already build the Docker containers just start them using this command:
      - `docker-compose up -d` 
 
+## Download satellite datasets manually
+### Dataspace Copernicus
+1. Open [Dataspace Copernicus](https://dataspace.copernicus.eu/browser/).
+2. Log into your account.
+3. Zoom to the area of your interest.
+4. Selec the pentagon on the right side and then the rectangle or the pencil.
+5. Draw an area around the area of your interest.
+6. Select the tab `Search` on the left side panel.
+7. Select the satellite mission and the product type of your desire.
+    - *e.g Sentinel-2 -> MSI -> L2A*
+8. It is recommended to recude the cloud coverage to maximum 10%.
+9. Choose the time range of your desire.
+    - *e.g. 2023-11-01 - 2023-11-08*
+10. Click on search.
+11. Hover over an entry and a green area is shown on the map which the hovered dataset will represent.
+12. Select the entry of your desire and download it using the download button in the bottom right corner of the entry.
 
 ## Import data
 After the import is finished an entry will be displayed in the [SatData overview tab](http://0.0.0.0/sat_data/overview/) but if raster compatible images exist in the archive the processing can take quite a bit of time.<br>
@@ -48,7 +64,7 @@ Please be patient! The process cannot be sped up since the official PostGIS scri
 ### Description
 On the [datahub's upload page]([http](http://0.0.0.0/sat_data/upload/)) you can upload official satellite dataset archives that were downloaded from a [supported satellite data source](#supported-satellite-data-sources) (*e.g. Dataspace Copernicus*).
 
-After you have downloaded a satellite dataset you can upload the ZIP archive and let the system process the data.
+After you have [downloaded a satellite dataset](#download-satellite-datasets-manually) you can upload the ZIP archive and let the system process the data.
 
 So far the system shows the following data:
    - Satellite mission
@@ -165,20 +181,3 @@ A PostGIS Admin container `dews-db-gui` is started parallel to have an overview 
     - **Support status:** ❌ *(WIP)*
   - `Landsat 8` 
     - **Support status:** ❌ *(WIP)*
-
-## Download satellite datasets manually
-### Dataspace Copernicus
-1. Open [Dataspace Copernicus](https://dataspace.copernicus.eu/browser/).
-2. Log into your account.
-3. Zoom to the area of your interest.
-4. Selec the pentagon on the right side and then the rectangle or the pencil.
-5. Draw an area around the area of your interest.
-6. Select the tab `Search` on the left side panel.
-7. Select the satellite mission and the product type of your desire.
-    - *e.g Sentinel-2 -> MSI -> L2A*
-8. It is recommended to recude the cloud coverage to maximum 10%.
-9. Choose the time range of your desire.
-    - *e.g. 2023-11-01 - 2023-11-08*
-10. Click on search.
-11. Hover over an entry and a green area is shown on the map which the hovered dataset will represent.
-12. Select the entry of your desire and download it using the download button in the bottom right corner of the entry.
