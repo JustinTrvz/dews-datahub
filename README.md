@@ -6,6 +6,30 @@ The satellite mission, product type, thumbnail, etc. will be automatically recog
 # Guide
 This guide shows how to start the Docker containers locally, how to use the web app, gives information about the PostGIS database, how to use with QGIS and which satellite datasets are supported.
 
+## Environment
+- **Frontend:** Django/Python
+- **Backenend:** Django/Python
+- **Database:** PostGIS
+- **Webserver:** Gunicorn + Nginx
+
+## Create `.env` file
+Please create an `.env` file which contains environment variables for the Python Django and the PostGIS environment.
+
+You can use the `.env.example` file as a template. For development purposes you can simple copy the `.env.example`'s content into your created `.env` file. This is <b><u>not</u> recommended</b> for production!
+```bash
+# Settings.py
+SECRET_KEY="secret_key_123"
+DEBUG=False
+
+# Create super user
+DJANGO_SUPERUSER_USERNAME="dews"
+DJANGO_SUPERUSER_PASSWORD="dews"
+DJANGO_SUPERUSER_EMAIL="dews@dews.de"
+
+# Postgres
+PGPASSWORD="dews"
+```
+
 ## Start Docker container
 1. Install `Docker` using the [official installation guide](https://docs.docker.com/engine/install/).
 2. Install `Docker Compose` using the [official installation guide](https://docs.docker.com/compose/install/).
