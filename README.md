@@ -1,16 +1,16 @@
 # DEWS's DataHub (Drought Early Warning System's DataHub)
-DEWS'S datahub was made to import satellite data archives downloaded from e.g. [Dataspace Copernicus](https://dataspace.copernicus.eu/browser/) to have an overview over your downloaded satellite data archives as well as a PostGIS database to connect with other software.
+DEWS's DataHub was made to import satellite data archives downloaded from e.g. [Dataspace Copernicus](https://dataspace.copernicus.eu/browser/) to have an overview over your downloaded satellite data archives as well as a PostGIS database to connect with other software.
 
 The satellite mission, product type, thumbnail, etc. will be automatically recognized and displayed in a new entry in the [SatData overview tab](http://0.0.0.0/sat_data/overview/). When the archive contains satellite images that are raster compatible they will be converted into rasters and imported into the PostGIS database (*located at [0.0.0.0:5432](http://0.0.0.0:5432)*).
 
-# Guide
-This guide shows how to start the Docker containers locally, how to use the web app, gives information about the PostGIS database, how to use with QGIS and which satellite datasets are supported.
-
 ## Environment
 - **Frontend:** Django/Python
-- **Backenend:** Django/Python
+- **Backend:** Django/Python
 - **Database:** PostGIS
 - **Webserver:** Gunicorn + Nginx
+
+# Guide
+This guide shows how to start the Docker containers locally, how to use the web app, gives information about the PostGIS database, how to use with QGIS and which satellite datasets are supported.
 
 ## Create `.env` file
 Please create an `.env` file which contains environment variables for the Python Django and the PostGIS environment.
