@@ -14,6 +14,7 @@ This guide shows how to start the Docker containers locally, how to use the web 
 
 ## Create `.env` file
 Please create an `.env` file which contains environment variables for the Python Django and the PostGIS environment.
+Alternatively copy the env file using `cp .env.example .env`.
 
 You can use the `.env.example` file as a template. For development purposes you can simple copy the `.env.example`'s content into your created `.env` file. This is <b><u>not</u> recommended</b> for production!
 ```bash
