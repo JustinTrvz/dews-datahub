@@ -106,8 +106,7 @@
               </p>
               <!-- Action buttons -->
      <a href="{% url 'sat_data_details_view' sat_data.id %}" class="btn btn-success"><i class="fa-solid fa-circle-info"></i></a>
-     <a href="{% url 'sat_data_details_view' sat_data.id %}" class="btn btn-outline-info"><i class="fa-solid fa-pen-to-square"></i></a>
-     <a href="{% url 'sat_data_details_view' sat_data.id %}" class="btn btn-outline-danger"><i class="fa-solid fa-trash"></i></a>
+     <a href="{% url 'sat_data_delete_view' sat_data.id %}" class="btn btn-outline-danger"><i class="fa-solid fa-trash"></i></a>
      </div>
      </div>
      </a>
@@ -194,8 +193,7 @@
               </p>
               <!-- Action buttons -->
      <a href="{% url 'time_travel_details_view' time_travel.id %}" class="btn btn-success"><i class="fa-solid fa-circle-info"></i></a>
-     <a href="{% url 'time_travel_details_view' time_travel.id %}" class="btn btn-outline-info"><i class="fa-solid fa-pen-to-square"></i></a>
-     <a href="{% url 'time_travel_details_view' time_travel.id %}" class="btn btn-outline-danger"><i class="fa-solid fa-trash"></i></a>
+     <a href="{% url 'time_travel_delete_view' time_travel.id %}" class="btn btn-outline-danger"><i class="fa-solid fa-trash"></i></a>
      </div>
      </div>
      </a>

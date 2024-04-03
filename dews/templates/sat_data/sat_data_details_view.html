@@ -87,8 +87,9 @@
               </span>
               {% else %}
                 <div class="spinner-border" role="status">
-                  <span class="sr-only">In progress...</span>
+                  <span class="sr-only"></span>
                 </div>
+                <p>Reload the page (<i>F5 key</i>) to see new details.</p>
               {% endif %}
             </p>
           </div>
@@ -104,11 +105,15 @@
             <strong>Archive Path:</strong><br />
             <ul class="list-group">
               <li class="list-group-item">
-                <small id="archivePath">{{ sat_data.archive.url }}</small>
-                <!-- Copy to clipboard -->
-                <button onclick="copyToClipboard('archivePath')" class="btn btn-secondary btn-sm"><i class="fa-solid fa-copy"></i></button>
-                <!-- Download button -->
-                <a href="{{ sat_data.archive.url }}" download="{{ sat_data.archive.name }}" download class="btn btn-secondary"><i class="fa-solid fa-download"></i></a>
+                {% if sat_data.archive %}
+                  <small id="archivePath">{{ sat_data.archive.url }}</small>
+                  <!-- Copy to clipboard -->
+                  <button onclick="copyToClipboard('archivePath')" class="btn btn-secondary btn-sm"><i class="fa-solid fa-copy"></i></button>
+                  <!-- Download button -->
+                  <a href="{{ sat_data.archive.url }}" download="{{ sat_data.archive.name }}" download class="btn btn-secondary"><i class="fa-solid fa-download"></i></a>
+                {% else %}
+                  <small id="archivePath">None</small>
+                {% endif %}
               </li>
             </ul>
           </p>
@@ -201,9 +206,12 @@
 
       </div>
 
-      <a href="{{ sat_data.archive.url }}" download="{{ sat_data.archive.name }}" download class="btn btn-primary">Archive <i class="fa-solid fa-download"></i></a>
-      <a href="{% url 'sat_data_details_view' sat_data.id %}" class="btn btn-outline-info">Edit <i class="fa-solid fa-pen-to-square"></i></a>
-      <a href="{% url 'sat_data_details_view' sat_data.id %}" class="btn btn-outline-danger">Delete <i class="fa-solid fa-trash"></i></a>
+      {% if sat_data.archive %}
+        <a href="{{ sat_data.archive.url }}" download="{{ sat_data.archive.name }}" download class="btn btn-primary">Archive <i class="fa-solid fa-download"></i></a>
+      {% else %}
+        <button class="btn btn-outline-primary" disabled>Archive <i class="fa-solid fa-download"></i></button>
+      {% endif %}
+      <a href="{% url 'sat_data_delete_view' sat_data.id %}" class="btn btn-danger">Delete <i class="fa-solid fa-trash"></i></a>
     </div>
   </div>
 

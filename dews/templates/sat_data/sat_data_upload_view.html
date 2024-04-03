@@ -1,6 +1,12 @@
 {% extends 'base.html' %}
 {% load static %}
 
+{% block header %}
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-draw/dist/leaflet.draw.css" />
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+{% endblock %}
+
 {% block title %}
   DEWS DataHub - Upload an archive
 {% endblock %}
@@ -8,10 +14,10 @@
 {% block content %}
   <section class="jumbotron text-center">
     <div class="container pt-1 pb-1">
-      <h1 class="display-4 font-italic text-center">Upload an archive</h1>
+      <h1 class="display-4 font-italic text-center">Create new sat data entry</h1>
       <p class="lead text-muted">
-        Here you can upload a satellite data archive file which you downloaded from <a href="https://dataspace.copernicus.eu/browser/">Dataspace Copernicus</a> or <a href="https://earthexplorer.usgs.gov">EarthExplorer</a>.<br />
-        The mission, band image paths, coordinates, etc. will automatically be recognized and you will find these info after the upload and processing is done.
+        Here you can upload a satellite data archive file which you downloaded from <a href="https://browser.dataspace.copernicus.eu/">Dataspace Copernicus</a> <b><i>or</i></b> select a bounding box by using the map.<br />
+        The mission, band image paths, coordinates, etc. will automatically be recognized and you will find these info in the sat data entry after the upload and when the processing is done.
       </p>
     </div>
   </section>
@@ -32,7 +38,7 @@
           <!-- Archive upload form -->
           {{ form.as_p }}
           <!-- Upload button -->
-          <button type="submit" class="btn btn-outline-success"><i class="fa-solid fa-upload"></i> Upload</button>
+          <button type="submit" class="btn btn-outline-success"><i class="fa-solid fa-upload"></i> Upload archive</button>
         </form>
         <!-- Error message -->
         {% if error %}
@@ -41,7 +47,9 @@
         <!-- Success message -->
         {% if success %}
           <div class="alert alert-success" role="alert">
-            <div class="row">{{ success }} <i class="fa-solid fa-check"></i> </div>
+            <div class="row">
+              {{ success }} <i class="fa-solid fa-check"></i>
+            </div>
             <div class="row">
               <a href="{% url 'overview_view' %}" class="btn btn-success"><i class="fa-solid fa-table-columns"></i> Show overview</a>
             </div>
@@ -51,5 +59,203 @@
 
       <div class="col-md-4"></div>
     </div>
+
+    <hr class="light-100">
+
+    <div class="row">
+      <h2 class="display-6 text-center">Request via API</h2>
+
+      <div class="col-md-12 text-center">
+        <!-- Sentinel Missions Dropdown -->
+        <select id="sentinel-missions" class="form-control mb-2" style="display: inline-block; width: auto;">
+          <option value="">---Select Mission---</option>
+          <option value="SENTINEL2_L1C">SENTINEL2_L1C</option>
+          <option value="SENTINEL2_L2A">SENTINEL2_L2A</option>
+          <!-- Add more options as needed -->
+        </select>
+    
+        <!-- Bands Selection via Checkboxes -->
+        <div id="bands" class="form-group">
+          <label>Select Bands:</label><br>
+          <input type="checkbox" id="band01" name="bands" value="B01">
+          <label for="band01">B01</label><br>
+          <input type="checkbox" id="band02" name="bands" value="B02">
+          <label for="band02">B02</label><br>
+          <input type="checkbox" id="band03" name="bands" value="B03">
+          <label for="band03">B03</label><br>
+          <input type="checkbox" id="band04" name="bands" value="B04">
+          <label for="band04">B04</label><br>
+          <input type="checkbox" id="band05" name="bands" value="B05">
+          <label for="band05">B05</label><br>
+          <input type="checkbox" id="band06" name="bands" value="B06">
+          <label for="band06">B06</label><br>
+          <input type="checkbox" id="band07" name="bands" value="B07">
+          <label for="band07">B07</label><br>
+          <input type="checkbox" id="band08" name="bands" value="B08">
+          <label for="band08">B08</label><br>
+          <input type="checkbox" id="band8a" name="bands" value="B8A">
+          <label for="band08">B8A</label><br>
+          <input type="checkbox" id="band09" name="bands" value="B09">
+          <label for="band09">B09</label><br>
+          <input type="checkbox" id="band10" name="bands" value="B10">
+          <label for="band10">B10</label><br>
+          <input type="checkbox" id="band11" name="bands" value="B11">
+          <label for="band11">B11</label><br>
+          <input type="checkbox" id="band12" name="bands" value="B12">
+          <label for="band12">B12</label><br>
+        </div>
+    
+        <!-- Start Date Picker -->
+        <input type="date" id="start-date" class="form-control mb-2" style="display: inline-block; width: auto;">
+    
+        <!-- End Date Picker -->
+        <input type="date" id="end-date" class="form-control mb-2" style="display: inline-block; width: auto;">
+    
+      </div>
+
+
+      <div class="col-md-12">
+
+        <div id="map" style="height: 600px;"></div>
+        <button id="send-coords" class="btn btn-outline-success">Send Coordinates</button>
+        <div id="message-container" style="margin-top: 20px;">
+          <div id="success-message" class="alert alert-success" style="display: none;"></div>
+          <div id="error-message" class="alert alert-danger" style="display: none;"></div>
+        </div>
+      </div>
+    </div>
   </div>
+
+  <!-- Leaflet map script -->
+  <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet-draw/dist/leaflet.draw.js"></script>
+  <script>
+    var map = L.map('map').setView([51.1657, 10.4515], 6) // Centered on Germany
+    
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(map)
+    
+    var drawnItems = new L.FeatureGroup()
+    map.addLayer(drawnItems)
+    
+    var drawControl = new L.Control.Draw({
+      edit: {
+        featureGroup: drawnItems
+      },
+      draw: {
+        polygon: false,
+        polyline: false,
+        rectangle: true,
+        circle: false,
+        marker: false
+      }
+    })
+    map.addControl(drawControl)
+    
+    let lastDrawnBounds = null
+    
+    map.on(L.Draw.Event.CREATED, function (e) {
+      var type = e.layerType,
+        layer = e.layer
+    
+      if (type === 'rectangle') {
+        lastDrawnBounds = layer.getBounds().toBBoxString() // Stores the bounds
+      }
+    
+      drawnItems.addLayer(layer)
+    })
+    
+    // Function to get CSRF token
+    function getCookie(name) {
+      let cookieValue = null
+      if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';')
+        for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i].trim()
+          if (cookie.substring(0, name.length + 1) === name + '=') {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1))
+            break
+          }
+        }
+      }
+      return cookieValue
+    }
+    
+    document.getElementById('send-coords').addEventListener('click', function () {
+      var button = document.getElementById('send-coords'); // Reference to the button
+      button.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Sending Coordinates...`;
+      button.disabled = true; // Disable button to prevent multiple clicks
+    
+      if (lastDrawnBounds) {
+        // Prepare data to send
+        var mission = document.getElementById('sentinel-missions').value;
+        var bands = [];
+        document.querySelectorAll('input[name="bands"]:checked').forEach(function(checkbox) {
+          bands.push(checkbox.value);
+        });
+        var startDate = document.getElementById('start-date').value;
+        var endDate = document.getElementById('end-date').value;
+
+        var data = {
+          bounds: lastDrawnBounds,
+          mission: mission,
+          bands: bands,
+          startDate: startDate,
+          endDate: endDate,
+          resolution: 20,
+        };
+
+        console.log(data)
+    
+        // Send an AJAX request to your Django backend
+        fetch("{% url 'sentinel_hub_request_view' %}", {
+          method: 'POST',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+          },
+          body: JSON.stringify(data)
+        })
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error('Network response was not ok');
+          }
+          return response.json();
+        })
+        .then((data) => {
+          // Handle success
+          document.getElementById('success-message').style.display = 'block';
+          document.getElementById('success-message').textContent = data.message;
+          document.getElementById('error-message').style.display = 'none';
+        })
+        .catch((error) => {
+          // Handle error
+          console.error('Error:', error);
+          document.getElementById('error-message').style.display = 'block';
+          document.getElementById('error-message').textContent = data.message;
+          document.getElementById('success-message').style.display = 'none';
+        });
+      } else {
+        alert('No bounds drawn.');
+      }
+
+      // Reset button
+      button.innerHTML = 'Send Coordinates';
+      button.disabled = false;
+    });
+    
+  </script>
+  <!-- 
+  <script>
+    $(document).ready(function () {
+      $('#send-coords').click(function () {
+        $(this).html(`<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Sending Coordinates`)
+        $(this).prop('disabled', true) // Optional: Disable button to prevent multiple clicks
+      })
+    })
+  </script>
+  -->
 {% endblock %}

@@ -4,8 +4,13 @@ import os.path
 from zipfile import ZipFile
 import zipfile
 import xmltodict
+import tarfile
+import rasterio
+from rasterio.enums import Resampling
+import os
 
-from dews.settings import EXTRACTED_FILES_PATH
+
+from dews.settings import EXTRACTED_FILES_PATH, MEDIA_ROOT
 
 logger = logging.getLogger("django")
 
@@ -15,6 +20,54 @@ class FileUtils:
     Helps unzipping files, loads config yml file, decodes string, creates directories and many more.
     """
     logger = logging.getLogger("django")
+
+    @staticmethod
+    def split_tiff(bands: list, tiff_path: str):
+        """
+        Extracts specified bands from a TIFF and saves each as a separate TIFF file.
+        
+        :param bands: A list of band names to extract (e.g., ["B02", "B03"]).
+        :param tiff_path: Path to the source TIFF file.
+        :return: A dictionary with band names as keys and paths to the new TIFF files as values.
+        """
+        output_tiff_files = {}
+        
+        with rasterio.open(tiff_path) as src:
+            for i, band_name in enumerate(bands, start=1):
+                band_name = band_name.lower()
+                # Assuming the bands list directly corresponds to the band indices
+                band_index = i  # Update this line if band_name to band_index mapping is needed
+                band_data = src.read(band_index)
+
+                # Define output file path
+                output_tiff_path = os.path.join(os.path.dirname(tiff_path), f"{band_name}.tif")
+                
+                # Update the profile to reflect the single band
+                profile = src.profile
+                profile.update(count=1)
+                
+                # Write the band data to a new file
+                with rasterio.open(output_tiff_path, 'w', **profile) as dst:
+                    dst.write(band_data, 1)
+                
+                output_tiff_files[band_name] = output_tiff_path
+        
+        return output_tiff_files
+
+    @staticmethod
+    def extract_tar(tar_path, extract_path='.'):
+        """
+        Extracts a .tar file to the specified path.
+
+        :param tar_path: The path to the .tar file to be extracted.
+        :param extract_path: The directory to which the file should be extracted.
+        """
+        # Open the .tar file
+        with tarfile.open(tar_path, 'r') as file:
+            file.extractall(path=extract_path)
+            logger.debug(f"Extracted '{tar_path}' to '{extract_path}'.")
+
+        return extract_path
 
     @staticmethod
     def extract_archive(source_path: str, mission: str) -> str | None:

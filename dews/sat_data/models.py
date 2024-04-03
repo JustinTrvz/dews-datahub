@@ -18,8 +18,8 @@ from utils.services.overwrite_storage import OverwriteStorage
 
 
 def band_upload_path(instance, filename):
-    path = remove_media_root(instance.directory_path)
-    return f"{path}/measurement/{filename}"
+    path = remove_media_root(instance.sat_data.extracted_path)
+    return f"{path}/{filename}"
 
 
 def index_upload_path(instance, filename):
@@ -28,12 +28,12 @@ def index_upload_path(instance, filename):
 
 
 def thumbnail_upload_path(instance, filename):
-    path = remove_media_root(instance.directory_path)
+    path = remove_media_root(instance.extracted_path)
     return f"{path}/preview/{filename}"
 
 
 def metadata_upload_path(instance, filename):
-    path = remove_media_root(instance.directory_path)
+    path = remove_media_root(instance.extracted_path)
     return f"{path}/{filename}"
 
 
@@ -112,12 +112,12 @@ class SatData(models.Model):
                                    blank=True,
                                    null=True)
     processing_done = models.BooleanField(default=False,
-                                 verbose_name="Processing Done",
-                                 blank=True,
-                                 null=True)
+                                          verbose_name="Processing Done",
+                                          blank=True,
+                                          null=True)
     archive = models.FileField(max_length=255,
-                               null=False,
-                               blank=False,
+                               null=True,
+                               blank=True,
                                upload_to=archive_upload_path,
                                verbose_name="Archive",
                                storage=OverwriteStorage())
@@ -195,7 +195,7 @@ class SatData(models.Model):
             # Create satellite data object
             sat_data = SatData(
                 mission=mission.lower(),
-                directory_path=extracted_path,
+                extracted_path=extracted_path,
                 user=dews_user,
             )
             # Set archive path
@@ -234,7 +234,7 @@ class SatData(models.Model):
             logging.info(f"Calculation attributes in background... id='{id}'")
 
             logging.info(
-                f"Successfully created a SatData object. id='{id}', directory_path='{extracted_path}', user_id='{DB_USER}', mission='{mission}'")
+                f"Successfully created a SatData object. id='{id}', extracted_path='{extracted_path}', user_id='{DB_USER}', mission='{mission}'")
 
             return sat_data
         except Exception as e:
@@ -244,11 +244,11 @@ class SatData(models.Model):
 
     def get_band(self, *required_bands):
         """
-        Returns a BandInfo object that contains all the required bands.
+        Returns a Band object that contains all the required bands.
 
         Pass strings as separate arguments. For example: `get_band_info("aot", "b03", "b05")`
 
-        See `BandInfo` object for a list of all accessible bands.
+        See `Band` object for a list of all accessible bands.
         """
         # Check if bands allowed
         allowed_bands = SatBand.get_all()
@@ -294,18 +294,17 @@ class Band(models.Model):
     range = models.IntegerField(
         default=10, help_text="One pixel in meter", blank=True)  # in meter
     type = models.CharField(max_length=50, blank=True, verbose_name="Type")
-    band_file = models.FileField(
-        max_length=255, blank=True, verbose_name="Band file", upload_to=band_upload_path)
-    band_path = models.CharField(
-        max_length=255, blank=True, verbose_name="Band path")
     raster = models.RasterField(null=True, blank=True, verbose_name="Raster")
     srid = models.IntegerField(default=4326, blank=True, verbose_name="SRID")
+    band_file = models.FileField(
+        max_length=255, blank=True, verbose_name="Band file", upload_to=band_upload_path)
 
     # Relationships
     sat_data = models.ForeignKey(
-        SatData, on_delete=models.CASCADE, related_name="band")
+        SatData, on_delete=models.CASCADE, related_name="bands")
 
     # Meta data
+
     class Meta:
         db_table = "band"
 
