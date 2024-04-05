@@ -9,16 +9,18 @@ from sentinelhub import MimeType, DataCollection
 from datetime import datetime
 import json
 
-from django.contrib.gis.geos import Polygon
+from django.contrib.gis.geos import Polygon, GEOSGeometry
+
 from django.core.serializers import serialize
 from django.http import HttpResponseBadRequest, JsonResponse
 from django.shortcuts import redirect, render, get_object_or_404
 from django.views.decorators.http import require_POST
 
 from sat_data.enums.sat_mission import SatMission
+from sat_data.enums.status import Status
 from sat_data.services.utils.file_utils import FileUtils
-from sat_data.models import SatData, TimeTravel, remove_media_root
-from sat_data.forms import SatDataForm
+from sat_data.models import SHRequest, SatData, TimeTravel, remove_media_root
+from sat_data.forms import SHRequestForm, SatDataForm
 from sat_data.services.attr_adder import AttrAdder
 from sat_data.services.metrics_calc import MetricsCalculator
 from sat_data.services.sentinel_hub import request_sat_data
@@ -202,7 +204,7 @@ def overview_view(request):
     return render(request, "overview_view.html", context)
 
 
-def sat_data_upload_view(request):
+def sat_data_create_view(request):
     # Check user
     if not request.user.is_authenticated:
         logger.debug(
@@ -220,64 +222,71 @@ def sat_data_upload_view(request):
         "version": VERSION,
         "error": None,  # will be overwritten, if needed
         "success": None,  # will be overwritten, if needed
-        "form": SatDataForm(request.POST or None, request.FILES or None)
+        "sat_data_form": SatDataForm(request.POST or None, request.FILES or None),
+        "sh_form": SHRequestForm(request.POST or None, request.FILES or None),
     }
 
     # POST request -> create SatData obj
     if request.method == "POST":
-        archive = request.FILES.get("archive")
+        if "archive" in request.POST:
+            # SatDataForm
+            archive = request.FILES.get("archive")
 
-        # Check user input
-        if not archive:
-            return HttpResponseBadRequest("Archive file is required.")
+            # Check user input
+            if not archive:
+                return HttpResponseBadRequest("Archive file is required.")
 
-        # Write archive to file system
-        archive_path = ARCHIVE_FILES_PATH / archive.name
-        if not os.path.exists(archive_path):
-            # Archive does not exist
-            logger.info(
-                f"Archive does not exist. Will write archive to file system. archive_path='{archive_path}'")
-            try:
-                with open(archive_path, "wb+") as file_ref:
-                    for chunk in archive.chunks():
-                        file_ref.write(chunk)
+            # Write archive to file system
+            archive_path = ARCHIVE_FILES_PATH / archive.name
+            if not os.path.exists(archive_path):
+                # Archive does not exist
                 logger.info(
-                    f"Done writing archive to file system. archive_path='{archive_path}'")
-            except Exception as e:
-                logger.error(
-                    f"Failed to write archive to file system. archive_path='{archive_path}', error='{e}'")
-        else:
-            # Archive already exists
-            logger.info(
-                f"Archive already exists. archive_path='{archive_path}'")
-
-        # Extract and create SatData obj in background
-        try:
-            ok = create_sat_data(request, archive_path)
-            if ok:
-                pass
+                    f"Archive does not exist. Will write archive to file system. archive_path='{archive_path}'")
+                try:
+                    with open(archive_path, "wb+") as file_ref:
+                        for chunk in archive.chunks():
+                            file_ref.write(chunk)
+                    logger.info(
+                        f"Done writing archive to file system. archive_path='{archive_path}'")
+                except Exception as e:
+                    logger.error(
+                        f"Failed to write archive to file system. archive_path='{archive_path}', error='{e}'")
             else:
-                raise Exception(f"Failed to create SatData object. ok='{ok}'")
-        except Exception as e:
-            # Background task failed
-            logger.error(
-                f"Failed 'extract_and_create' background task. username='{request.user.username}', error='{e}'")
-            err_msg = "Failed to extract and create archive. However, an entry was still created."
-            context["error"] = err_msg
-            logger.debug(
-                f"Render 'sat_data_upload_view.html' with error message: '{err_msg}'.")
-            return render(request, "sat_data_upload_view.html", context)
+                # Archive already exists
+                logger.info(
+                    f"Archive already exists. archive_path='{archive_path}'")
 
-        # Upload done
-        success_msg = f"Upload done! Work in progress... archive='{archive.name}'"
-        context["success"] = success_msg
-        logger.debug(
-            f"Render 'sat_data_upload_view.html' with success message: '{success_msg}'.")
-        return render(request, "sat_data_upload_view.html", context)
+            # Extract and create SatData obj in background
+            try:
+                ok = create_sat_data(request, archive_path)
+                if ok:
+                    pass
+                else:
+                    raise Exception(
+                        f"Failed to create SatData object. ok='{ok}'")
+            except Exception as e:
+                # Background task failed
+                logger.error(
+                    f"Failed 'extract_and_create' background task. username='{request.user.username}', error='{e}'")
+                err_msg = "Failed to extract and create archive. However, an entry was still created."
+                context["error"] = err_msg
+                logger.debug(
+                    f"Render 'sat_data_create_view.html' with error message: '{err_msg}'.")
+                return render(request, "sat_data_create_view.html", context)
+
+            # Upload done
+            success_msg = f"Upload done! Work in progress... archive='{archive.name}'"
+            context["success"] = success_msg
+            logger.debug(
+                f"Render 'sat_data_create_view.html' with success message: '{success_msg}'.")
+            return render(request, "sat_data_create_view.html", context)
+        else:
+            # SHRequestForm
+            return sentinel_hub_request_view(request, context)
 
     # GET request -> view and form
-    logger.debug("Render 'sat_data_upload_view.html'.")
-    return render(request, "sat_data_upload_view.html", context)
+    logger.debug("Render 'sat_data_create_view.html'.")
+    return render(request, "sat_data_create_view.html", context)
 
 
 def create_sat_data(request, archive_path) -> bool:
@@ -338,13 +347,19 @@ def __extract_and_create(request, archive_path: str, logger: logging.Logger = No
                 f"Created SatData with several attributes. id='{sat_data.id}', extracted_path='{extracted_path}'")
 
             # Calculate metrics
-            logger.debug(f"Calling MetricsCalculator. sat_data.id='{sat_data.id}', extracted_path='{extracted_path}', mission='{mission}', product_type='{sat_data.product_type}'")
             metrics_to_calc = ["ndvi", "rgb"]
-            mc = MetricsCalculator(
-                sat_data=sat_data,
-                metrics_to_calc=metrics_to_calc)
-            mc.start()
-            logger.info(f"Metrics calculation done. metrics_to_calc='{metrics_to_calc}', sat_data.id='{sat_data.id}'")
+            if metrics_to_calc:
+                logger.debug(
+                    f"Calling MetricsCalculator. sat_data.id='{sat_data.id}', extracted_path='{extracted_path}', mission='{mission}', product_type='{sat_data.product_type}'")
+                mc = MetricsCalculator(
+                    sat_data=sat_data,
+                    metrics_to_calc=metrics_to_calc)
+                mc.start()
+                logger.info(
+                    f"Metrics calculation done. metrics_to_calc='{metrics_to_calc}', sat_data.id='{sat_data.id}'")
+            else:
+                logger.info(
+                    f"No metrics to calculate. sat_data.id='{sat_data.id}'")
 
             return
         except Exception as e:
@@ -359,7 +374,11 @@ def __extract_and_create(request, archive_path: str, logger: logging.Logger = No
         return
 
 
-def create_sh_sat_data(request, data_folder, dir_name, bbox, bands) -> bool:
+def create_sh_sat_data(request, data_folder, dir_name, bbox, bands, metrics_to_calc: list) -> str:
+    """
+
+    :return: SatData object on success; None on failure
+    """
     logger.info(
         f"Creating SatData object. username='{request.user.username}', path='{data_folder}/{dir_name}'")
     # Create form
@@ -392,109 +411,145 @@ def create_sh_sat_data(request, data_folder, dir_name, bbox, bands) -> bool:
             f"Created SatData with several attributes. id='{sat_data.id}', extracted_path='{extracted_path}'")
 
         # Calculate metrics
-        logger.debug(f"Calling MetricsCalculator. sat_data.id='{sat_data.id}', extracted_path='{extracted_path}', sat_data.mission='{sat_data.mission}', sat_data.product_type='{sat_data.product_type}'")
-        metrics_to_calc = ["ndvi", "rgb"]
-        mc = MetricsCalculator(
-            sat_data=sat_data,
-            metrics_to_calc=metrics_to_calc)
-        mc.start()
-        logger.info(f"Metrics calculation done. metrics_to_calc='{metrics_to_calc}', sat_data.id='{sat_data.id}'")
+        logger.debug(
+            f"Calling MetricsCalculator. sat_data.id='{sat_data.id}', extracted_path='{extracted_path}', sat_data.mission='{sat_data.mission}', sat_data.product_type='{sat_data.product_type}'")
+        if metrics_to_calc:
+            mc = MetricsCalculator(
+                sat_data=sat_data,
+                metrics_to_calc=metrics_to_calc)
+            mc.start()
+            logger.info(
+                f"Metrics calculation done. metrics_to_calc='{metrics_to_calc}', sat_data.id='{sat_data.id}'")
+        else:
+            logger.info(
+                f"No metrics to calculate. sat_data.id='{sat_data.id}'")
 
-        return True
+        return sat_data
     except Exception as e:
         logger.error(
             f"Failed to create SatData object from Sentinel Hub request. user='{request.user}', error='{e}'")
-        return False
+        return None
 
 
 @require_POST
-def sentinel_hub_request_view(request):
-    # Extract bounds data from POST request
-    logger.debug("Sentinel Hub Request request: ", request)
-    try:
-        data = json.loads(request.body)
+def sentinel_hub_request_view(request, context):
+    logger.debug(f"request='{request}'")
+    logger.debug(f"request.user='{request.user}'")
+    logger.debug(f"request.method='{request.method}'")
+    logger.debug(f"request.POST='{request.POST}'")
+
+    form = SHRequestForm(request.POST or None, request.FILES or None)
+    if form.is_valid():
+        logger.debug("SHRequestForm is valid.")
+        logger.debug("Sentinel Hub Request request: ", request)
+        data = form.cleaned_data
         logger.debug("Sentinel Hub Request JSON: ", data)
-    except json.JSONDecodeError as e:
-        return JsonResponse(
-            {
-                "status": "error",
-                "message": f"Invalid JSON data. error='{e}'",
-            }, status=400)
 
-    if not all(k in data for k in ('bounds', 'mission', 'bands', 'startDate', 'endDate', 'resolution')):
-        return JsonResponse(
-            {
-                "status": "error",
-                "message": "Missing required fields",
-            }, status=400)
+        mission = data.get('mission')  # str
+        metrics_to_calc = data.get('metrics_to_calc', [])
+        bands = data.get('bands', ["B02", "B03", "B04"])
+        start_date = data.get('start_date')  # datetime
+        end_date = data.get('end_date', start_date)  # datetime
+        resolution = data.get('resolution', 60)  # int: 10m, 20m or 60m per pixel
+        coordinates = data.get('coordinates')  # Polygon
+        data_folder = f"{MEDIA_ROOT}/sentinel_hub"
 
-    bounds = data.get('bounds')
-    mission = data.get('mission')
-    bands = data.get('bands')
-    start_date = data.get('startDate')
-    end_date = data.get('endDate')
-    resolution = data.get('resolution')
-    data_folder = f"{MEDIA_ROOT}/sentinel_hub"
+        # Debug all input values
+        logger.debug(f"SHRequest - Mission: {mission}")
+        logger.debug(f"SHRequest - Metrics to calculate: {metrics_to_calc}")
+        logger.debug(f"SHRequest - Bands: {bands}")
+        logger.debug(f"SHRequest - Start date: {start_date}")
+        logger.debug(f"SHRequest - End date: {end_date}")
+        logger.debug(f"SHRequest - Resolution: {resolution}")
+        logger.debug(f"SHRequest - Coordinates: {coordinates}")
+        logger.debug(f"SHRequest - Data folder: {data_folder}")
 
-    if bounds:
-        # Create tuple
-        bbox = tuple(float(bound) for bound in bounds.split(','))
-        if mission == "SENTINEL2_L1C":
-            data_collection = DataCollection.SENTINEL2_L1C
+        if coordinates:
+            # Create SHRequest object
+            sh_request: SHRequest = form.save(commit=False)
+            sh_request.id = uuid.uuid4()
+            sh_request.user = request.user
+            sh_request.save()
+
+            # Create tuple
+            logger.debug(f"COORDINATES: {coordinates}")
+            if isinstance(coordinates, str):
+                bbox = tuple(float(coordinate)
+                             for coordinate in coordinates.split(','))
+            elif isinstance(coordinates, Polygon):
+                bbox = wkt_to_coordinates_str(coordinates)
+
+            # Set data collection
+            if mission == "SENTINEL2_L1C":
+                data_collection = DataCollection.SENTINEL2_L1C
+            else:
+                data_collection = DataCollection.SENTINEL2_L2A
+            mission = SatMission.SENTINEL_2B
+
+            try:
+                # Request SatData
+                response = request_sat_data(
+                    bbox=bbox,
+                    resolution=int(resolution),
+                    data_folder=data_folder,
+                    data_collection=data_collection,
+                    mimetypes=[MimeType.TIFF, MimeType.PNG],
+                    bands=bands,
+                    start_date=start_date,
+                    end_date=end_date,
+                )
+                logger.debug(
+                    f"Requesting Sentinel Hub data done. bbox='{bbox}', resolution='{resolution}', data_folder='{data_folder}', data_collection='{data_collection}', bands='{bands}', start_date='{start_date}', end_date='{end_date}'")
+                sh_request.status = Status.DONE.value
+                sh_request.save()
+
+                # Create SatData object
+                dir_name = response.get_filename_list()[0].split('/')[0]
+                logger.debug(
+                    f"Create SatData object from Sentinel Hub request. user='{request.user}', dir_name='{dir_name}', bbox='{bbox}', timestamp='{datetime.now()}'")
+                sat_data = create_sh_sat_data(
+                    request=request,
+                    data_folder=data_folder,
+                    dir_name=dir_name,
+                    bbox=bbox,
+                    bands=bands,
+                    metrics_to_calc=metrics_to_calc,
+                )
+                if not sat_data:
+                    # Check response
+                    # sh_request.status = Status.FAILED.value
+                    sh_request.save()
+                    logger.debug(
+                        f"Failed to create SatData object from Sentinel Hub request. user='{request.user}', bbox='{bbox}', timestamp='{datetime.now()}'")
+                    return render(request, "sat_data_create_view.html", context)
+                else:
+                    sh_request.sat_data = sat_data
+                    sh_request.save()
+            except Exception as e:
+                # Error
+                sh_request.status = Status.FAILED.value
+                sh_request.save()
+                logger.debug(
+                    f"Failed to request Sentinel Hub data. error='{e}', user='{request.user}', bbox='{bbox}', timestamp='{datetime.now()}'")
+                return render(request, "sat_data_create_view.html", context)
+
+            # Success
+            msg = f"Sentinel Hub task scheduled. user='{request.user}', dir_name='{dir_name}', bbox='{bbox}', timestamp='{datetime.now()}'"
+            logger.debug(msg)
+            success_msg = f"Upload done! Work in progress... sat_data.id='{id}'"
+            context["success"] = success_msg
         else:
-            data_collection = DataCollection.SENTINEL2_L2A
-        mission = SatMission.SENTINEL_2B
-
-        # Prepare your task parameters
-        try:
-            response = request_sat_data(
-                bbox=bbox,
-                resolution=int(resolution),
-                data_folder=data_folder,
-                data_collection=data_collection,
-                mimetypes=[MimeType.TIFF, MimeType.PNG],
-                bands=bands,
-                start_date=datetime.strptime(start_date, '%Y-%m-%d'),
-                end_date=datetime.strptime(end_date, '%Y-%m-%d'),
-            )
-            logger.debug(f"Requesting Sentinel Hub data done. bbox='{bbox}', resolution='{resolution}', data_folder='{data_folder}', data_collection='{data_collection}', bands='{bands}', start_date='{start_date}', end_date='{end_date}'")
-
-            dir_name = response.get_filename_list()[0].split('/')[0]
-            logger.debug(f"Create SatData object from Sentinel Hub request. user='{request.user}', dir_name='{dir_name}', bbox='{bbox}', timestamp='{datetime.now()}'")
-            ok = create_sh_sat_data(
-                request, data_folder, dir_name, bbox, bands)
-            if not ok:
-                logger.debug(f"Failed to create SatData object from Sentinel Hub request. user='{request.user}', bbox='{bbox}', timestamp='{datetime.now()}'")
-                return JsonResponse(
-                    {
-                        "status": "error",
-                        "message": f"Could not create SatData object from Sentinel Hub request. user='{request.user}', bbox='{bbox}', timestamp='{datetime.now()}'",
-                    }, status=400)
-        except Exception as e:
             # Error
-            logger.debug(f"Failed to request Sentinel Hub data. error='{e}', user='{request.user}', bbox='{bbox}', timestamp='{datetime.now()}'")
-            return JsonResponse(
-                {
-                    "status": "error",
-                    "message": str(e),
-                }, status=400)
+            # No SHRequest object created, so no status change needed
+            msg = f"No bounding box data received. user='{request.user}', timestamp='{datetime.now()}"
+            logger.error(msg)
 
-        # Success
-        msg = f"Sentinel Hub task scheduled. user='{request.user}', dir_name='{dir_name}', bbox='{bbox}', timestamp='{datetime.now()}'"
-        logger.debug(msg)
+    return render(request, "sat_data_create_view.html", context)
 
-        return JsonResponse(
-            {
-                "status": "success",
-                "message": msg,
-            }, status=200)
-    else:
-        # Error
-        msg = f"No bounding box data received. user='{request.user}', timestamp='{datetime.now()}"
-        logger.error(msg)
 
-        return JsonResponse(
-            {
-                "status": "error",
-                "message": msg,
-            }, status=400)
+def wkt_to_coordinates_str(wkt) -> str:
+    # Convert WKT to a GEOSGeometry object (if it's not one already)
+    geom = GEOSGeometry(wkt)
+    min_lon, min_lat, max_lon, max_lat = geom.extent
+
+    return f"{min_lon},{min_lat},{max_lon},{max_lat}"

@@ -254,7 +254,7 @@ def calculate_ndvi(sat_data: SatData, image_path_04, image_path_08, save_locatio
 
     :param sat_data:
     :param save_location:
-    :param image_path_8:
+    :param image_path_08:
     :param image_path_04:
     """
     # TODO: get average float ndvi and return it
