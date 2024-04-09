@@ -26,12 +26,18 @@ class MetricsCalculator:
         """
         logger.debug(f"Initalizing MetricsCalculator instance. sat_data.id='{sat_data.id}', metrics_to_calc='{metrics_to_calc}'")
         self.sat_data = sat_data
+        logger.debug(f"Set SatData instance. sat_data.id='{self.sat_data.id}'")
         self.metrics_to_calc = metrics_to_calc
+        logger.debug(f"Set list with metrics to calculate. metrics_to_calc='{self.metrics_to_calc}'")
         
     def start(self):
         """
         Start the calculation of the desired metrics.
         """
+
+        if self.sat_data is None:
+            logger.error("SatData instance is 'None'.")
+            return
 
         # Calculate metrics
         try:
