@@ -16,7 +16,7 @@
     <div class="container pt-1 pb-1">
       <h1 class="display-4 font-italic text-center">Create SatData Entry</h1>
       <p class="lead text-muted">
-        Here you can upload a satellite data archive file which you downloaded from <a href="https://browser.dataspace.copernicus.eu/">Dataspace Copernicus</a> <b><i>or</i></b> select a bounding box by using the map.<br />
+        Here you can upload a satellite data archive file which you downloaded from <a href="https://browser.dataspace.copernicus.eu/">Dataspace Copernicus</a> <b><i><u>or</u></i></b> select a bounding box by using the map.<br />
         The mission, band image paths, coordinates, etc. will automatically be recognized and you will find these info in the sat data entry after the upload and when the processing is done.
       </p>
     </div>
@@ -38,21 +38,31 @@
           <!-- Archive upload form -->
           {{ sat_data_form.as_p }}
           <!-- Upload button -->
-          <button type="submit" class="btn btn-outline-success"><i class="fa-solid fa-upload"></i> Upload archive</button>
+          <button id="uploadButton" name="sat_data_button" type="submit" class="btn btn-outline-success">
+            <i class="fa-solid fa-upload"></i> Upload archive
+          </button>
         </form>
         <!-- Error message -->
         {% if error %}
+          <hr class="light-100" />
           <div class="alert alert-danger" role="alert">{{ error }}</div>
         {% endif %}
         <!-- Success message -->
         {% if success %}
+          <hr class="light-100" />
           <div class="alert alert-success" role="alert">
             <div class="row">
               {{ success }} <i class="fa-solid fa-check"></i>
             </div>
-            <div class="row">
-              <a href="{% url 'overview_view' %}" class="btn btn-success"><i class="fa-solid fa-table-columns"></i> Show overview</a>
-            </div>
+            {% if sat_data_id %}
+              <div class="row">
+                <a href="{% url 'sat_data_details_view' sat_data_id=sat_data_id %}" class="btn btn-success"><i class="fa-solid fa-table-columns"></i> Show Entry</a>
+              </div>
+            {% else %}
+              <div class="row">
+                <a href="{% url 'overview_view' %}" class="btn btn-success"><i class="fa-solid fa-table-columns"></i> Show Overview</a>
+              </div>
+            {% endif %}
           </div>
         {% endif %}
       </div>
@@ -70,11 +80,23 @@
         {{ sh_form.as_p }}
         <div class="col-md-12">
           <div id="map" style="height: 600px;"></div>
-          <button type="submit" class="btn btn-outline-success">Submit Form</button>
+          <button type="submit" name="sh_button" class="btn btn-outline-success">Submit Form</button>
         </div>
       </form>
     </div>
   </div>
+
+  
+  <!-- "Upload archive" button loading icon -->
+  <!--
+  <script>
+    document.getElementById('uploadButton').addEventListener('click', function() {
+      this.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Uploading archive...';
+      // Optionally disable the button to prevent multiple clicks
+      this.disabled = true;
+    });
+  </script>
+  -->
 
   <!-- Leaflet map script -->
   <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
@@ -128,8 +150,25 @@
         drawnItems.clearLayers()
     
         drawnItems.addLayer(layer)
+
+        var bounds = layer.getBounds();
+
+        // Calculate width and height in meters
+        var width = bounds.getNorthEast().distanceTo(L.latLng(bounds.getNorthEast().lat, bounds.getSouthWest().lng));
+        var height = bounds.getNorthEast().distanceTo(L.latLng(bounds.getSouthWest().lat, bounds.getNorthEast().lng));
+
+        // Define max width and height (2500m x 2500m)
+        var maxWidth = 2500;
+        var maxHeight = 2500;
+
+        // Check if the rectangle exceeds the maximum dimensions
+        if (width > maxWidth || height > maxHeight) {
+            // Remove the layer if it exceeds the max dimensions
+            alert('The rectangle exceeds the maximum dimensions of 2500px x 2500px. Please draw a smaller rectangle!');
+            return;
+        }
     
-        coordinates = layer.getBounds().toBBoxString()
+        coordinates = bounds.toBBoxString()
         document.querySelector('input[name="coordinates"]').value = boundingBoxToWKT(coordinates)
       }
     })
@@ -141,6 +180,61 @@
       }
     })
   </script>
+
+  <!-- Restrict band choice -->
+  <script type="text/javascript">
+    document.addEventListener('DOMContentLoaded', function() {
+      function updateSelectableOptions() {
+        const selectedResolution = document.getElementById('id_resolution').value;
+        const bandsCheckboxes = document.querySelectorAll('[name="bands"]');
+        const metricsCheckboxes = document.querySelectorAll('[name="metrics_to_calc"]');
+  
+        // Define which options are selectable for each resolution
+        const selectableBands10m = ['B02', 'B03', 'B04', 'B08', 'TCI', 'WVP'];
+        const selectableBands20m60m = ['AOT', 'B01', 'B02', 'B03', 'B04', 'B05', 'B06', 'B07', 'B08', 'B8A', 'B09', 'B11', 'B12', 'TCI', 'WVP'];
+        const selectableMetrics10m = ['ndvi', 'ndwi', 'rgb'];
+        
+        bandsCheckboxes.forEach(cb => {
+          const shouldBeEnabled = selectedResolution === '10' ? selectableBands10m.includes(cb.value) : selectableBands20m60m.includes(cb.value);
+          cb.disabled = !shouldBeEnabled;
+          cb.parentElement.style.pointerEvents = shouldBeEnabled ? 'auto' : 'none';
+          cb.parentElement.style.opacity = shouldBeEnabled ? '1' : '0.5';
+        });
+  
+        metricsCheckboxes.forEach(cb => {
+          const shouldBeEnabled = selectedResolution === '10' ? selectableMetrics10m.includes(cb.value) : true; // All metrics are selectable for 20m and 60m
+          cb.disabled = !shouldBeEnabled;
+          cb.parentElement.style.pointerEvents = shouldBeEnabled ? 'auto' : 'none';
+          cb.parentElement.style.opacity = shouldBeEnabled ? '1' : '0.5';
+        });
+      }
+  
+      // Listen for changes on the resolution select field
+      document.getElementById('id_resolution').addEventListener('change', updateSelectableOptions);
+  
+      // Initial update in case the form is pre-filled or when the page is loaded
+      updateSelectableOptions();
+    });
+  </script> 
+  
+  <!-- Set `end_date` to `start_date` if `start_date` selected-->
+  <script type="text/javascript">
+    document.addEventListener('DOMContentLoaded', function() {
+      const startDateInput = document.getElementById('id_start_date');
+      const endDateInput = document.getElementById('id_end_date');
+  
+      startDateInput.addEventListener('change', function() {
+        const startDate = new Date(this.value);
+        const endDate = new Date(endDateInput.value);
+  
+        // Update the end_date only if it's empty or before the start_date
+        if (endDateInput.value === '' || endDate < startDate) {
+          endDateInput.value = this.value;
+        }
+      });
+    });
+  </script>
+  
 
   <!-- Automatic bands selection -->
   <script type="text/javascript">

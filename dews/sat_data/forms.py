@@ -9,6 +9,7 @@ from .models import SatData, SHRequest
 
 logger = logging.getLogger("django")
 
+
 class SatDataForm(forms.ModelForm):
     class Meta:
         model = SatData
@@ -23,6 +24,7 @@ class SHRequestForm(forms.ModelForm):
     ]
 
     bands_choices = [
+        ('AOT', 'AOT'),
         ('B01', 'B01'),
         ('B02', 'B02'),
         ('B03', 'B03'),
@@ -35,6 +37,9 @@ class SHRequestForm(forms.ModelForm):
         ('B09', 'B09'),
         ('B11', 'B11'),
         ('B12', 'B12'),
+        ('SCL', 'SCL'),
+        ('TCI', 'TCI'),
+        ('WVP', 'WVP'),
     ]
 
     resolution_choices = [
@@ -98,5 +103,5 @@ class SHRequestForm(forms.ModelForm):
 
     class Meta:
         model = SHRequest
-        fields = ['mission', 'metrics_to_calc', 'bands', 
-                  'resolution', 'start_date', 'end_date', 'coordinates']
+        fields = ['mission', 'resolution', 'metrics_to_calc', 'bands',
+                  'start_date', 'end_date', 'coordinates']

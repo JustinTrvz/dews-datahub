@@ -181,8 +181,15 @@ class SatData(models.Model):
         default=get_dews_user,
     )
 
-    time_travels = models.ForeignKey(
+    time_travel = models.ForeignKey(
         TimeTravel,
+        on_delete=models.CASCADE,
+        related_name='sat_datas',
+        null=True,
+        blank=True,
+    )
+    sh_request = models.ForeignKey(
+        'SHRequest',
         on_delete=models.CASCADE,
         related_name='sat_datas',
         null=True,
@@ -325,29 +332,6 @@ class Index(models.Model):
     def __str__(self):
         return f"Index<'{self.id}', SatData '{self.sat_data.id}'>"
 
-
-class ProductInfo(models.Model):
-    # Attributes
-    product_start_time = models.DateTimeField()
-    product_stop_time = models.DateTimeField()
-    product_type = models.CharField(max_length=50)
-
-    # Relationships
-    sat_data = models.OneToOneField(
-        SatData, on_delete=models.CASCADE, related_name='product_info', primary_key=True)  # Primary key!
-
-    # Meta data
-    class Meta:
-        db_table = "product_info"
-
-    # Methods
-    def to_dict(self):
-        return ModelUtil.to_dict(self)
-
-    def __str__(self):
-        return f"ProductInfo<SatData '{self.sat_data.id}'>"
-
-
 class SHRequest(models.Model):
     """ Represents a request to the Sentinel Hub API."""
     id = models.UUIDField(
@@ -365,22 +349,10 @@ class SHRequest(models.Model):
         models.CharField(max_length=300),
         default=list,
     )
-    # bands = models.JSONField(
-    #     max_length=2000,
-    #     verbose_name="Bands",
-    #     blank=True,
-    #     null=True,
-    # )
     resolution = models.IntegerField(blank=False, null=False)
     # can be empty, no need to force index calculation
     metrics_to_calc = ArrayField(
         models.CharField(max_length=300), default=list)
-    # metrics_to_calc = models.JSONField(
-    #     max_length=2000,
-    #     verbose_name="Metrics to Calculate",
-    #     blank=True,
-    #     null=True,
-    # )
     creation_time = models.DateTimeField(
         auto_now_add=True,  # when the request was created
     )
@@ -405,14 +377,6 @@ class SHRequest(models.Model):
     )
 
     # Relationships
-    sat_data = models.OneToOneField(
-        SatData,
-        on_delete=models.CASCADE,
-        related_name='sh_request',
-        null=True,
-        blank=True,
-    )
-
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,

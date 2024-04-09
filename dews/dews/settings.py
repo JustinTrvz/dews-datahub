@@ -52,6 +52,10 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "django.contrib.gis",
 
+    # 3rd party apps
+    "leaflet",
+    "djgeojson",
+
     # custom apps
     "dashboard",
     "sat_data",

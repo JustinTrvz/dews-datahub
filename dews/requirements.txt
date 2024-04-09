@@ -9,6 +9,8 @@ contourpy==1.2.0
 cycler==0.12.1
 Django==5.0
 django-htmx==1.17.2
+django-leaflet==0.29.1
+django-geojson==4.0.0 
 fonttools==4.46.0
 GDAL==3.8.0 # set to 3.8.0 for Docker container
 geographiclib==2.0

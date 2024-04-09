@@ -58,7 +58,7 @@ class AttrAdder():
     ]
     path_dict = {}
 
-    def __init__(self, sat_data: SatData, extracted_path: str, mission: str, sh_request=False, bbox=None, bands=None) -> None:
+    def __init__(self, sat_data: SatData, extracted_path: str, mission: str, sh_request=False, bbox=None, bands=None, date=None) -> None:
         logger.debug("AttrAdder object created.")
         # Set processing status
         sat_data.processing_done = False
@@ -84,12 +84,16 @@ class AttrAdder():
             self.sat_data = sat_data
             self.id = sat_data.id
             self.extracted_path = extracted_path
-            self.extracted_abs_path = FileUtils.generate_path(
-                MEDIA_ROOT, extracted_path)
+            if MEDIA_ROOT in extracted_path:
+                self.extracted_abs_path = extracted_path
+            else:
+                self.extracted_abs_path = FileUtils.generate_path(MEDIA_ROOT, extracted_path)
+            logger.debug(f"Extracted absolute path: {self.extracted_abs_path}")
             self.mission = mission
             self.sh_request = sh_request
             self.bbox = bbox
             self.bands = bands
+            self.date = date
             logger.debug(
                 f"Set AttrAdder class variables. sat_data.id='{self.id}'")
 
@@ -280,41 +284,41 @@ class AttrAdder():
 
         # Sentinel Hub Request
         if self.sh_request:
-            logger.debug(
-                f"No capture info available for Sentinel Hub Request data. sat_data.id='{self.id}'")
-            return
-
-        # Archive upload
-        # Check if metadata_dict is empty
-        if not self.metadata_dict:
-            logger.warn(
-                f"Metadata dictionary is empty. sat_data.id='{self.id}'")
-            return
-
-        start_time_keyword = ""
-        stop_time_keyword = ""
-        # Identify start and stop time keywords and datetime format
-        dt_format = "%Y-%m-%dT%H:%M:%S.%f"
-        if self.mission in [SatMission.SENTINEL_1A.value, SatMission.SENTINEL_2A.value, SatMission.SENTINEL_2B.value]:
-            # Sentinel-1A or Sentinel-2B
-            start_time_keyword = "safe:startTime"
-            stop_time_keyword = "safe:stopTime"
-            if self.mission in [SatMission.SENTINEL_2A.value, SatMission.SENTINEL_2B.value]:
-                dt_format = "%Y-%m-%dT%H:%M:%S.%fZ"
-
-        elif self.mission in [SatMission.SENTINEL_3A.value, SatMission.SENTINEL_3B.value]:
-            # Sentinel-3A or Sentinel-3B
-            start_time_keyword = "sentinel-safe:startTime"
-            stop_time_keyword = "sentinel-safe:stopTime"
-
-        # Get start and stop time
-        if start_time_keyword == "" and stop_time_keyword == "":
-            start_time_dt, stop_time_dt = None
+            start_time_dt = self.date
+            stop_time_dt = self.date
+            logger.debug(f"Set start and stop time. sat_data.id='{self.id}'")
         else:
-            logger.debug(
-                f"Getting start and stop time... sat_data.id='{self.id}'")
-            start_time_dt, stop_time_dt = self.get_start_and_stop_time(
-                dt_format, start_time_keyword, stop_time_keyword)
+            # Archive upload
+            # Check if metadata_dict is empty
+            if not self.metadata_dict:
+                logger.warn(
+                    f"Metadata dictionary is empty. sat_data.id='{self.id}'")
+                return
+
+            start_time_keyword = ""
+            stop_time_keyword = ""
+            # Identify start and stop time keywords and datetime format
+            dt_format = "%Y-%m-%dT%H:%M:%S.%f"
+            if self.mission in [SatMission.SENTINEL_1A.value, SatMission.SENTINEL_2A.value, SatMission.SENTINEL_2B.value]:
+                # Sentinel-1A or Sentinel-2B
+                start_time_keyword = "safe:startTime"
+                stop_time_keyword = "safe:stopTime"
+                if self.mission in [SatMission.SENTINEL_2A.value, SatMission.SENTINEL_2B.value]:
+                    dt_format = "%Y-%m-%dT%H:%M:%S.%fZ"
+
+            elif self.mission in [SatMission.SENTINEL_3A.value, SatMission.SENTINEL_3B.value]:
+                # Sentinel-3A or Sentinel-3B
+                start_time_keyword = "sentinel-safe:startTime"
+                stop_time_keyword = "sentinel-safe:stopTime"
+
+            # Get start and stop time
+            if start_time_keyword == "" and stop_time_keyword == "":
+                start_time_dt, stop_time_dt = None
+            else:
+                logger.debug(
+                    f"Getting start and stop time... sat_data.id='{self.id}'")
+                start_time_dt, stop_time_dt = self.get_start_and_stop_time(
+                    dt_format, start_time_keyword, stop_time_keyword)
 
         # Get country using Nominatim
         logger.debug(
@@ -328,18 +332,23 @@ class AttrAdder():
             logger.error(
                 f"Could not save SatData object. sat_data.id='{self.id}', exception='{e}'")
         # Create AreaInfo object
-        area_info = Area(sat_data=self.sat_data,
+        area = Area(sat_data=self.sat_data,
                          country=country,
                          start_time=start_time_dt,
                          stop_time=stop_time_dt,
                          )
         logger.debug(
-            f"Created AreaInfo object. sat_data.id='{self.id}', area_info.sat_data='{area_info.sat_data}'")
+            f"Created AreaInfo object. sat_data.id='{self.id}', area.sat_data='{area.sat_data}'")
         # Set AreaInfo object as attribute to SatData object
-        self.sat_data.area_info = area_info
-        logger.debug(
-            f"Set AreaInfo as attribute to SatData object. sat_data.id='{self.id}', area_info.sat_data='{area_info.sat_data}'")
-
+        self.sat_data.area = area
+        logger.debug(f"Set AreaInfo object as attribute to SatData object. sat_data.id='{self.id}'")
+        self.sat_data.save()
+        logger.debug(f"Saved SatData object. sat_data.id='{self.id}'")
+        area.sat_data = self.sat_data
+        logger.debug(f"Set SatData object as attribute to AreaInfo object. sat_data.id='{self.id}'")
+        area.save()
+        logger.debug(f"Saved AreaInfo object. sat_data.id='{self.id}'")
+        
     def get_start_and_stop_time(self, format, start_time_keyword, stop_time_keyword):
         logger.debug(
             f"format='{format}', start_time_keyword='{start_time_keyword}', stop_time_keyword='{stop_time_keyword}'")
@@ -395,12 +404,15 @@ class AttrAdder():
         coordinate_tuples = []
         if self.sh_request:
             # Sentinel Hub Request
-            lower_left = (self.bbox[0], self.bbox[1])
-            upper_left = (self.bbox[0], self.bbox[3])
-            upper_right = (self.bbox[2], self.bbox[3])
-            lower_right = (self.bbox[2], self.bbox[1])
-            coordinate_tuples = [lower_left, upper_left,
-                                 upper_right, lower_right, lower_left]
+
+            coords = list(map(float, self.bbox.split(',')))
+            coordinate_tuples = [
+                (coords[0], coords[1]),  # Bottom-left
+                (coords[0], coords[3]),  # Top-left
+                (coords[2], coords[3]),  # Top-right
+                (coords[2], coords[1]),  # Bottom-right
+                (coords[0], coords[1])   # Close the polygon by repeating the first point (bottom-left)
+            ]
         else:
             # Archive upload
             if self.product_type in PathFinder.has_manifest_prod_types:
@@ -632,7 +644,8 @@ class AttrAdder():
                     band_path_splitted = band_path.split("/")
                     range_string = "unknown"
 
-                    # Get sub string and range string
+                    # Get range string
+                    logger.debug(f"Getting range string... sat_data.id='{self.id}'")
                     range_string = self.get_range_string(band_path, band_path_splitted)
 
                     # Get file name if .nc file
@@ -640,12 +653,14 @@ class AttrAdder():
                         band_string = band_path_splitted[-1]
 
                     # Shorten mission name
+                    logger.debug(f"Shortening mission name... sat_data.id='{self.id}'")
                     mission = sat_data.mission
                     if "-" in mission:
                         mission_split = mission.split("-")
                         mission = f"{mission_split[0][0]}{mission_split[1]}"
 
                     # Create and import table (as raster) to database
+                    logger.debug(f"Creating and importing table... sat_data.id='{self.id}'")
                     table_name = self.import_raster_and_create_table(
                         sat_data=sat_data,
                         mission=mission,
@@ -655,6 +670,7 @@ class AttrAdder():
                     )
 
                     # Create Band object
+                    logger.debug(f"Creating Band object... sat_data.id='{self.id}'")
                     ok = self.create_band_obj(
                         band_path=band_path,
                         band_string=band_string,
@@ -763,6 +779,7 @@ class AttrAdder():
         return table_name
 
     def get_range_string(self, band_path, band_path_splitted):
+        range_string = "unknown"
         if self.sh_request:
             # Sentinel Hub Request
             range_string = "r20m"
@@ -781,7 +798,6 @@ class AttrAdder():
                     f"Could not find range part in band path. band_path='{band_path}', range_string='{range_string}'")
         else:
             # Failed to find range part...
-            range_string = "unknown"
             logger.debug(
                 f"Could not find range part in band path. band_path='{band_path}', range_string='{range_string}'")
 
@@ -1016,7 +1032,7 @@ class AttrAdder():
             logger.debug(
                 f"Using keyword and metadata path for Sentinel-3A. keywords='{keywords}', metadata_path='{metadata_path}'")
         elif self.mission == SatMission.SENTINEL_2A.value or self.mission == SatMission.SENTINEL_2B.value:
-
+            
             files = os.listdir(self.extracted_abs_path)
             logger.debug(
                 f"Using keyword and metadata path for Sentinel-2A/B. files='{files}'")
@@ -1026,7 +1042,7 @@ class AttrAdder():
             keyword = []
             for file in files:
                 if file.startswith("MTD"):
-                    metadata_path = os.path.join(self.extracted_abs_path, file)
+                    metadata_path = os.path.join(self.extracted_abs_path, remove_media_root(file))
                     keywords = ["PRODUCT_TYPE"]
                     logger.debug(
                         f"Metadata file found. metadata_path='{metadata_path}'")
