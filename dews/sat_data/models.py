@@ -255,7 +255,7 @@ class Band(models.Model):
     # Attributes
     # id = models.IntegerField(primary_key=True, verbose_name="ID")
     range = models.IntegerField(
-        default=10, help_text="One pixel in meter", blank=True)  # in meter
+        default=0, help_text="One pixel in meter", blank=True)  # in meter
     type = models.CharField(max_length=50, blank=True, verbose_name="Type")
     raster = models.RasterField(null=True, blank=True, verbose_name="Raster")
     srid = models.IntegerField(default=4326, blank=True, verbose_name="SRID")
@@ -267,7 +267,6 @@ class Band(models.Model):
         SatData, on_delete=models.CASCADE, related_name="bands")
 
     # Meta data
-
     class Meta:
         db_table = "band"
 
