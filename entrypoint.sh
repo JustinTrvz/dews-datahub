@@ -49,4 +49,4 @@ python manage.py createsuperuser --noinput
 
 # Start
 echo "Start main app..."
-gunicorn dews.wsgi:application --bind 0.0.0.0:8000 --reload
+gunicorn dews.wsgi:application --bind 0.0.0.0:8000  -k gevent --workers 3 --reload --timeout 120

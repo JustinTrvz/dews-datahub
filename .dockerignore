@@ -1,5 +1,8 @@
 ### ------------------------- Project specific .gitignore ------------------------ ###
 
+# Backup
+*.bak
+
 # Django
 *venv/
 __pycache__/

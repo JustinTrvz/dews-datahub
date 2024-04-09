@@ -14,7 +14,7 @@
 
 <!-- Add Button -->
 <div class="row" style="padding: 10px;">
-   <a href="{% url 'sat_data_upload_view' %}" class="btn btn-outline-primary">Add new entry <i class="fa-solid fa-plus"></i></a>
+   <a href="{% url 'sat_data_create_view' %}" class="btn btn-outline-primary">Add Entry <i class="fa-solid fa-plus"></i></a>
 </div>
 
 <!-- Tabs -->
@@ -79,9 +79,13 @@
      <a href="{% url 'sat_data_details_view' sat_data.id %}" style="text-decoration: none; color: inherit;">
         <div class="card">
            <div class="card-body">
-              <h4 class="card-title"><i class="fa-solid fa-satellite"></i> SatData: '{{ sat_data.name }}' {% if sat_data.processing_done %}{% include "check-circle.svg" %}{% else %}<div class="spinner-border" role="status">
-               <span class="sr-only">In progress...</span>
-             </div>{% endif %}</h4>
+              <h4 class="card-title"><i class="fa-solid fa-satellite"></i> SatData: '{{ sat_data.name }}' 
+               {% if sat_data.processing_done %}
+                  {% include "check-circle.svg" %}
+               {% else %}
+                  <i class="fa-solid fa-spinner fa-spin"></i>
+               {% endif %}
+               </h4>
               <p class="card-text">
               <div class="container">
                  <div class="row">
@@ -91,7 +95,8 @@
                        <strong>Mission:</strong> {{ sat_data.mission|capfirst }}<br />
                        <strong>Product Type:</strong> {{ sat_data.product_type|upper }}<br />
                        <strong>User:</strong> {{ sat_data.user.username|lower }}<br />
-                       <strong>Creation Time:</strong> {{ sat_data.creation_time }}<br />                       
+                       <strong>Capture Time:</strong> {{ sat_data.area.start_time }}<br />
+                       <strong>Creation Time:</strong> {{ sat_data.creation_time }}<br />                                          
                     </div>
                     <!-- Thumbnail -->
                     <div class="col-md-6">
@@ -106,8 +111,7 @@
               </p>
               <!-- Action buttons -->
      <a href="{% url 'sat_data_details_view' sat_data.id %}" class="btn btn-success"><i class="fa-solid fa-circle-info"></i></a>
-     <a href="{% url 'sat_data_details_view' sat_data.id %}" class="btn btn-outline-info"><i class="fa-solid fa-pen-to-square"></i></a>
-     <a href="{% url 'sat_data_details_view' sat_data.id %}" class="btn btn-outline-danger"><i class="fa-solid fa-trash"></i></a>
+     <a href="{% url 'sat_data_delete_view' sat_data.id %}" class="btn btn-outline-danger"><i class="fa-solid fa-trash"></i></a>
      </div>
      </div>
      </a>
@@ -140,10 +144,7 @@
             <option value="sentinel-3a" {% if mission_query == 'sentinel-3a' %}selected{% endif %}>Sentinel-3A</option>
             <option value="sentinel-3b" {% if mission_query == 'sentinel-3b' %}selected{% endif %}>Sentinel-3B</option>
             <option value="sentinel-5p" {% if mission_query == 'sentinel-5p' %}selected{% endif %}>Sentinel-5P</option>
-            <option value="landsat-1" {% if mission_query == 'landsat-1' %}selected{% endif %}>Landsat-1</option>
-            <option value="landsat-2" {% if mission_query == 'landsat-1' %}selected{% endif %}>Landsat-2</option>
-            <option value="landsat-3" {% if mission_query == 'landsat-1' %}selected{% endif %}>Landsat-3</option>
-            <option value="unknown" {% if mission_query == 'unknown' %}selected{% endif %}>Unknown Mission</option>
+            <option value="unknown" {% if mission_query == 'unknown' %}selected{% endif %}>Unknown</option>
             </select>
          </div>
          <div class="form-group">
@@ -194,8 +195,7 @@
               </p>
               <!-- Action buttons -->
      <a href="{% url 'time_travel_details_view' time_travel.id %}" class="btn btn-success"><i class="fa-solid fa-circle-info"></i></a>
-     <a href="{% url 'time_travel_details_view' time_travel.id %}" class="btn btn-outline-info"><i class="fa-solid fa-pen-to-square"></i></a>
-     <a href="{% url 'time_travel_details_view' time_travel.id %}" class="btn btn-outline-danger"><i class="fa-solid fa-trash"></i></a>
+     <a href="{% url 'time_travel_delete_view' time_travel.id %}" class="btn btn-outline-danger"><i class="fa-solid fa-trash"></i></a>
      </div>
      </div>
      </a>
@@ -212,6 +212,6 @@
 
 <!-- Add Button -->
 <div class="row" style="padding: 10px;">
-   <a href="{% url 'sat_data_upload_view' %}" class="btn btn-outline-primary">Add new entry <i class="fa-solid fa-plus"></i></a>
+   <a href="{% url 'sat_data_create_view' %}" class="btn btn-outline-primary">Add Entry <i class="fa-solid fa-plus"></i></a>
 </div>
 {% endblock %}

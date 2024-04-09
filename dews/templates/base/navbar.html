@@ -5,7 +5,7 @@
 
 <nav class="navbar sticky-top navbar-expand-lg navbar-light" style="background-color: #fff">
     <div class="container-fluid">
-        <a class="navbar-brand" href=" {{ dashboard }}"><img src="{% static "img/favicon.ico" %}" width="20%"></a>
+        <a class="navbar-brand" href=" {{ dashboard }}"><img src="{% static "img/dews-logo.png" %}" width="20%"></a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
                 style="width:100%"
                 data-bs-target="#navbarSupportedContent"
@@ -23,13 +23,13 @@
                 <!-- SatData -->
                 <li class="nav-item dropdown li-custom">
                     <a class="nav-link dropdown-toggle {% if request.path == overview %} active {% endif %} navbar-text" {% if request.path == overview %} aria-current="page" {% endif %} href="#" id="navbarDropdown" role="button"
-                        data-bs-toggle="dropdown" aria-expanded="false">SatData</a>
+                        data-bs-toggle="dropdown" aria-expanded="false">Sat Data</a>
                     <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
                         <li><a class="dropdown-item" href="{% url "overview_view" %}">Overview</a></li>
                         <li>
                             <hr class="dropdown-divider">
                         </li>
-                        <li><a class="dropdown-item" href="{% url "sat_data_upload_view" %}">Upload</a></li>
+                        <li><a class="dropdown-item" href="{% url "sat_data_create_view" %}">Create</a></li>
                     </ul>
                 </li>
 

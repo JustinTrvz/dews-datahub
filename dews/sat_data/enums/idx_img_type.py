@@ -7,7 +7,7 @@ class IdxImgType(Enum):
     RGB = "rgb"
     NDVI = "ndvi"
     EVI = "evi"
-    MOISTURE = "moisture"
+    SMI = "smi"
     NDWI = "ndwi"
 
     @staticmethod

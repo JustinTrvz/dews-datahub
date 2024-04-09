@@ -1,8 +1,14 @@
 ### ------------------------- Project specific .gitignore ------------------------ ###
 
+# Backup
+*.bak
+
 *.log
 tmp/
 files/
+
+# Files
+media/
 
 # Django
 *.log
@@ -12,6 +18,9 @@ dews/media/
 django-venv/
 test.py
 secret_key
+
+# Sentinel Hub
+sentinel.key
 
 # Database (PostgreSQL)
 pgdata/
@@ -63,6 +72,7 @@ MANIFEST
 
 # Environments
 .env
+!.env.example
 .venv
 env/
 venv/

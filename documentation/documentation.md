@@ -30,6 +30,7 @@ This section introduces the task and outlines the objectives pursued by Drought 
         <th>Number</th>
         <th>Use-case</th>
         <th>Explanation</th>
+        <th>Status</th>
     </tr>
     <tr>
         <td>1</td>
@@ -39,6 +40,7 @@ This section introduces the task and outlines the objectives pursued by Drought 
         <td>
             Seperate login for admins.
         </td>
+        <td>Done. Already implemented in Django Admin.</td>
     </tr>
     <tr>
         <td>2</td>
@@ -48,6 +50,7 @@ This section introduces the task and outlines the objectives pursued by Drought 
         <td>
             Seperate login for regular users.
         </td>
+        <td>Done. Implemented using Django.</td>
     </tr>
     <tr>
         <td>3.1</td>
@@ -55,8 +58,9 @@ This section introduces the task and outlines the objectives pursued by Drought 
             Manage profile (<i>regular user</i>)
         </td>
         <td>
-            Create, read, update and delete own profile
+            Create and delete own profile
         </td>
+        <td>WIP. Create is done, but delete is not.</td>
     </tr>
     <tr>
         <td>3.2</td>
@@ -64,8 +68,9 @@ This section introduces the task and outlines the objectives pursued by Drought 
             Manage profile (<i>admin user</i>)
         </td>
         <td>
-            Create, read, update and delete all profiles
+            Create and delete all profiles
         </td>
+        <td>Done. Already implemented in Django Admin.</td>
     </tr>
     <tr>
         <td>4.1</td>
@@ -75,33 +80,27 @@ This section introduces the task and outlines the objectives pursued by Drought 
         <td>
             Create, read, update and delete all satellite data
         </td>
+        <td>WIP. You can upload sat data archives and read the entries, but not update or delete them.</td>
     </tr>
     <tr>
         <td>4.2</td>
         <td>
-            Manage satellite data (<i>admin user</i>)
+            Manage satellite data (<i>regular user</i>)
         </td>
         <td>
-            Create, read, update and delete own satellite data
+            Create and read all satellite data. Update and delete satellite data created by the user.
         </td>
+        <td>WIP. Create and read is implemented but update and delete is not.</td>
     </tr>
     <tr>
         <td>5.1</td>
         <td>
-            Search for satellite data (<i>admin user</i>)
+            Search for satellite data (<i>admin user</i> + <i>regular user</i>)
         </td>
         <td>
-            Search for all satellite data
+            Search and see all satellite data
         </td>
-    </tr>
-    <tr>
-        <td>5.1</td>
-        <td>
-            Search for satellite data (<i>admin user</i>)
-        </td>
-        <td>
-            Search own satellite data
-        </td>
+        <td>WIP. Search is implemented but needs more filters.</td>
     </tr>
 </table>
 
@@ -227,7 +226,7 @@ At the beginning of the project various constraints had to be respected within t
         <td>
             <ul>
                 <li>Developer of the datahub has only access to a notebook with a AMD Ryzen 5 4500 U with 16 GB RAM.</li>
-                <li>Operating DE-DH on a standard notebook in order to develop using the datahub.</li>
+                <li>Operating the datahub on a standard notebook in order to develop.</li>
             </ul>
         </td>
     </tr>
@@ -235,23 +234,15 @@ At the beginning of the project various constraints had to be respected within t
         <td>Support of all common operating system</td>
         <td>
             <ul>
-                <li>Since Windows, MacOS and Linux are the most used operating systems they should be supported.</li>
+                <li>Since Docker can be used on all platforms a containerized environment should be used.</li>
             </ul>
         </td>
     </tr>
     <tr>
-        <td>Frontend implementation in Flutter/Dart</td>
+        <td>Implementation in Python</td>
         <td>
             <ul>
-                <li>Flutter is useful for cross-platform development of GUIs.</li>
-            </ul>
-        </td>
-    </tr>
-    <tr>
-        <td>Backend implementation in Python</td>
-        <td>
-            <ul>
-                <li>Python is well-known for the use in machine-learning context and a wide range of libraries.</li>
+                <li>Django is a framework which is used for frontend and backend development. Some libraries for sat data are only available for Python.</li>
             </ul>
         </td>
     </tr>
@@ -373,14 +364,6 @@ At the beginning of the project various constraints had to be respected within t
         <td>
             <ul>
                 <li>Terminology and structure according to the arc42 template, version 8.2.</li>
-            </ul>
-        </td>
-    </tr>
-    <tr>
-        <td>Coding guidelines for Flutter/Dart</td>
-        <td>
-            <ul>
-                <li>Compliance with <a href="https://dart.dev/effective-dart/style">"Effective Dart: Style"</a> conventions.</li>
             </ul>
         </td>
     </tr>
