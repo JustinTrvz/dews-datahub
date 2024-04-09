@@ -52,6 +52,10 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "django.contrib.gis",
 
+    # 3rd party apps
+    "leaflet",
+    "djgeojson",
+
     # custom apps
     "dashboard",
     "sat_data",
@@ -166,10 +170,16 @@ DATABASES = {
         "USER": DB_USER,
         "PASSWORD": DB_PASSWORD,
         "HOST": "dews-db",
-        "PORT": DB_PORT
+        "PORT": DB_PORT,
+        "TEST": {
+            "NAME": "test_dews",
+            "OPTIONS": {
+                "options": "-c search_path=public -c shared_preload_libraries=pg_stat_statements"
+            },
+        },
     }
 }
-
+TEST_RUNNER = "sat_data.test_runner.PostGISTestRunner"
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators

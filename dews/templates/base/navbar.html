@@ -23,13 +23,13 @@
                 <!-- SatData -->
                 <li class="nav-item dropdown li-custom">
                     <a class="nav-link dropdown-toggle {% if request.path == overview %} active {% endif %} navbar-text" {% if request.path == overview %} aria-current="page" {% endif %} href="#" id="navbarDropdown" role="button"
-                        data-bs-toggle="dropdown" aria-expanded="false">SatData</a>
+                        data-bs-toggle="dropdown" aria-expanded="false">Sat Data</a>
                     <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
                         <li><a class="dropdown-item" href="{% url "overview_view" %}">Overview</a></li>
                         <li>
                             <hr class="dropdown-divider">
                         </li>
-                        <li><a class="dropdown-item" href="{% url "sat_data_upload_view" %}">Upload</a></li>
+                        <li><a class="dropdown-item" href="{% url "sat_data_create_view" %}">Create</a></li>
                     </ul>
                 </li>
 

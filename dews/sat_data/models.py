@@ -1,8 +1,11 @@
+from enum import Enum
 import os
 from threading import Thread
 from django.contrib.auth.models import User
 
 from django.contrib.gis.db import models
+from django.contrib.postgres.fields import ArrayField
+
 
 import uuid
 import logging
@@ -10,6 +13,8 @@ import logging
 from django.urls import reverse
 from sat_data.enums.sat_mission import SatMission
 from sat_data.enums.sat_prod_type import SatProdType
+from sat_data.enums.status import Status
+
 
 from utils.services.model_util import ModelUtil
 from sat_data.enums.sat_band import SatBand
@@ -18,8 +23,8 @@ from utils.services.overwrite_storage import OverwriteStorage
 
 
 def band_upload_path(instance, filename):
-    path = remove_media_root(instance.directory_path)
-    return f"{path}/measurement/{filename}"
+    path = remove_media_root(instance.sat_data.extracted_path)
+    return f"{path}/{filename}"
 
 
 def index_upload_path(instance, filename):
@@ -28,12 +33,12 @@ def index_upload_path(instance, filename):
 
 
 def thumbnail_upload_path(instance, filename):
-    path = remove_media_root(instance.directory_path)
+    path = remove_media_root(instance.extracted_path)
     return f"{path}/preview/{filename}"
 
 
 def metadata_upload_path(instance, filename):
-    path = remove_media_root(instance.directory_path)
+    path = remove_media_root(instance.extracted_path)
     return f"{path}/{filename}"
 
 
@@ -50,7 +55,8 @@ def remove_media_root(path):
 
 
 def get_dews_user():
-    return User.objects.get_or_create(username=DB_USER)
+    user, _ = User.objects.get_or_create(username=DB_USER)
+    return user
 
 
 class TimeTravel(models.Model):
@@ -112,12 +118,12 @@ class SatData(models.Model):
                                    blank=True,
                                    null=True)
     processing_done = models.BooleanField(default=False,
-                                 verbose_name="Processing Done",
-                                 blank=True,
-                                 null=True)
+                                          verbose_name="Processing Done",
+                                          blank=True,
+                                          null=True)
     archive = models.FileField(max_length=255,
-                               null=False,
-                               blank=False,
+                               null=True,
+                               blank=True,
                                upload_to=archive_upload_path,
                                verbose_name="Archive",
                                storage=OverwriteStorage())
@@ -167,10 +173,28 @@ class SatData(models.Model):
 
     # Relationships
     user = models.ForeignKey(
-        User, on_delete=models.SET_NULL, null=True, blank=True, default=get_dews_user)
+        User,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='sat_datas',
+        default=get_dews_user,
+    )
 
-    time_travels = models.ForeignKey(TimeTravel, on_delete=models.CASCADE,
-                                     related_name='sat_data', null=True, blank=True)
+    time_travel = models.ForeignKey(
+        TimeTravel,
+        on_delete=models.CASCADE,
+        related_name='sat_datas',
+        null=True,
+        blank=True,
+    )
+    sh_request = models.ForeignKey(
+        'SHRequest',
+        on_delete=models.CASCADE,
+        related_name='sat_datas',
+        null=True,
+        blank=True,
+    )
 
     # Meta data
     class Meta:
@@ -181,74 +205,13 @@ class SatData(models.Model):
         return reverse("sat_data:sat_data_details_view", kwargs={"sat_data_id": self.id})
 
     # Methods
-    @staticmethod
-    def create(source_path: str, mission: str, extracted_path: str):
-        # Check sat mission
-        if not mission.lower() in [sat_mission.value.lower() for sat_mission in SatMission]:
-            logging.error(
-                f"Mission '{mission}' is not a valid satellite mission! Please use e.g. 'sentinel-1a' or 'sentinel-2b'.")
-            return None
-
-        try:
-            dews_user = User.objects.get(username="dews")
-
-            # Create satellite data object
-            sat_data = SatData(
-                mission=mission.lower(),
-                directory_path=extracted_path,
-                user=dews_user,
-            )
-            # Set archive path
-            sat_data.archive = remove_media_root(source_path)
-
-            logging.info(
-                "Created SatData object (not saved to database yet).")
-
-            # Add mission and instrument specific attributes
-            if mission == SatMission.SENTINEL_1A.value:
-                # Sentinel-1A
-                # Manifest
-                manifest_path = os.path.join(
-                    remove_media_root(extracted_path), "manifest.safe")
-                sat_data.manifest = manifest_path
-                # .../manifest.safe
-                logging.info(
-                    f"Added metadata path. manifest_path='{manifest_path}'")
-                # Thumbnail
-                thumbnail_path = os.path.join(remove_media_root(
-                    extracted_path), "preview", "thumbnail.png")
-                sat_data.thumbnail = thumbnail_path  # .../preview/thumbnail.png
-                logging.info(
-                    f"Added thumbnail path. thumbnail_path='{thumbnail_path}'")
-
-            # Save satellite data object
-            sat_data.save()
-            id = sat_data.id
-            logging.info(f"Saved SatData object to database. id='{id}'")
-
-            # Calculations in background
-            from sat_data.services.attr_adder import AttrAdder
-            attr_adder = AttrAdder(sat_data)
-            calc_thread = Thread(target=lambda: attr_adder.start())
-            calc_thread.start()
-            logging.info(f"Calculation attributes in background... id='{id}'")
-
-            logging.info(
-                f"Successfully created a SatData object. id='{id}', directory_path='{extracted_path}', user_id='{DB_USER}', mission='{mission}'")
-
-            return sat_data
-        except Exception as e:
-            logging.error(
-                f"Failed to create SatData object. error='{e}', source_path='{source_path}', mission='{mission}'")
-            return None
-
     def get_band(self, *required_bands):
         """
-        Returns a BandInfo object that contains all the required bands.
+        Returns a Band object that contains all the required bands.
 
         Pass strings as separate arguments. For example: `get_band_info("aot", "b03", "b05")`
 
-        See `BandInfo` object for a list of all accessible bands.
+        See `Band` object for a list of all accessible bands.
         """
         # Check if bands allowed
         allowed_bands = SatBand.get_all()
@@ -292,18 +255,16 @@ class Band(models.Model):
     # Attributes
     # id = models.IntegerField(primary_key=True, verbose_name="ID")
     range = models.IntegerField(
-        default=10, help_text="One pixel in meter", blank=True)  # in meter
+        default=0, help_text="One pixel in meter", blank=True)  # in meter
     type = models.CharField(max_length=50, blank=True, verbose_name="Type")
-    band_file = models.FileField(
-        max_length=255, blank=True, verbose_name="Band file", upload_to=band_upload_path)
-    band_path = models.CharField(
-        max_length=255, blank=True, verbose_name="Band path")
     raster = models.RasterField(null=True, blank=True, verbose_name="Raster")
     srid = models.IntegerField(default=4326, blank=True, verbose_name="SRID")
+    band_file = models.FileField(
+        max_length=255, blank=True, verbose_name="Band file", upload_to=band_upload_path)
 
     # Relationships
     sat_data = models.ForeignKey(
-        SatData, on_delete=models.CASCADE, related_name="band")
+        SatData, on_delete=models.CASCADE, related_name="bands")
 
     # Meta data
     class Meta:
@@ -325,7 +286,11 @@ class Area(models.Model):
 
     # Relationships
     sat_data = models.OneToOneField(
-        SatData, on_delete=models.CASCADE, related_name='area', primary_key=True)  # Primary key!
+        SatData,
+        on_delete=models.CASCADE,
+        related_name='area',
+        primary_key=True,
+    )  # Primary key!
 
     # Meta data
     class Meta:
@@ -366,24 +331,63 @@ class Index(models.Model):
     def __str__(self):
         return f"Index<'{self.id}', SatData '{self.sat_data.id}'>"
 
-
-class ProductInfo(models.Model):
-    # Attributes
-    product_start_time = models.DateTimeField()
-    product_stop_time = models.DateTimeField()
-    product_type = models.CharField(max_length=50)
+class SHRequest(models.Model):
+    """ Represents a request to the Sentinel Hub API."""
+    id = models.UUIDField(
+        primary_key=True,
+        default=uuid.uuid4,
+        editable=False,
+        verbose_name="ID",
+    )
+    mission = models.CharField(
+        max_length=50,
+        blank=False,
+        null=False,
+    )
+    bands = ArrayField(
+        models.CharField(max_length=300),
+        default=list,
+    )
+    resolution = models.IntegerField(blank=False, null=False)
+    # can be empty, no need to force index calculation
+    metrics_to_calc = ArrayField(
+        models.CharField(max_length=300), default=list)
+    creation_time = models.DateTimeField(
+        auto_now_add=True,  # when the request was created
+    )
+    start_date = models.DateField(
+        blank=False,
+        null=False,
+    )
+    # could be the same as `start_date`
+    end_date = models.DateField(
+        blank=False,
+        null=False,
+    )
+    coordinates = models.PolygonField(
+        blank=True,
+        null=True,
+        verbose_name="Polygon Coordinates",
+    )
+    progress = models.CharField(
+        max_length=20,
+        blank=True,
+        default=Status.IN_PROGRESS.value,
+    )
 
     # Relationships
-    sat_data = models.OneToOneField(
-        SatData, on_delete=models.CASCADE, related_name='product_info', primary_key=True)  # Primary key!
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        blank=True,
+        default=get_dews_user,
+    )
 
     # Meta data
     class Meta:
-        db_table = "product_info"
-
-    # Methods
-    def to_dict(self):
-        return ModelUtil.to_dict(self)
+        db_table = "sh_request"
+        ordering = ["-creation_time"]  # descending order
 
     def __str__(self):
-        return f"ProductInfo<SatData '{self.sat_data.id}'>"
+        return f"SHRequest<'{self.id}'>"
+        # return f"SHRequest<SatData '{self.sat_data.id}'>"
