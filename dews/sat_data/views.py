@@ -6,8 +6,9 @@ from threading import Thread
 import uuid
 from requests import HTTPError
 from sentinelhub import MimeType, DataCollection
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 import json
+from PIL import Image
 
 from django.contrib.gis.geos import Polygon, GEOSGeometry
 
@@ -27,6 +28,7 @@ from sat_data.services.sentinel_hub import request_sat_data
 from dews.settings import MEDIA_ROOT, VERSION, ARCHIVE_FILES_PATH
 from sentinelhub import SentinelHubRequest
 from django.db import connection
+import shutil
 
 logger = logging.getLogger("django")
 
@@ -354,6 +356,7 @@ def __extract_and_create(request, archive_path: str, logger: logging.Logger = No
             attr_adder.start()
             logger.info(
                 f"Created SatData with several attributes. id='{sat_data.id}', extracted_path='{extracted_path}'")
+            sat_data.save()
 
             # Calculate metrics
             metrics_to_calc = ["ndvi", "rgb"]
@@ -440,6 +443,16 @@ def create_sh_sat_data(request, data_folder, dir_name, bbox, bands, metrics_to_c
             f"Failed to create SatData object from Sentinel Hub request. user='{request.user}', error='{e}'")
         return None
 
+def is_uniform_color(image_path):
+    with Image.open(image_path) as img:
+        pixels = list(img.getdata())
+        first_pixel = pixels[0]
+        
+        # Check if all pixels are the same as the first one
+        for pixel in pixels[1:]:
+            if pixel != first_pixel:
+                return False
+        return True
 
 @require_POST
 def sentinel_hub_request_view(request, context):
@@ -497,26 +510,59 @@ def sentinel_hub_request_view(request, context):
             mission = SatMission.SENTINEL_2B
 
             try:
+                logger.debug(f"Start date type: {type(start_date)}")
+                logger.debug(f"Start date: {start_date}")
                 # Create request and SatData object for each day
                 # Add SatData reference to SHRequest object
-                curr_date = start_date
+                curr_date: date = start_date
                 while curr_date <= end_date:
-                    # Request SatData
-                    response = request_sat_data(
-                        bbox=bbox,
-                        resolution=int(resolution),
-                        data_folder=data_folder,
-                        data_collection=data_collection,
-                        mimetypes=[MimeType.TIFF, MimeType.PNG],
-                        bands=bands,
-                        start_date=curr_date,
-                        end_date=curr_date,
-                    )
-                    logger.debug(
-                        f"Requesting Sentinel Hub data done. bbox='{bbox}', resolution='{resolution}', data_folder='{data_folder}', data_collection='{data_collection}', bands='{bands}', start_date='{curr_date}', end_date='{curr_date}'")
+                    success_request = False
+                    retry_counter = 0
+                    while not success_request and retry_counter <= 5:
+                        # Max retries
+                        retry_counter += 1
+                        if retry_counter >= 5:
+                            logger.warn(f"Failed request. Max retries reached. retry_counter='{retry_counter}', start_date_temp='{start_date_temp}', end_date='{curr_date}', bbox='{bbox}', band='{bands}', resolution='{resolution}'")
+                            break
+
+                        start_date_temp: date = curr_date
+                        # Request SatData
+                        response = request_sat_data(
+                            bbox=bbox,
+                            resolution=int(resolution),
+                            data_folder=data_folder,
+                            data_collection=data_collection,
+                            mimetypes=[MimeType.TIFF, MimeType.PNG],
+                            bands=bands,
+                            start_date=start_date_temp,
+                            end_date=end_date,
+                        )
+                        logger.debug(
+                            f"Requesting Sentinel Hub data done. bbox='{bbox}', resolution='{resolution}', data_folder='{data_folder}', data_collection='{data_collection}', bands='{bands}', start_date_temp='{start_date_temp}', end_date='{curr_date}'")
+
+                        dir_name = response.get_filename_list()[0].split('/')[0]
+
+                        # Check if response image is valid
+                        dir_path = FileUtils.generate_path(data_folder, dir_name)
+                        tar_path = FileUtils.generate_path(dir_path, "response.tar")
+                        extracted_path = FileUtils.extract_tar(tar_path)
+                        png_path = FileUtils.generate_path(extracted_path, "default.png")
+
+                        if is_uniform_color(png_path):
+                            # Retry request
+                            logger.warn(
+                                f"Failed request. Uniform color image detected. start_date_temp='{start_date_temp}', end_date='{end_date}', bbox='{bbox}', band='{bands}', resolution='{resolution}'")
+                            # Delete downloaded directory 
+                            shutil.rmtree(dir_path)
+                            # Subtract 1 day from `start_date_temp`
+                            start_date_temp: date = start_date_temp - timedelta(days=1)
+                            logger.debug(
+                                f"Subtract 1 day from `start_date_temp`. start_date_temp='{start_date_temp}'")
+                        else:
+                            logger.debug(f"Successfull Sentinel Hub request. Non-uniform color image detected. start_date_temp='{start_date_temp}', end_date='{end_date}', bbox='{bbox}', band='{bands}', resolution='{resolution}'")
+                            success_request = True
 
                     # Create SatData object
-                    dir_name = response.get_filename_list()[0].split('/')[0]
                     logger.debug(
                         f"Create SatData object from Sentinel Hub request. user='{request.user}', dir_name='{dir_name}', bbox='{bbox}', timestamp='{datetime.now()}'")
                     sat_data = create_sh_sat_data(
@@ -541,7 +587,7 @@ def sentinel_hub_request_view(request, context):
                         sat_data.save()
 
                     # Increment date
-                    curr_date = curr_date + timedelta(days=1)
+                    curr_date: date = curr_date + timedelta(days=1)
             except Exception as e:
                 # Error
                 sh_request.status = Status.FAILED.value

@@ -116,7 +116,7 @@ class AttrAdder():
                 mission=self.mission,
                 product_type=self.sat_data.product_type,
             )
-            logger.debug(f"Created path dictionary. sat_data.id='{self.id}'")
+            logger.debug(f"Successfully created path dictionary. sat_data.id='{self.id}'")
             logger.debug(
                 f"SatData id: {self.sat_data.id}, Path dict: {self.path_dict}")
 
@@ -338,7 +338,7 @@ class AttrAdder():
                          stop_time=stop_time_dt,
                          )
         logger.debug(
-            f"Created AreaInfo object. sat_data.id='{self.id}', area.sat_data='{area.sat_data}'")
+            f"Successfully created AreaInfo object. sat_data.id='{self.id}', area.sat_data='{area.sat_data}'")
         # Set AreaInfo object as attribute to SatData object
         self.sat_data.area = area
         logger.debug(f"Set AreaInfo object as attribute to SatData object. sat_data.id='{self.id}'")
@@ -637,6 +637,7 @@ class AttrAdder():
         for band_path in band_paths:
             for band_string in bands_strings:
                 if band_string in band_path:
+                    band_string = band_string.lower()
                     logger.info(
                         f"File '{band_path}' contains the band string '{band_string}'.")
 
@@ -650,7 +651,7 @@ class AttrAdder():
 
                     # Get file name if .nc file
                     if band_string == ".nc":
-                        band_string = band_path_splitted[-1]
+                        band_string = band_path_splitted[-1].lower()
 
                     # Shorten mission name
                     logger.debug(f"Shortening mission name... sat_data.id='{self.id}'")
@@ -670,7 +671,7 @@ class AttrAdder():
                     )
 
                     # Create Band object
-                    logger.debug(f"Creating Band object... sat_data.id='{self.id}'")
+                    logger.debug(f"Creating Band object... sat_data.id='{self.id}', band_path='{band_path}', band_string='{band_string}', range_string='{range_string}'")
                     ok = self.create_band_obj(
                         band_path=band_path,
                         band_string=band_string,
@@ -710,11 +711,17 @@ class AttrAdder():
                 return
 
             # Create Band object
+            if range_string == "unknown":
+                range = 0  # 0 represents unknown range
+            else:
+                range = int(re.search(r'\d+', range_string).group())
+            logger.debug(f"Creating Band object... sat_data.id='{self.id}', range='{range}', band_string='{band_string}'")
             band: Band = Band.objects.create(
-                range=int(re.search(r'\d+', range_string).group()),
-                type=band_string,
+                range=range,
+                type=band_string.lower(),
                 sat_data=self.sat_data,
             )
+            logger.debug(f"Successfully created Band object. band.id='{band.id}', range='{range}', type='{band_string}', sat_data.id='{self.sat_data.id}'")
 
             # Save band image and set to Band object
             # band_path_full = FileUtils.generate_path(self.sat_data.extracted_path, band_path)
