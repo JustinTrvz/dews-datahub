@@ -48,6 +48,14 @@
               <strong>Product Type:</strong><br />
               {{ sat_data.product_type|upper }}
             </p>
+            {% if sat_data.time_travel and sat_data.time_travel.id %}
+              <p class="card-text">
+                <strong>Time Travel:</strong><br />
+                <a href="{% url "time_travel_details_view" sat_data.time_travel.id %}">
+                  TimeTravel<{{ sat_data.time_travel.id }}>
+                </a>
+              </p>
+            {% endif %}
             <p class="card-text">
               <strong>Creation Time:</strong><br />
               {{ sat_data.creation_time }}
