@@ -5,8 +5,10 @@ import re
 import os
 import logging
 import threading
+import uuid
 from geopy.geocoders import Nominatim
 import subprocess
+from datetime import date
 
 from django.contrib.gis.geos import Polygon
 from django.contrib.gis.gdal import GDALRaster
@@ -87,7 +89,8 @@ class AttrAdder():
             if MEDIA_ROOT in extracted_path:
                 self.extracted_abs_path = extracted_path
             else:
-                self.extracted_abs_path = FileUtils.generate_path(MEDIA_ROOT, extracted_path)
+                self.extracted_abs_path = FileUtils.generate_path(
+                    MEDIA_ROOT, extracted_path)
             logger.debug(f"Extracted absolute path: {self.extracted_abs_path}")
             self.mission = mission
             self.sh_request = sh_request
@@ -116,7 +119,8 @@ class AttrAdder():
                 mission=self.mission,
                 product_type=self.sat_data.product_type,
             )
-            logger.debug(f"Successfully created path dictionary. sat_data.id='{self.id}'")
+            logger.debug(
+                f"Successfully created path dictionary. sat_data.id='{self.id}'")
             logger.debug(
                 f"SatData id: {self.sat_data.id}, Path dict: {self.path_dict}")
 
@@ -143,10 +147,10 @@ class AttrAdder():
         # Set other info
         self.set_coordinates()
         self.set_area_details()
-        self.set_time_series()
+        self.set_time_travel()
 
         logger.debug(
-            f"Set coordinates, capture info/area details and time series. sat_data.id='{self.id}'")
+            f"Set coordinates, capture info/area details and TimeTravel object. sat_data.id='{self.id}'")
 
         # Long time consuming process:
         self.set_bands()
@@ -248,35 +252,33 @@ class AttrAdder():
         logger.debug(
             f"Set name. sat_data.id='{self.id}', name='{self.sat_data.name}'")
 
-    def set_time_series(self):
-        logger.debug(f"Setting time series... sat_data.id='{self.id}'")
+    def set_time_travel(self):
+        logger.debug(f"Setting TimeTravel object... sat_data.id='{self.id}'")
 
-        # Check if time series with this mission, product type and coordinates already exists
-        logger.debug("Checking if time series already exists...")
-        time_series = TimeTravel.objects.filter(
-            mission=self.sat_data.mission,
-            product_type=self.sat_data.product_type,
+        # Check if TimeTravel object with this mission, product type and coordinates already exists
+        logger.debug("Checking if TimeTravel object already exists...")
+        time_travel = TimeTravel.objects.filter(
             coordinates=self.sat_data.coordinates,
         ).first()
 
-        if time_series:
-            # Use existing TimeSeries object as attribute
+        if time_travel:
+            # Use existing TimeTravel object as attribute
             logger.debug(
-                f"Found TimeSeries object. sat_data.id='{self.id}', time_series='{time_series}'")
-            self.sat_data.time_travels = time_series
+                f"Found TimeTravel object. sat_data.id='{self.id}', time_travel.id='{time_travel.id}'")
         else:
-            # Create new TimeSeries object
+            # Create new TimeTravel object
             logger.debug(
-                f"Create new TimeSeries object. sat_data.id='{self.id}'")
-            time_series = TimeTravel(
-                mission=self.sat_data.mission,
-                product_type=self.sat_data.product_type,
-                thumbnail=self.sat_data.thumbnail,
+                f"Create new TimeTravel object. sat_data.id='{self.id}'")
+            time_travel = TimeTravel(
+                id=uuid.uuid4(),
                 coordinates=self.sat_data.coordinates,
                 leaflet_coordinates=self.sat_data.leaflet_coordinates,
             )
-            time_series.save()  # must be saved to db before assignment
-            self.sat_data.time_travels = time_series
+            time_travel.save()  # must be saved to db before assignment
+        
+        # Assign TimeTravel object to SatData object
+        self.sat_data.time_travel = time_travel
+        logger.debug(f"Assigned TimeTravel object to SatData object. time_travel.id='{time_travel.id}', sat_data.id='{self.id}'")
 
     def set_area_details(self):
         """ Create Area objects and appens it to the related SatData object."""
@@ -333,22 +335,24 @@ class AttrAdder():
                 f"Could not save SatData object. sat_data.id='{self.id}', exception='{e}'")
         # Create AreaInfo object
         area = Area(sat_data=self.sat_data,
-                         country=country,
-                         start_time=start_time_dt,
-                         stop_time=stop_time_dt,
-                         )
+                    country=country,
+                    start_time=start_time_dt,
+                    stop_time=stop_time_dt,
+                    )
         logger.debug(
             f"Successfully created AreaInfo object. sat_data.id='{self.id}', area.sat_data='{area.sat_data}'")
         # Set AreaInfo object as attribute to SatData object
         self.sat_data.area = area
-        logger.debug(f"Set AreaInfo object as attribute to SatData object. sat_data.id='{self.id}'")
+        logger.debug(
+            f"Set AreaInfo object as attribute to SatData object. sat_data.id='{self.id}'")
         self.sat_data.save()
         logger.debug(f"Saved SatData object. sat_data.id='{self.id}'")
         area.sat_data = self.sat_data
-        logger.debug(f"Set SatData object as attribute to AreaInfo object. sat_data.id='{self.id}'")
+        logger.debug(
+            f"Set SatData object as attribute to AreaInfo object. sat_data.id='{self.id}'")
         area.save()
         logger.debug(f"Saved AreaInfo object. sat_data.id='{self.id}'")
-        
+
     def get_start_and_stop_time(self, format, start_time_keyword, stop_time_keyword):
         logger.debug(
             f"format='{format}', start_time_keyword='{start_time_keyword}', stop_time_keyword='{stop_time_keyword}'")
@@ -411,7 +415,8 @@ class AttrAdder():
                 (coords[0], coords[3]),  # Top-left
                 (coords[2], coords[3]),  # Top-right
                 (coords[2], coords[1]),  # Bottom-right
-                (coords[0], coords[1])   # Close the polygon by repeating the first point (bottom-left)
+                # Close the polygon by repeating the first point (bottom-left)
+                (coords[0], coords[1])
             ]
         else:
             # Archive upload
@@ -646,22 +651,26 @@ class AttrAdder():
                     range_string = "unknown"
 
                     # Get range string
-                    logger.debug(f"Getting range string... sat_data.id='{self.id}'")
-                    range_string = self.get_range_string(band_path, band_path_splitted)
+                    logger.debug(
+                        f"Getting range string... sat_data.id='{self.id}'")
+                    range_string = self.get_range_string(
+                        band_path, band_path_splitted)
 
                     # Get file name if .nc file
                     if band_string == ".nc":
                         band_string = band_path_splitted[-1].lower()
 
                     # Shorten mission name
-                    logger.debug(f"Shortening mission name... sat_data.id='{self.id}'")
+                    logger.debug(
+                        f"Shortening mission name... sat_data.id='{self.id}'")
                     mission = sat_data.mission
                     if "-" in mission:
                         mission_split = mission.split("-")
                         mission = f"{mission_split[0][0]}{mission_split[1]}"
 
                     # Create and import table (as raster) to database
-                    logger.debug(f"Creating and importing table... sat_data.id='{self.id}'")
+                    logger.debug(
+                        f"Creating and importing table... sat_data.id='{self.id}'")
                     table_name = self.import_raster_and_create_table(
                         sat_data=sat_data,
                         mission=mission,
@@ -671,7 +680,8 @@ class AttrAdder():
                     )
 
                     # Create Band object
-                    logger.debug(f"Creating Band object... sat_data.id='{self.id}', band_path='{band_path}', band_string='{band_string}', range_string='{range_string}'")
+                    logger.debug(
+                        f"Creating Band object... sat_data.id='{self.id}', band_path='{band_path}', band_string='{band_string}', range_string='{range_string}'")
                     ok = self.create_band_obj(
                         band_path=band_path,
                         band_string=band_string,
@@ -715,13 +725,15 @@ class AttrAdder():
                 range = 0  # 0 represents unknown range
             else:
                 range = int(re.search(r'\d+', range_string).group())
-            logger.debug(f"Creating Band object... sat_data.id='{self.id}', range='{range}', band_string='{band_string}'")
+            logger.debug(
+                f"Creating Band object... sat_data.id='{self.id}', range='{range}', band_string='{band_string}'")
             band: Band = Band.objects.create(
                 range=range,
                 type=band_string.lower(),
                 sat_data=self.sat_data,
             )
-            logger.debug(f"Successfully created Band object. band.id='{band.id}', range='{range}', type='{band_string}', sat_data.id='{self.sat_data.id}'")
+            logger.debug(
+                f"Successfully created Band object. band.id='{band.id}', range='{range}', type='{band_string}', sat_data.id='{self.sat_data.id}'")
 
             # Save band image and set to Band object
             # band_path_full = FileUtils.generate_path(self.sat_data.extracted_path, band_path)
@@ -1039,7 +1051,7 @@ class AttrAdder():
             logger.debug(
                 f"Using keyword and metadata path for Sentinel-3A. keywords='{keywords}', metadata_path='{metadata_path}'")
         elif self.mission == SatMission.SENTINEL_2A.value or self.mission == SatMission.SENTINEL_2B.value:
-            
+
             files = os.listdir(self.extracted_abs_path)
             logger.debug(
                 f"Using keyword and metadata path for Sentinel-2A/B. files='{files}'")
@@ -1049,7 +1061,8 @@ class AttrAdder():
             keyword = []
             for file in files:
                 if file.startswith("MTD"):
-                    metadata_path = os.path.join(self.extracted_abs_path, remove_media_root(file))
+                    metadata_path = os.path.join(
+                        self.extracted_abs_path, remove_media_root(file))
                     keywords = ["PRODUCT_TYPE"]
                     logger.debug(
                         f"Metadata file found. metadata_path='{metadata_path}'")

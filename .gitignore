@@ -29,6 +29,10 @@ pgdata/
 # Jetbrains
 .idea
 
+# Jupyter Notebooks
+*.ipynb_checkpoints/
+*.ipynb
+
 
 ### ------------------------- IDE .gitignore ------------------------ ###
 

@@ -5,7 +5,7 @@
 {% load leaflet_tags %}
 
 {% block title %}
-  DEWS DataHub - Details '{{ sat_data.name }}'
+  DEWS DataHub - SatData Details '{{ sat_data.name }}'
 {% endblock %}
 
 {% block header %}
@@ -52,7 +52,7 @@
               <p class="card-text">
                 <strong>Time Travel:</strong><br />
                 <a href="{% url "time_travel_details_view" sat_data.time_travel.id %}">
-                  TimeTravel<{{ sat_data.time_travel.id }}>
+                  TimeTravel&lt;{{ sat_data.time_travel.id }}&gt;
                 </a>
               </p>
             {% endif %}

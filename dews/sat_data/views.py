@@ -487,6 +487,21 @@ def sentinel_hub_request_view(request, context):
         logger.debug(f"SHRequest - Coordinates: {coordinates}")
         logger.debug(f"SHRequest - Data folder: {data_folder}")
 
+        # Check start date
+        if datetime(start_date.year, start_date.month, start_date.day) >= datetime.today():
+            # Start date can not be today or in the future
+            err_msg = "Start date is today or in the future. Please choose a start date that is in the past."
+            logger.debug(f"{err_msg} start_date='{start_date}', end_date='{end_date}', mission='{mission}', bands='{bands}', resolution='{resolution}'")
+            context["error"] = err_msg
+            return render(request, "sat_data_create_view.html", context)
+        # Check end date
+        if datetime(end_date.year, end_date.month, end_date.day) >= datetime.today():
+            # End date can not be today or in the future
+            err_msg = "End date is today or in the future. Please choose a end date that is in the past."
+            logger.debug(f"{err_msg} start_date='{start_date}', end_date='{end_date}', mission='{mission}', bands='{bands}', resolution='{resolution}'")
+            context["error"] = err_msg
+            return render(request, "sat_data_create_view.html", context)
+
         if coordinates:
             # Create SHRequest object
             sh_request: SHRequest = form.save(commit=False)
@@ -495,7 +510,6 @@ def sentinel_hub_request_view(request, context):
             sh_request.save()
 
             # Create tuple
-            logger.debug(f"COORDINATES: {coordinates}")
             if isinstance(coordinates, str):
                 bbox = tuple(float(coordinate)
                              for coordinate in coordinates.split(','))
@@ -509,106 +523,100 @@ def sentinel_hub_request_view(request, context):
                 data_collection = DataCollection.SENTINEL2_L2A
             mission = SatMission.SENTINEL_2B
 
+            # Create SHRequest and SatData object
             try:
-                logger.debug(f"Start date type: {type(start_date)}")
-                logger.debug(f"Start date: {start_date}")
-                # Create request and SatData object for each day
-                # Add SatData reference to SHRequest object
-                curr_date: date = start_date
-                while curr_date <= end_date:
+                # Request SatData
+                response = request_sat_data(
+                    bbox=bbox,
+                    resolution=int(resolution),
+                    data_folder=data_folder,
+                    data_collection=data_collection,
+                    mimetypes=[MimeType.TIFF, MimeType.PNG],
+                    bands=bands,
+                    start_date=start_date,
+                    end_date=end_date,
+                )
+                logger.debug(
+                    f"Requesting Sentinel Hub data done. bbox='{bbox}', resolution='{resolution}', data_folder='{data_folder}', data_collection='{data_collection}', bands='{bands}'")
+
+                dir_name = response.get_filename_list()[0].split('/')[0]
+
+                # Check if response image is valid
+                dir_path = FileUtils.generate_path(data_folder, dir_name)
+                tar_path = FileUtils.generate_path(dir_path, "response.tar")
+                extracted_path = FileUtils.extract_tar(tar_path)
+                png_path = FileUtils.generate_path(extracted_path, "default.png")
+
+                if is_uniform_color(png_path):
+                    # Retry request
+                    logger.warn(
+                        f"Failed request. Uniform color image detected. start_date='{start_date}', end_date='{end_date}', bbox='{bbox}', band='{bands}', resolution='{resolution}'")
+                    # Delete downloaded directory 
+                    shutil.rmtree(dir_path)
                     success_request = False
-                    retry_counter = 0
-                    while not success_request and retry_counter <= 5:
-                        # Max retries
-                        retry_counter += 1
-                        if retry_counter >= 5:
-                            logger.warn(f"Failed request. Max retries reached. retry_counter='{retry_counter}', start_date_temp='{start_date_temp}', end_date='{curr_date}', bbox='{bbox}', band='{bands}', resolution='{resolution}'")
-                            break
+                else:
+                    logger.debug(f"Successfull Sentinel Hub request. Non-uniform color image detected. start_date='{start_date}', end_date='{end_date}', bbox='{bbox}', band='{bands}', resolution='{resolution}'")
+                    success_request = True
 
-                        start_date_temp: date = curr_date
-                        # Request SatData
-                        response = request_sat_data(
-                            bbox=bbox,
-                            resolution=int(resolution),
-                            data_folder=data_folder,
-                            data_collection=data_collection,
-                            mimetypes=[MimeType.TIFF, MimeType.PNG],
-                            bands=bands,
-                            start_date=start_date_temp,
-                            end_date=end_date,
-                        )
-                        logger.debug(
-                            f"Requesting Sentinel Hub data done. bbox='{bbox}', resolution='{resolution}', data_folder='{data_folder}', data_collection='{data_collection}', bands='{bands}', start_date_temp='{start_date_temp}', end_date='{curr_date}'")
+                # Error: max retries reached, no successfull request
+                if not success_request:
+                    err_msg = f"Failed request. No data available for this date range: '{start_date}'-'{end_date}'."
+                    logger.warn(f"{err_msg} start_date='{start_date}', end_date='{end_date}', bbox='{bbox}', bands='{bands}', resolution='{resolution}'")
+                    context["error"] = f"{err_msg} Please try again with a different date range."
+                    return render(request, "sat_data_create_view.html", context)
 
-                        dir_name = response.get_filename_list()[0].split('/')[0]
+                # Create SatData object
+                logger.debug(
+                    f"Create SatData object from Sentinel Hub request. user='{request.user}', dir_name='{dir_name}', bbox='{bbox}', timestamp='{datetime.now()}'")
+                sat_data: SatData = create_sh_sat_data(
+                    request=request,
+                    data_folder=data_folder,
+                    dir_name=dir_name,
+                    bbox=bbox,
+                    bands=bands,
+                    metrics_to_calc=metrics_to_calc,
+                    date=end_date,
+                )
 
-                        # Check if response image is valid
-                        dir_path = FileUtils.generate_path(data_folder, dir_name)
-                        tar_path = FileUtils.generate_path(dir_path, "response.tar")
-                        extracted_path = FileUtils.extract_tar(tar_path)
-                        png_path = FileUtils.generate_path(extracted_path, "default.png")
+                # Check SatData object
+                if not sat_data:
+                    # Error: SatData object not created
+                    sh_request.status = Status.FAILED.value
+                    sh_request.save()
+                    err_msg = f"Failed to create SatData object from Sentinel Hub request."
+                    logger.error(f"{err_msg} user='{request.user}', bbox='{bbox}', timestamp='{datetime.now()}'")
+                    context["error"] = err_msg
+                    return render(request, "sat_data_create_view.html", context)
+                else:
+                    sat_data.sh_request = sh_request
+                    sat_data.save()
+                    logger.debug(f"Added SHRequest object to SatData object. sat_data.id='{sat_data.id}'")
 
-                        if is_uniform_color(png_path):
-                            # Retry request
-                            logger.warn(
-                                f"Failed request. Uniform color image detected. start_date_temp='{start_date_temp}', end_date='{end_date}', bbox='{bbox}', band='{bands}', resolution='{resolution}'")
-                            # Delete downloaded directory 
-                            shutil.rmtree(dir_path)
-                            # Subtract 1 day from `start_date_temp`
-                            start_date_temp: date = start_date_temp - timedelta(days=1)
-                            logger.debug(
-                                f"Subtract 1 day from `start_date_temp`. start_date_temp='{start_date_temp}'")
-                        else:
-                            logger.debug(f"Successfull Sentinel Hub request. Non-uniform color image detected. start_date_temp='{start_date_temp}', end_date='{end_date}', bbox='{bbox}', band='{bands}', resolution='{resolution}'")
-                            success_request = True
+                    sh_request.status = Status.DONE.value
+                    sh_request.save()
+                    logger.debug(f"Set SHRequest status to 'DONE'. sh_request.id='{sh_request.id}'")
 
-                    # Create SatData object
-                    logger.debug(
-                        f"Create SatData object from Sentinel Hub request. user='{request.user}', dir_name='{dir_name}', bbox='{bbox}', timestamp='{datetime.now()}'")
-                    sat_data = create_sh_sat_data(
-                        request=request,
-                        data_folder=data_folder,
-                        dir_name=dir_name,
-                        bbox=bbox,
-                        bands=bands,
-                        metrics_to_calc=metrics_to_calc,
-                        date=curr_date,
-                    )
-                    if not sat_data:
-                        # Check response
-                        sh_request.status = Status.FAILED.value
-                        sh_request.save()
-                        err_msg = f"Failed to create SatData object from Sentinel Hub request. user='{request.user}', bbox='{bbox}', timestamp='{datetime.now()}'"
-                        logger.debug(err_msg)
-                        context["error"] = err_msg
-                        return render(request, "sat_data_create_view.html", context)
-                    else:
-                        sat_data.sh_request = sh_request
-                        sat_data.save()
-
-                    # Increment date
-                    curr_date: date = curr_date + timedelta(days=1)
             except Exception as e:
-                # Error
+                # Error: Excpetion raised
                 sh_request.status = Status.FAILED.value
                 sh_request.save()
-                err_msg = f"Failed to request Sentinel Hub data. error='{e}', user='{request.user}', bbox='{bbox}', timestamp='{datetime.now()}'"
-                logger.debug(err_msg)
+                err_msg = f"Failed to request Sentinel Hub data."
+                logger.debug(f"{err_msg} error='{e}', user='{request.user}', bbox='{bbox}', timestamp='{datetime.now()}'")
                 context["error"] = err_msg
                 return render(request, "sat_data_create_view.html", context)
 
             # Success
             success_msg = f"Sentinel Hub task scheduled. user='{request.user}', dir_name='{dir_name}', bbox='{bbox}', timestamp='{datetime.now()}'"
             logger.debug(success_msg)
-            success_msg = f"Upload done! Work in progress... sat_data.id='{id}'"
+            success_msg = f"Creation done! Calculations in progress..."
             context["success"] = success_msg
             context["sat_data_id"] = sat_data.id
         else:
-            # Error
+            # Error: No bounding box coordinates
             # No SHRequest object created, so no status change needed
-            err_msg = f"No bounding box data received. user='{request.user}', timestamp='{datetime.now()}"
+            err_msg = f"No bounding box data received."
             context["error"] = err_msg
-            logger.error(err_msg)
+            logger.error(f"{err_msg} user='{request.user}', timestamp='{datetime.now()}'")
 
     return render(request, "sat_data_create_view.html", context)
 

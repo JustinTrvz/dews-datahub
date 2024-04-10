@@ -68,26 +68,12 @@ class TimeTravel(models.Model):
     name = models.CharField(max_length=100,
                             default="No name",
                             verbose_name="Name")
-    mission = models.CharField(max_length=50,
-                               verbose_name="Mission",
-                               default=SatMission.UNKNOWN.value,
-                               blank=True)
-    thumbnail = models.ImageField(max_length=255,
-                                  null=True,
-                                  blank=True,
-                                  upload_to=f"time_travel/{mission}/{id}/thumbnail",
-                                  verbose_name="Thumbnail",
-                                  storage=OverwriteStorage())
     coordinates = models.PolygonField(blank=True,
                                       null=True,
                                       verbose_name="Polygon Coordinates")
     leaflet_coordinates = models.PolygonField(blank=True,
                                               null=True,
                                               verbose_name="Leaflet Coordinates")
-    product_type = models.CharField(max_length=50,
-                                    verbose_name="Product Type",
-                                    default=SatProdType.UNKNOWN.value,
-                                    blank=True)
     creation_time = models.DateTimeField(auto_now_add=True)
 
 
