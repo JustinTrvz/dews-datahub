@@ -176,6 +176,11 @@ Example of RGB image:<br>
 
 In the future development the result should be saved as `.tiff` or `.jp2` file.
 
+### Satellite data aggregation
+Satellite data entries with the same coordinates will be collected and saved to a TimeTravel object which you can find at the ["DEWS DataHub - Overview"](http://0.0.0.0/sat_data/overview/) view's TimeTravel tab.
+
+In a TimeTravel entry you can see the observed area with details about the related SatData entries. The TimeTravel object is linked to the SatData object and vice versa. It is a One-To-Many relationship, so the TimeTravel entry can have multiple SatData entries.
+
 
 ## PostGIS
 ### PostGIS database
