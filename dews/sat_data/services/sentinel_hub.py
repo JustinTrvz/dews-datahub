@@ -1,5 +1,6 @@
 from datetime import datetime
 import logging
+from os import getenv
 
 from sentinelhub import (
     SHConfig,
@@ -15,17 +16,8 @@ logger = logging.getLogger("django")
 
 def get_shconfig():
     config = SHConfig()
-    # config.sh_client_id=getenv("SH_CLIENT_ID")  # TODO: uncomment in production
-    # config.sh_client_secret=getenv("SH_CLIENT_SECRET")  # TODO: uncomment in production
-    client_id = "62dcc514-d3c9-47da-abef-e0e16e853da5"
-    client_secret = "bozDjQMPY8htcCklmumYgBqCh0XoWFmN"
-
-    if not all([client_id, client_secret]):
-        raise ValueError(
-            "Sentinel Hub client ID and client secret must be set.")
-
-    config.sh_client_id = client_id
-    config.sh_client_secret = client_secret
+    config.sh_client_id=getenv("SH_CLIENT_ID")  # TODO: uncomment in production
+    config.sh_client_secret=getenv("SH_CLIENT_SECRET")  # TODO: uncomment in production
     config.sh_base_url = 'https://services.sentinel-hub.com'
     config.sh_token_url = config.sh_base_url + '/oauth/token'
 
@@ -57,9 +49,9 @@ def get_evalscript(script_type: str, bands: list):
                     return [{evaluate_pixel_bands}];
                 }}
                 """
-        bands_str_format = str(bands).replace("'", '"')  # Ensuring double quotes for JSON compatibility
+        bands_str_format = str(bands).replace("'", '"').upper()  # Ensuring double quotes for JSON compatibility
         bands_count = len(bands)
-        evaluate_pixel_bands_format = ', '.join([f'sample.{band}' for band in bands])
+        evaluate_pixel_bands_format = ', '.join([f'sample.{band.upper()}' for band in bands])
 
         # Replace place holder
         result = result.format(

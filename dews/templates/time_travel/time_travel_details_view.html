@@ -1,10 +1,110 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load custom_filter %}
+{% load geojson_tags %}
+{% load leaflet_tags %}
 
 {% block title %}
-  DEWS DataHub - Details '{{ time_travel.id }}'
+  DEWS DataHub - Time Travel Details: '{{ time_travel.name }}'
+{% endblock %}
+
+{% block header %}
+  {% leaflet_js %}
+  {% leaflet_css %}
 {% endblock %}
 
 {% block content %}
-Hello
+<div class="container mt-4">
+  <h4 class="mt-4">Time Travel: '{{ time_travel.name }}'</h4>
+  <a class="btn btn-outline-success" href="/sat_data/overview/"><i class="fa-solid fa-arrow-left-long"></i> Back to overview</a>
+</div>
+
+<div class="card mt-4">
+  <div class="card-header">
+    <h2>Time Travel Details</h2>
+  </div>
+  <div class="card-body">
+    <div class="container">
+      <div class="row justify-content-between">
+          <div class="col-7">
+            <p class="card-text">
+              <strong>Name:</strong><br />
+              {{ time_travel.name }}
+            </p>
+  
+            <p class="card-text">
+              <strong>ID:</strong><br />
+              <a href="{% url 'time_travel_details_view' time_travel.id %}">{{ time_travel.id }}</a></p>
+            </p>
+  
+            <p class="card-text">
+              <strong>Creation Time:</strong><br />
+              {{ time_travel.creation_time }}
+            </p>
+          </div>
+
+          <div class="col-5">
+            <!-- Leaflet Map -->
+            <strong>Map:</strong>
+            {% if time_travel|get_related:'coordinates'%}
+              <div>
+                {% leaflet_map 'map' callback='map_init' %}
+              </div>
+            {% else %}
+              <i>No map available.</i>
+            {% endif %}
+          </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card mt-4">
+  <div class="card-header">
+    <h2>Related SatData entries</h2>
+  </div>
+  <div class="card-body">
+    <div class="container">
+      {% for sat_data in time_travel.sat_datas.all %}
+        <div class="card mt-4">
+          <div class="card-body">
+            <div class="row justify-content-between">
+              <div class="col mt-7">
+                <p><b>ID:</b><br>
+                  <a href="{% url 'sat_data_details_view' sat_data.id %}">{{ sat_data.id }}</a></p>
+                <p><b>Name:</b><br>
+                  {{ sat_data.name }}</p>
+                <p><b>Mission:</b><br>
+                  {{ sat_data.mission }}</p>
+                <p><b>Product Type:</b><br>
+                  {{ sat_data.product_type }}</p>
+                <p><b>Creation Time:</b><br>
+                  {{ sat_data.creation_time }}</p>
+              </div>
+              <div class="col mt-5">
+                <p><b>Thumbnail:</b></p><br />
+                {% if sat_data|get_related:'thumbnail' %}
+                  <a href="{{ sat_data.thumbnail.url }}" target="_blank"><img src="{{ sat_data.thumbnail.url }}" alt="Thumbnail of satellite data with id '{{ sat_data.id }}'" class="img-thumbnail" style="width:auto;height:300px;object-fit: contain;" /></a>
+                  <!-- Download button -->
+                  <a href="{{ sat_data.thumbnail.url }}" download="{{ sat_data.thumbnail.name }}" download class="btn btn-secondary"><i class="fa-solid fa-download"></i></a>
+                {% else %}
+                  <i>No thumbnail available.</i>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+      {% empty %}
+        <p><i>No related SatData found.</i></p>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<script type="text/javascript">
+  function map_init(map, options) {
+    var area = L.geoJSON({{ time_travel.coordinates.geojson|safe }}).addTo(map);
+    map.fitBounds(area.getBounds());
+  }
+</script>
 {% endblock %}

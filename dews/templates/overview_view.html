@@ -6,7 +6,7 @@
    <div class="container pt-1 pb-1">
       <h1 class="display-4 font-italic text-center">Data Overview</h1>
       <p class="lead text-muted">
-         Shows all data entries that were created.
+         Shows all SatData and TimeTravel entries that were created.
       </p>
    </div>
 </section>
@@ -181,6 +181,7 @@
                        <strong>Mission:</strong> {{ time_travel.mission|capfirst }}<br />
                        <strong>Product Type:</strong> {{ time_travel.product_type|upper }}<br />
                        <strong>Creation Time:</strong> {{ time_travel.creation_time }}<br />
+                       <strong>Count:</strong> {{ time_travel.satdata_set.count }}<br />
                     </div>
                     <!-- Thumbnail -->
                     <div class="col-md-6">

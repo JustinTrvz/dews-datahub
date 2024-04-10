@@ -135,6 +135,7 @@ TEMPLATES = [
         "DIRS": [BASE_DIR / "templates",
                  BASE_DIR / "templates/base",
                  BASE_DIR / "templates/sat_data",
+                 BASE_DIR / "templates/time_travel",
                  BASE_DIR / "templates/accounts",
                  BASE_DIR / "templates/svg",
                  ],
