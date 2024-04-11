@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dews
+  namespace: dews
+  labels:
+    service: dews
+spec:
+  selector:
+    matchLabels:
+      service: dews
+  template:
+    metadata:
+      labels:
+        service: dews
+    spec:
+      containers:
+        - image: git.haw-hamburg.de:5000/infwja999/dews
+          name: dews
+          ports:
+            - containerPort: 80
+              protocol: TCP
+      imagePullSecrets:
+        - name: dews-98-secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dews
+  namespace: dews
+  labels:
+    service: dews
+spec:
+  ports:
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: 80
+  selector:
+    service: dews
+  type: ClusterIP
