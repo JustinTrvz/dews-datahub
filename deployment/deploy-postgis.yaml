@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dews-db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dews-db
+  template:
+    metadata:
+      labels:
+        app: dews-db
+    spec:
+      containers:
+      - name: dews-db
+        image: postgis/postgis:latest
+        env:
+        - name: POSTGRES_DB
+          value: "dews"
+        - name: POSTGRES_USER
+          value: "dews"
+        - name: POSTGRES_PASSWORD
+          value: "dews"
+        - name: PGDATA
+          value: "/var/lib/postgresql/data/pgdata"
+        ports:
+        - containerPort: 5432
+        volumeMounts:
+        - name: db-data-volume
+          mountPath: /var/lib/postgresql/data
+      volumes:
+      - name: db-data-volume
+        persistentVolumeClaim:
+          claimName: db-data-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dews-db
+spec:
+  selector:
+    app: dews-db
+  ports:
+    - protocol: TCP
+      port: 5432
+      targetPort: 5432

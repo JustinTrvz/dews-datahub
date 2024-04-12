@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dews-nginx
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dews-nginx
+  template:
+    metadata:
+      labels:
+        app: dews-nginx
+    spec:
+      containers:
+      - name: dews-nginx
+        image: nginx:latest # Ensure you have the correct image
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: static-volume
+          mountPath: /static
+        - name: media-volume
+          mountPath: /media
+      volumes:
+      - name: static-volume
+        persistentVolumeClaim:
+          claimName: static-pvc
+      - name: media-volume
+        persistentVolumeClaim:
+          claimName: media-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dews-nginx
+spec:
+  selector:
+    app: dews-nginx
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+  type: LoadBalancer
