@@ -2,19 +2,21 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: dews-db-gui
+  namespace: dews
+  labels:
+    service: dews-db-gui
 spec:
-  replicas: 1
   selector:
     matchLabels:
-      app: dews-db-gui
+      service: dews-db-gui
   template:
     metadata:
       labels:
-        app: dews-db-gui
+        service: dews-db-gui
     spec:
       containers:
-      - name: dews-db-gui
-        image: dpage/pgadmin4:latest
+      - image: git.haw-hamburg.de:5000/wja999/dews-db-gui
+        name: dews-db-gui
         env:
         - name: PGADMIN_DEFAULT_EMAIL
           value: "dews@dews.de"
@@ -22,16 +24,21 @@ spec:
           value: "dews"
         ports:
         - containerPort: 80
+          protocol: TCP
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: dews-db-gui
+  namespace: dews
+  labels:
+    service: dews-db-gui
 spec:
-  selector:
-    app: dews-db-gui
   ports:
-    - protocol: TCP
+    - name: http
+      protocol: TCP
       port: 5050
       targetPort: 80
-  type: LoadBalancer
+  selector:
+    service: dews-db-gui
+  type: ClusterIP

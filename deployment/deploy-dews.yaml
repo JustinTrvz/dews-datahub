@@ -2,51 +2,62 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: dews
+  namespace: dews
+  labels:
+    service: dews
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: dews
+      service: dews
   template:
     metadata:
       labels:
-        app: dews
+        service: dews
     spec:
       containers:
-      - name: dews
-        image: dews:latest
-        workingDir: /app/dews
-        ports:
-        - containerPort: 8000
-        volumeMounts:
-        - name: dews-volume
-          mountPath: /app/dews/
-        - name: static-volume
-          mountPath: /dews/static
-        - name: media-volume
-          mountPath: /dews/media
-        envFrom:
-        - configMapRef:
-            name: dews-env
+        - image: git.haw-hamburg.de:5000/wja999/dews
+          name: dews
+          workingDir: /app/dews
+          ports:
+            - containerPort: 8000
+              protocol: TCP
+          volumeMounts:
+            - name: dews-volume
+              mountPath: /app/dews/
+            - name: static-volume
+              mountPath: /dews/static
+            - name: media-volume
+              mountPath: /dews/media
+          envFrom:
+            - configMapRef:
+                name: dews-env
+      imagePullSecrets:
+        - name: dews-98-secret
       volumes:
-      - name: dews-volume
-        persistentVolumeClaim:
-          claimName: dews-pvc
-      - name: static-volume
-        persistentVolumeClaim:
-          claimName: static-pvc
-      - name: media-volume
-        persistentVolumeClaim:
-          claimName: media-pvc
+        - name: dews-volume
+          persistentVolumeClaim:
+            claimName: dews-pvc
+        - name: static-volume
+          persistentVolumeClaim:
+            claimName: static-pvc
+        - name: media-volume
+          persistentVolumeClaim:
+            claimName: media-pvc
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: dews
+  namespace: dews
+  labels:
+    service: dews
 spec:
-  selector:
-    app: dews
   ports:
-    - protocol: TCP
+    - name: http
+      protocol: TCP
       port: 8000
       targetPort: 8000
+  selector:
+    app: dews
+  type: ClusterIP
