@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dews-db-gui
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dews-db-gui
+  template:
+    metadata:
+      labels:
+        app: dews-db-gui
+    spec:
+      containers:
+      - name: dews-db-gui
+        image: dpage/pgadmin4:latest
+        env:
+        - name: PGADMIN_DEFAULT_EMAIL
+          value: "dews@dews.de"
+        - name: PGADMIN_DEFAULT_PASSWORD
+          value: "dews"
+        ports:
+        - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dews-db-gui
+spec:
+  selector:
+    app: dews-db-gui
+  ports:
+    - protocol: TCP
+      port: 5050
+      targetPort: 80
+  type: LoadBalancer

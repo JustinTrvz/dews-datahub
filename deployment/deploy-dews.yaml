@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dews
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dews
+  template:
+    metadata:
+      labels:
+        app: dews
+    spec:
+      containers:
+      - name: dews
+        image: dews:latest
+        workingDir: /app/dews
+        ports:
+        - containerPort: 8000
+        volumeMounts:
+        - name: dews-volume
+          mountPath: /app/dews/
+        - name: static-volume
+          mountPath: /dews/static
+        - name: media-volume
+          mountPath: /dews/media
+        envFrom:
+        - configMapRef:
+            name: dews-env
+      volumes:
+      - name: dews-volume
+        persistentVolumeClaim:
+          claimName: dews-pvc
+      - name: static-volume
+        persistentVolumeClaim:
+          claimName: static-pvc
+      - name: media-volume
+        persistentVolumeClaim:
+          claimName: media-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dews
+spec:
+  selector:
+    app: dews
+  ports:
+    - protocol: TCP
+      port: 8000
+      targetPort: 8000

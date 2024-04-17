@@ -1,4 +1,31 @@
 # DEWS's DataHub (Drought Early Warning System's DataHub)
+**Table of contents**
+- [DEWS's DataHub (Drought Early Warning System's DataHub)](#dewss-datahub-drought-early-warning-systems-datahub)
+  - [Description](#description)
+  - [Environment](#environment)
+- [Guide](#guide)
+  - [Create `.env` file](#create-env-file)
+    - [Production](#production)
+  - [Start Docker container](#start-docker-container)
+  - [Monitor system activities](#monitor-system-activities)
+  - [Create satellite data entries](#create-satellite-data-entries)
+    - [Manual approach: Dataspace Copernicus](#manual-approach-dataspace-copernicus)
+      - [Import via webpage](#import-via-webpage)
+    - [Alternative approach: Import using Docker](#alternative-approach-import-using-docker)
+    - [Automatic approach: Sentinel Hub API](#automatic-approach-sentinel-hub-api)
+- [DataHub Web App](#datahub-web-app)
+  - [Description](#description-1)
+  - [Metrics calculation](#metrics-calculation)
+  - [Satellite data aggregation](#satellite-data-aggregation)
+- [PostGIS](#postgis)
+  - [PostGIS database](#postgis-database)
+  - [PostGIS Admin UI](#postgis-admin-ui)
+- [QGIS](#qgis)
+  - [Import bands/raster from DEWS-DH into QGIS](#import-bandsraster-from-dews-dh-into-qgis)
+- [Supported satellite data sources](#supported-satellite-data-sources)
+  - [Copernicus Browser (Dataspace Copernicus)](#copernicus-browser-dataspace-copernicus)
+
+## Description
 DEWS's DataHub was made to import satellite data images from archives downloaded from e.g. [Copernicus Browser](https://browser.dataspace.copernicus.eu/). It is also possible to use the Sentinel Hub API to request satellite data images. The main goal is to have an overview over your satellite data as well as a PostGIS database to connect with other software.
 
 The satellite mission, product type, thumbnail, etc. will be automatically recognized and displayed in a new entry in the [SatData overview tab](http://0.0.0.0/sat_data/overview/). When the archive contains satellite images that are raster compatible they will be converted into rasters and imported into the PostGIS database (*located at [0.0.0.0:5432](http://0.0.0.0:5432)*).
@@ -120,7 +147,7 @@ This is the easiest and fastest way to create new satellite date entries on the 
 5. **OPTIONAL:** Select the metrics to calculate.
 6. Select the desired bands.
    1. Not needed if metrics were already selected because the selection is linked between the metrics and the bands. 
-   2. *Example:* If you click on "NDVI" the bands "B04" and "B08" are automatically selected.<br> ![Metrics and Bands](docs/metrics_bands.png)
+   2. *Example:* If you click on "NDVI" the bands "B04" and "B08" are automatically selected.<br> ![Metrics and Bands](docs/imgs/metrics_bands.png)
    3. If a metric is selected and you need more bands, you still can add more bands by clicking the check boxes.
    4. A metric can not be calculated if you uncheck a automatically checked check box.
 7. Choose the time range of your desire.
@@ -131,11 +158,11 @@ This is the easiest and fastest way to create new satellite date entries on the 
    2. Select a bounding box which is smaller than 2500px * 2500px. This restriction is made by the Sentinel Hub API.
       1. If your bounding box is too big, the system will tell you.
       2. Then click on the "Edit" icon and rearrange your bounding box <u><b>or</b></u> click the "Trash" icon and delete the bounding box.
-   3. *Example:*<br>![Bounding Box Selection](docs/bb_selection.png)
+   3. *Example:*<br>![Bounding Box Selection](docs/imgs/bb_selection.png)
 9. Submit the form.
 
-## DataHub Web App
-### Description
+# DataHub Web App
+## Description
 In the ["DEWS DataHub - Create SatData Entry"]([http](http://0.0.0.0/sat_data/upload/)) view you can upload official satellite dataset archives that were downloaded from the [Copernicus Browser](https://browser.dataspace.copernicus.eu/).
 
 After you have [downloaded a satellite dataset](#manual-approach-dataspace-copernicus) and upload the ZIP archive <u><b>or</b></u> after you have [requested satellite data images via the API](#automatic-approach-sentinel-hub-api), the system will process the received data.
@@ -157,7 +184,7 @@ So far the system shows the following data:
    - Calculated metrics
      - *e.g. NDVI, SMI, ...*
 
-### Metrics calculation
+## Metrics calculation
 Before the [Copernicus Browser](https://browser.dataspace.copernicus.eu/) had the feature to directly download the True Color, NDVI, SMI, SWIR, etc. layers by selecting a bounding box (*see this [Copernicus Browser example](https://browser.dataspace.copernicus.eu/?zoom=14&lat=53.56042&lng=10.00151&themeId=DEFAULT-THEME&visualizationUrl=https%3A%2F%2Fsh.dataspace.copernicus.eu%2Fogc%2Fwms%2Fa91f72b5-f393-4320-bc0f-990129bd9e63&datasetId=S2_L2A_CDAS&fromTime=2024-03-09T00%3A00%3A00.000Z&toTime=2024-03-09T23%3A59%3A59.999Z&layerId=1_TRUE_COLOR&demSource3D=%22MAPZEN%22&cloudCoverage=30&dateMode=SINGLE)*), the development of the "DEWS DataHub" begun. During the development [Copernicus Browser](https://browser.dataspace.copernicus.eu/) released its feature and put the metrics calculation of the DEWS-DH a little in the shade.
 
 Still the calculation of several metrics is one of the main benefits of the server-side orientation DEWS-DH. 
@@ -167,37 +194,37 @@ For example to calculate the NDVI (Normalized Difference Vegetation Index), whic
 The `.tiff` or `.jp2` files are loaded as datasets using the Python library `rasterio`. After that the mathematical equation $\frac{(NIR-Red)}{(NIR-Red)}/$ is applied and the result is turned into a plot image (*see Code: `dews/sat_data/services/metrics_calc.py`*). This procedure is applied for all indices that can be calculated.
 
 Example of NDVI image:<br>
-<img src="docs/ndvi.png" alt="NDVI" width="500"/>
+<img src="docs/imgs/ndvi.png" alt="NDVI" width="500"/>
 
 Since the Sentinel Hub API does not return a RGB image, it must be calculated by the system. In the context of the DEWS-DH RGB is considered as an index, too.
 
 Example of RGB image:<br>
-<img src="docs/rgb.png" alt="RGB" width="500"/>
+<img src="docs/imgs/rgb.png" alt="RGB" width="500"/>
 
 In the future development the result should be saved as `.tiff` or `.jp2` file.
 
-### Satellite data aggregation
+## Satellite data aggregation
 Satellite data entries with the same coordinates will be collected and saved to a TimeTravel object which you can find at the ["DEWS DataHub - Overview"](http://0.0.0.0/sat_data/overview/) view's TimeTravel tab.
 
 In a TimeTravel entry you can see the observed area with details about the related SatData entries. The TimeTravel object is linked to the SatData object and vice versa. It is a One-To-Many relationship, so the TimeTravel entry can have multiple SatData entries.
 
 
-## PostGIS
-### PostGIS database
+# PostGIS
+## PostGIS database
 - **Location:** [0.0.0.0:5432](http://0.0.0.0:5432)
 - Imported archive's images will be imported as a raster in an own table.
   - The name consists of the sat data id, the band (*e.g. B04 which stands for the red band*) and the range (*meters per pixel*), if available.
   - **Table name convention:** `<sat_data_id>_<band>` / `<sat_data_id>_<band>_<range>`
   - **Example table name:** `3ed72523-fa4c-447b-b5db-19020d17a7ce_b02_r10m`
 
-### PostGIS Admin UI
+## PostGIS Admin UI
 A PostGIS Admin container `dews-db-gui` is started parallely to provide a graphical overview over the database.
    - Visit [http://0.0.0.0:5050/](http://0.0.0.0:5050/) to see the [PostGIS Admin](http://0.0.0.0:5050/) overview.
    - Use `dews@dews.de:dews` as credentials.
 
 
-## QGIS
-### Import bands/raster from DEWS-DH into QGIS
+# QGIS
+## Import bands/raster from DEWS-DH into QGIS
 1. Visit the ["DEWS DataHub - Dashboard"](http://0.0.0.0/sat_data/overview/) view.
 2. Select a satellite data entry whose bands/raster you want to import into QGIS.
 3. Scroll down to the section `Band Tables`.
@@ -213,8 +240,8 @@ A PostGIS Admin container `dews-db-gui` is started parallely to provide a graphi
 10. You can use the `Search options` option in the bottom and copy the copied table name <u><b>or</b></u> search the table manually.   
     - **INFO:** All tables are located in the `public` schema!
 
-## Supported satellite data sources
-### Copernicus Browser (Dataspace Copernicus)
+# Supported satellite data sources
+## Copernicus Browser (Dataspace Copernicus)
 - **Link:** [Copernicus Browser](https://browser.dataspace.copernicus.eu/)
   
 | Satellite Type | Instrument | Data Level      | Archive Naming Convention             | Support Status | Additional Info                                                                    |
