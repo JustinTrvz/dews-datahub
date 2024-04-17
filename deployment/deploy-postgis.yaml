@@ -2,46 +2,56 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: dews-db
+  namespace: dews
+  labels:
+    service: dews-db
 spec:
-  replicas: 1
   selector:
     matchLabels:
-      app: dews-db
+      service: dews-db
   template:
     metadata:
       labels:
-        app: dews-db
+        service: dews-db
     spec:
       containers:
-      - name: dews-db
-        image: postgis/postgis:latest
-        env:
-        - name: POSTGRES_DB
-          value: "dews"
-        - name: POSTGRES_USER
-          value: "dews"
-        - name: POSTGRES_PASSWORD
-          value: "dews"
-        - name: PGDATA
-          value: "/var/lib/postgresql/data/pgdata"
+      - image: git.haw-hamburg.de:5000/wja999/dews-db
+        name: dews-db
         ports:
-        - containerPort: 5432
+          - containerPort: 5432
+            protocol: TCP
         volumeMounts:
         - name: db-data-volume
           mountPath: /var/lib/postgresql/data
+        env:
+          - name: POSTGRES_DB
+            value: "dews"
+          - name: POSTGRES_USER
+            value: "dews"
+          - name: POSTGRES_PASSWORD
+            value: "dews"
+          - name: PGDATA
+            value: "/var/lib/postgresql/data/pgdata"
       volumes:
       - name: db-data-volume
         persistentVolumeClaim:
           claimName: db-data-pvc
+      imagePullSecrets:
+        - name: dews-98-secret
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: dews-db
+  namespace: dews
+  labels:
+    service: dews-db
 spec:
-  selector:
-    app: dews-db
   ports:
-    - protocol: TCP
+    - name: http
+      protocol: TCP
       port: 5432
       targetPort: 5432
+  selector:
+    service: dews-db
+  type: ClusterIP

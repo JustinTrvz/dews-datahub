@@ -2,21 +2,24 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: dews-nginx
+  namespace: dews
+  labels:
+    service: dews-nginx
 spec:
-  replicas: 1
   selector:
     matchLabels:
-      app: dews-nginx
+      service: dews-nginx
   template:
     metadata:
       labels:
-        app: dews-nginx
+        service: dews-nginx
     spec:
       containers:
-      - name: dews-nginx
-        image: nginx:latest # Ensure you have the correct image
+      - image: git.haw-hamburg.de:5000/wja999/dews-nginx
+        name: dews-nginx
         ports:
         - containerPort: 80
+          protocol: TCP
         volumeMounts:
         - name: static-volume
           mountPath: /static
@@ -29,16 +32,22 @@ spec:
       - name: media-volume
         persistentVolumeClaim:
           claimName: media-pvc
+      imagePullSecrets:
+        - name: dews-98-secret
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: dews-nginx
+  namespace: dews
+  labels:
+    service: dews-nginx
 spec:
-  selector:
-    app: dews-nginx
   ports:
-    - protocol: TCP
+    - name: http
+      protocol: TCP
       port: 80
       targetPort: 80
+  selector:
+    service: dews-nginx
   type: LoadBalancer
