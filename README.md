@@ -30,6 +30,12 @@ DEWS's DataHub was made to import satellite data images from archives downloaded
 
 The satellite mission, product type, thumbnail, etc. will be automatically recognized and displayed in a new entry in the [SatData overview tab](http://0.0.0.0/sat_data/overview/). When the archive contains satellite images that are raster compatible they will be converted into rasters and imported into the PostGIS database (*located at [0.0.0.0:5432](http://0.0.0.0:5432)*).
 
+**Overview**<br>
+![](docs/imgs/overview.png)
+
+**Satellite data details**<br>
+![](docs/imgs/sat_data_details.png)
+
 ## Environment
 - **Frontend:** HTML, CSS, JS (*realized with Django Template Language*)
 - **Backend:** Python + Django Framework

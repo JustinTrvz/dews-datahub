@@ -26,9 +26,9 @@ from sat_data.services.attr_adder import AttrAdder
 from sat_data.services.metrics_calc import MetricsCalculator
 from sat_data.services.sentinel_hub import request_sat_data
 from dews.settings import MEDIA_ROOT, VERSION, ARCHIVE_FILES_PATH
-from sentinelhub import SentinelHubRequest
 from django.db import connection
 import shutil
+from werkzeug.utils import secure_filename
 
 logger = logging.getLogger("django")
 
@@ -240,8 +240,11 @@ def sat_data_create_view(request):
             if not archive:
                 return HttpResponseBadRequest("Archive file is required.")
 
+            # Validate and sanitize the filename
+            filename = secure_filename(archive.name)
+
             # Write archive to file system
-            archive_path = ARCHIVE_FILES_PATH / archive.name
+            archive_path = ARCHIVE_FILES_PATH / filename
             if not os.path.exists(archive_path):
                 # Archive does not exist
                 logger.info(
@@ -278,7 +281,7 @@ def sat_data_create_view(request):
                 return render(request, "sat_data_create_view.html", context)
 
             # Upload done
-            success_msg = f"Upload done! Work in progress... archive='{archive.name}'"
+            success_msg = f"Upload done! Work in progress... archive='{filename}'"
             context["success"] = success_msg
             logger.debug(
                 f"Render 'sat_data_create_view.html' with success message: '{success_msg}'.")
