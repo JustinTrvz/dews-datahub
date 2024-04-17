@@ -8,7 +8,7 @@ services:
       context: .
     working_dir: /app/dews
     volumes:
-      - ./dews/:/app/dews/ # for development purposes
+      # - ./dews/:/app/dews/ # ATTENTION: only in development - mirrors local files to container
       - static:/dews/static # "static" is a Docker volume
       - ./media:/dews/media # "media" is a Docker volume (TODO: remove "./" in production)
     env_file:
@@ -25,7 +25,7 @@ services:
     build: ./nginx
     volumes: 
       - static:/static # "static" is a Docker volume
-      - ./media:/media # "media" is a Docker volume (TODO: remove "./" in production)
+      - media:/media # "media" is a Docker volume
     ports:
       - "80:80"
     depends_on:
@@ -58,4 +58,4 @@ services:
 
 volumes:
   static:
-#  media: # TODO: uncomment in production/comment in development
+  media:

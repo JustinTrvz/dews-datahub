@@ -216,7 +216,7 @@ USE_TZ = True
 STATIC_ROOT = "/dews/static/"
 STATIC_URL = "/dews/static/"
 STATICFILES_DIRS = [
-    BASE_DIR / "static"  # dews/static
+    BASE_DIR / "static_files"  # dews/dews/static_files
 ]
 
 # Media files (Videos, Images, ...)

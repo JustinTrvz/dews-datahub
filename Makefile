@@ -2,7 +2,7 @@ VENV_NAME := django-venv
 PYTHON := dews/$(VENV_NAME)/bin/python
 PIP := dews/$(VENV_NAME)/bin/pip
 
-.PHONY: all venv requirements api main clean
+.PHONY: all venv requirements setup run
 
 # Help text
 help:
@@ -30,7 +30,6 @@ run: venv
 
 
 # Docker
-
 docker-build:
 	sudo docker-compose up --build --force-recreate
 
@@ -57,23 +56,5 @@ docker-rm-cache:
 
 docker-rm-all: docker-rm-container docker-rm-images docker-rm-cache
 	@echo "Removed all Docker container, images and cache."
-
-
-init-db:
-	sudo docker-compose exec dews flask init-db
-
-drop-db:
-	sudo docker-compose exec dews flask drop-db
-
-
-# api: venv
-# 	@echo "Activating virtual environment and running api.py..."
-# 	@export PYTHONPATH=$$PYTHONPATH:$(PWD)/backend; \
-# 	$(PYTHON) backend/api/api.py
-
-
-# clean:
-# 	@echo "Cleaning up..."
-# 	cd backend && rm -rf $(VENV_NAME) __pycache__
 
 

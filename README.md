@@ -147,7 +147,7 @@ This is the easiest and fastest way to create new satellite date entries on the 
 5. **OPTIONAL:** Select the metrics to calculate.
 6. Select the desired bands.
    1. Not needed if metrics were already selected because the selection is linked between the metrics and the bands. 
-   2. *Example:* If you click on "NDVI" the bands "B04" and "B08" are automatically selected.<br> ![Metrics and Bands](docs/metrics_bands.png)
+   2. *Example:* If you click on "NDVI" the bands "B04" and "B08" are automatically selected.<br> ![Metrics and Bands](docs/imgs/metrics_bands.png)
    3. If a metric is selected and you need more bands, you still can add more bands by clicking the check boxes.
    4. A metric can not be calculated if you uncheck a automatically checked check box.
 7. Choose the time range of your desire.
@@ -158,7 +158,7 @@ This is the easiest and fastest way to create new satellite date entries on the 
    2. Select a bounding box which is smaller than 2500px * 2500px. This restriction is made by the Sentinel Hub API.
       1. If your bounding box is too big, the system will tell you.
       2. Then click on the "Edit" icon and rearrange your bounding box <u><b>or</b></u> click the "Trash" icon and delete the bounding box.
-   3. *Example:*<br>![Bounding Box Selection](docs/bb_selection.png)
+   3. *Example:*<br>![Bounding Box Selection](docs/imgs/bb_selection.png)
 9. Submit the form.
 
 # DataHub Web App
@@ -194,12 +194,12 @@ For example to calculate the NDVI (Normalized Difference Vegetation Index), whic
 The `.tiff` or `.jp2` files are loaded as datasets using the Python library `rasterio`. After that the mathematical equation $\frac{(NIR-Red)}{(NIR-Red)}/$ is applied and the result is turned into a plot image (*see Code: `dews/sat_data/services/metrics_calc.py`*). This procedure is applied for all indices that can be calculated.
 
 Example of NDVI image:<br>
-<img src="docs/ndvi.png" alt="NDVI" width="500"/>
+<img src="docs/imgs/ndvi.png" alt="NDVI" width="500"/>
 
 Since the Sentinel Hub API does not return a RGB image, it must be calculated by the system. In the context of the DEWS-DH RGB is considered as an index, too.
 
 Example of RGB image:<br>
-<img src="docs/rgb.png" alt="RGB" width="500"/>
+<img src="docs/imgs/rgb.png" alt="RGB" width="500"/>
 
 In the future development the result should be saved as `.tiff` or `.jp2` file.
 
