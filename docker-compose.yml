@@ -45,16 +45,6 @@ services:
       - ./db.sql:/docker-entrypoint-initdb.d/db.sql
       - ./pgdata:/var/lib/postgresql/datar
 
-  dews-db-gui:
-    image: dpage/pgadmin4:latest
-    environment:
-      PGADMIN_DEFAULT_EMAIL: dews@dews.de
-      PGADMIN_DEFAULT_PASSWORD: dews
-    ports:
-      - 5050:80
-    depends_on:
-      - dews-db
-
 
 volumes:
   static:

@@ -19,7 +19,6 @@
   - [Satellite data aggregation](#satellite-data-aggregation)
 - [PostGIS](#postgis)
   - [PostGIS database](#postgis-database)
-  - [PostGIS Admin UI](#postgis-admin-ui)
 - [QGIS](#qgis)
   - [Import bands/raster from DEWS-DH into QGIS](#import-bandsraster-from-dews-dh-into-qgis)
 - [Supported satellite data sources](#supported-satellite-data-sources)
@@ -222,11 +221,6 @@ In a TimeTravel entry you can see the observed area with details about the relat
   - The name consists of the sat data id, the band (*e.g. B04 which stands for the red band*) and the range (*meters per pixel*), if available.
   - **Table name convention:** `<sat_data_id>_<band>` / `<sat_data_id>_<band>_<range>`
   - **Example table name:** `3ed72523-fa4c-447b-b5db-19020d17a7ce_b02_r10m`
-
-## PostGIS Admin UI
-A PostGIS Admin container `dews-db-gui` is started parallely to provide a graphical overview over the database.
-   - Visit [http://0.0.0.0:5050/](http://0.0.0.0:5050/) to see the [PostGIS Admin](http://0.0.0.0:5050/) overview.
-   - Use `dews@dews.de:dews` as credentials.
 
 
 # QGIS
